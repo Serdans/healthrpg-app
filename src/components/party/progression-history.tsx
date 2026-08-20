@@ -38,7 +38,13 @@ export function ProgressionHistory({ partyId }: { partyId: string }) {
 	if (progressionQuery.isPending && items.length === 0) return <LoadingState label="Reading the party chronicle…" />;
 	if (progressionQuery.isError && items.length === 0)
 		return (
-			<ErrorNotice message={progressionQuery.error.message} onRetry={() => void progressionQuery.refetch()} retryLabel="Retry chronicle" />
+			<ErrorNotice
+				error={progressionQuery.error}
+				message={progressionQuery.error.message}
+				onRetry={() => void progressionQuery.refetch()}
+				retrying={progressionQuery.isFetching}
+				retryLabel="Retry chronicle"
+			/>
 		);
 
 	const nextCursor = progressionQuery.data?.nextCursor ?? null;
@@ -83,8 +89,10 @@ export function ProgressionHistory({ partyId }: { partyId: string }) {
 				)}
 				{progressionQuery.isError && items.length > 0 && (
 					<ErrorNotice
+						error={progressionQuery.error}
 						message={progressionQuery.error.message}
 						onRetry={() => void progressionQuery.refetch()}
+						retrying={progressionQuery.isFetching}
 						retryLabel="Retry chronicle"
 					/>
 				)}

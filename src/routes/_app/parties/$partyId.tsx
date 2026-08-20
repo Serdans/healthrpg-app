@@ -27,7 +27,10 @@ import {
 } from '#/lib/queries';
 import { isPartyReadOnly } from '#/lib/party-state';
 
-export const Route = createFileRoute('/_app/parties/$partyId')({ component: PartyDashboard });
+export const Route = createFileRoute('/_app/parties/$partyId')({
+	head: () => ({ meta: [{ title: 'Party dashboard · HealthRPG' }] }),
+	component: PartyDashboard,
+});
 
 function PartyDashboard() {
 	const { partyId } = Route.useParams();
@@ -39,10 +42,11 @@ function PartyDashboard() {
 	const currentNodeType = partyQuery.data?.currentNode.nodeType;
 	const isCombat = currentNodeType === 'combat';
 	const isVillage = currentNodeType === 'village';
+	const villageEnabled = isVillage && partyQuery.data?.status === 'active';
 	const eventEnabled = Boolean(partyQuery.data && ['narrative', 'treasure', 'rest'].includes(currentNodeType ?? ''));
 	const eventQuery = usePartyEvent(partyId, eventEnabled);
 	const encounterQuery = useEncounter(partyId, isCombat);
-	const villageQuery = useVillage(partyId, isVillage);
+	const villageQuery = useVillage(partyId, villageEnabled);
 	const mapEdges = mapQuery.data?.edges.filter((edge) => edge.fromNodeId === mapQuery.data.currentNodeId) ?? [];
 	const votesEnabled =
 		Boolean(partyQuery.data) &&
@@ -60,22 +64,60 @@ function PartyDashboard() {
 		dailyQuery.isPending ||
 		(eventEnabled && eventQuery.isPending) ||
 		(isCombat && encounterQuery.isPending) ||
-		(isVillage && villageQuery.isPending) ||
+		(villageEnabled && villageQuery.isPending) ||
 		(votesEnabled && votesQuery.isPending)
 	)
 		return <LoadingState label="Mapping the party trail…" />;
 	if (partyQuery.isError)
-		return <ErrorNotice message={partyQuery.error.message} onRetry={() => void partyQuery.refetch()} retryLabel="Retry party" />;
+		return (
+			<ErrorNotice
+				error={partyQuery.error}
+				message={partyQuery.error.message}
+				onRetry={() => void partyQuery.refetch()}
+				retrying={partyQuery.isFetching}
+				retryLabel="Retry party"
+			/>
+		);
 	if (mapQuery.isError)
-		return <ErrorNotice message={mapQuery.error.message} onRetry={() => void mapQuery.refetch()} retryLabel="Retry map" />;
+		return (
+			<ErrorNotice
+				error={mapQuery.error}
+				message={mapQuery.error.message}
+				onRetry={() => void mapQuery.refetch()}
+				retrying={mapQuery.isFetching}
+				retryLabel="Retry map"
+			/>
+		);
 	if (dailyQuery.isError)
-		return <ErrorNotice message={dailyQuery.error.message} onRetry={() => void dailyQuery.refetch()} retryLabel="Retry daily progress" />;
+		return (
+			<ErrorNotice
+				error={dailyQuery.error}
+				message={dailyQuery.error.message}
+				onRetry={() => void dailyQuery.refetch()}
+				retrying={dailyQuery.isFetching}
+				retryLabel="Retry daily progress"
+			/>
+		);
 	if (isCombat && encounterQuery.isError)
 		return (
-			<ErrorNotice message={encounterQuery.error.message} onRetry={() => void encounterQuery.refetch()} retryLabel="Retry encounter" />
+			<ErrorNotice
+				error={encounterQuery.error}
+				message={encounterQuery.error.message}
+				onRetry={() => void encounterQuery.refetch()}
+				retrying={encounterQuery.isFetching}
+				retryLabel="Retry encounter"
+			/>
 		);
-	if (isVillage && villageQuery.isError)
-		return <ErrorNotice message={villageQuery.error.message} onRetry={() => void villageQuery.refetch()} retryLabel="Retry village" />;
+	if (villageEnabled && villageQuery.isError)
+		return (
+			<ErrorNotice
+				error={villageQuery.error}
+				message={villageQuery.error.message}
+				onRetry={() => void villageQuery.refetch()}
+				retrying={villageQuery.isFetching}
+				retryLabel="Retry village"
+			/>
+		);
 
 	const party = partyQuery.data;
 	const map = mapQuery.data;
@@ -172,7 +214,7 @@ function PartyDashboard() {
 				</section>
 			)}
 
-			{isVillage && villageQuery.data && (
+			{villageEnabled && villageQuery.data && (
 				<section>
 					<VillagePanel
 						partyId={partyId}
@@ -183,9 +225,27 @@ function PartyDashboard() {
 				</section>
 			)}
 
+			{isVillage && readOnly && (
+				<section>
+					<Card>
+						<CardHeader>
+							<Badge>Village closed</Badge>
+							<CardTitle className="mt-3 text-2xl">The market is part of the trail’s history.</CardTitle>
+							<CardDescription>{party.currentNode.name} is no longer accepting purchases or departure votes.</CardDescription>
+						</CardHeader>
+					</Card>
+				</section>
+			)}
+
 			{eventEnabled && eventQuery.isError && (
 				<section>
-					<ErrorNotice message={eventQuery.error.message} onRetry={() => void eventQuery.refetch()} retryLabel="Retry event" />
+					<ErrorNotice
+						error={eventQuery.error}
+						message={eventQuery.error.message}
+						onRetry={() => void eventQuery.refetch()}
+						retrying={eventQuery.isFetching}
+						retryLabel="Retry event"
+					/>
 				</section>
 			)}
 
@@ -199,7 +259,13 @@ function PartyDashboard() {
 						<Clock3 className="size-5 text-[var(--gold-deep)]" />
 					</div>
 					{votesQuery.isError ? (
-						<ErrorNotice message={votesQuery.error.message} onRetry={() => void votesQuery.refetch()} retryLabel="Retry vote details" />
+						<ErrorNotice
+							error={votesQuery.error}
+							message={votesQuery.error.message}
+							onRetry={() => void votesQuery.refetch()}
+							retrying={votesQuery.isFetching}
+							retryLabel="Retry vote details"
+						/>
 					) : (
 						<BranchDecision
 							map={map}

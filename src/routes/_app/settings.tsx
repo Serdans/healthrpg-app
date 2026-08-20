@@ -1,18 +1,23 @@
 import { useEffect, useRef, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { useForm } from '@tanstack/react-form';
 import { Check, Cloud, RefreshCw, Settings2 } from 'lucide-react';
-import type { FormEvent } from 'react';
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
+import { FieldError } from '#/components/ui/field-error';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
 import { formatDateTime } from '#/lib/dates';
 import { useHealthStatus, useMe, useSyncHealth, useUpdatePreferences } from '#/lib/queries';
+import { timezoneFormSchema, timezoneSchema } from '#/lib/validation';
 
-export const Route = createFileRoute('/_app/settings')({ component: SettingsPage });
+export const Route = createFileRoute('/_app/settings')({
+	head: () => ({ meta: [{ title: 'Settings · HealthRPG' }] }),
+	component: SettingsPage,
+});
 
 function SettingsPage() {
 	const meQuery = useMe();
@@ -21,12 +26,22 @@ function SettingsPage() {
 	const healthQuery = useHealthStatus(syncPolling ? 5_000 : false);
 	const syncMutation = useSyncHealth();
 	const preferencesMutation = useUpdatePreferences();
-	const [timezone, setTimezone] = useState('UTC');
 	const [saved, setSaved] = useState(false);
+	const preferencesForm = useForm({
+		defaultValues: { timezone: 'UTC' },
+		validators: { onSubmit: timezoneFormSchema },
+		onSubmit: async ({ value }) => {
+			setSaved(false);
+			await preferencesMutation.mutateAsync(value.timezone.trim());
+			setSaved(true);
+		},
+	});
 
 	useEffect(() => {
-		if (meQuery.data) setTimezone(meQuery.data.timezone);
-	}, [meQuery.data]);
+		if (meQuery.data && !preferencesForm.state.isDirty) {
+			preferencesForm.reset({ timezone: meQuery.data.timezone });
+		}
+	}, [meQuery.data, preferencesForm]);
 
 	useEffect(() => {
 		if (!syncPolling) return;
@@ -49,9 +64,25 @@ function SettingsPage() {
 
 	if (meQuery.isPending || healthQuery.isPending) return <LoadingState label="Checking your expedition settings…" />;
 	if (meQuery.isError)
-		return <ErrorNotice message={meQuery.error.message} onRetry={() => void meQuery.refetch()} retryLabel="Retry profile" />;
+		return (
+			<ErrorNotice
+				error={meQuery.error}
+				message={meQuery.error.message}
+				onRetry={() => void meQuery.refetch()}
+				retrying={meQuery.isFetching}
+				retryLabel="Retry profile"
+			/>
+		);
 	if (healthQuery.isError)
-		return <ErrorNotice message={healthQuery.error.message} onRetry={() => void healthQuery.refetch()} retryLabel="Retry health status" />;
+		return (
+			<ErrorNotice
+				error={healthQuery.error}
+				message={healthQuery.error.message}
+				onRetry={() => void healthQuery.refetch()}
+				retrying={healthQuery.isFetching}
+				retryLabel="Retry health status"
+			/>
+		);
 
 	const health = healthQuery.data;
 	const isConnected = health.status === 'active';
@@ -70,12 +101,6 @@ function SettingsPage() {
 		);
 	};
 
-	const savePreferences = (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault();
-		setSaved(false);
-		preferencesMutation.mutate(timezone.trim(), { onSuccess: () => setSaved(true) });
-	};
-
 	return (
 		<div className="space-y-8">
 			<div>
@@ -86,7 +111,7 @@ function SettingsPage() {
 				</p>
 			</div>
 
-			{syncError && <ErrorNotice message={syncError.message} />}
+			{syncError && <ErrorNotice error={syncError} message={syncError.message} />}
 
 			<section className="grid gap-5 lg:grid-cols-2">
 				<Card>
@@ -164,15 +189,57 @@ function SettingsPage() {
 						<CardDescription>Use an IANA timezone such as America/Los_Angeles or Europe/London.</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<form className="space-y-4" onSubmit={savePreferences}>
-							<div>
-								<Label htmlFor="timezone">Timezone</Label>
-								<Input id="timezone" value={timezone} maxLength={64} onChange={(event) => setTimezone(event.target.value)} />
-							</div>
-							<Button type="submit" disabled={!timezone.trim() || preferencesMutation.isPending}>
-								{saved ? <Check className="size-4" /> : <Settings2 className="size-4" />}
-								{preferencesMutation.isPending ? 'Saving…' : saved ? 'Saved' : 'Save timezone'}
-							</Button>
+						<form
+							className="space-y-4"
+							onSubmit={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								void preferencesForm.handleSubmit();
+							}}
+						>
+							<preferencesForm.Field name="timezone" validators={{ onBlur: timezoneSchema }}>
+								{(field) => {
+									const errorId = 'timezone-error';
+									const hasError = field.state.meta.errors.length > 0;
+									return (
+										<div>
+											<Label htmlFor="timezone">Timezone</Label>
+											<Input
+												id="timezone"
+												value={field.state.value}
+												maxLength={64}
+												aria-invalid={hasError}
+												aria-describedby={hasError ? errorId : undefined}
+												onBlur={field.handleBlur}
+												onChange={(event) => {
+													setSaved(false);
+													preferencesMutation.reset();
+													field.handleChange(event.target.value);
+												}}
+											/>
+											<FieldError id={errorId} errors={field.state.meta.errors} />
+										</div>
+									);
+								}}
+							</preferencesForm.Field>
+							<preferencesForm.Subscribe
+								selector={(state) => ({
+									canSubmit: state.canSubmit,
+									isSubmitting: state.isSubmitting,
+									timezone: state.values.timezone,
+								})}
+							>
+								{({ canSubmit, isSubmitting, timezone }) => (
+									<Button
+										type="submit"
+										disabled={!timezone.trim() || !canSubmit || isSubmitting || preferencesMutation.isPending}
+										aria-busy={isSubmitting || preferencesMutation.isPending}
+									>
+										{saved ? <Check className="size-4" /> : <Settings2 className="size-4" />}
+										{isSubmitting || preferencesMutation.isPending ? 'Saving…' : saved ? 'Saved' : 'Save timezone'}
+									</Button>
+								)}
+							</preferencesForm.Subscribe>
 						</form>
 					</CardContent>
 				</Card>

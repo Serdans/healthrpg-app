@@ -1,4 +1,8 @@
 import { AlertCircle, LoaderCircle } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import type { ReactNode } from 'react';
+
+import { ApiError } from '#/lib/api';
 
 export function LoadingState({ label = 'Reading the trail…' }: { label?: string }) {
 	return (
@@ -10,13 +14,32 @@ export function LoadingState({ label = 'Reading the trail…' }: { label?: strin
 
 export function ErrorNotice({
 	message = 'Something interrupted the expedition.',
+	error,
 	onRetry,
 	retryLabel = 'Try again',
+	retrying = false,
+	action,
 }: {
 	message?: string;
+	error?: unknown;
 	onRetry?: () => void;
 	retryLabel?: string;
+	retrying?: boolean;
+	action?: ReactNode;
 }) {
+	const recoveryAction =
+		action ??
+		(error instanceof ApiError && error.status === 401 ? (
+			<Link
+				to="/auth/google/start"
+				reloadDocument
+				preload={false}
+				className="font-extrabold text-[var(--danger)] underline underline-offset-2"
+			>
+				Sign in again
+			</Link>
+		) : null);
+
 	return (
 		<div
 			role="alert"
@@ -25,14 +48,21 @@ export function ErrorNotice({
 			<AlertCircle className="mt-0.5 size-5 shrink-0" />
 			<div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3">
 				<p>{message}</p>
-				{onRetry && (
-					<button
-						type="button"
-						className="rounded-lg border border-current px-3 py-1.5 text-xs font-extrabold hover:bg-[color-mix(in_srgb,var(--danger)_8%,transparent)]"
-						onClick={onRetry}
-					>
-						{retryLabel}
-					</button>
+				{(onRetry || recoveryAction) && (
+					<div className="flex shrink-0 flex-wrap items-center gap-3">
+						{recoveryAction}
+						{onRetry && (
+							<button
+								type="button"
+								className="rounded-lg border border-current px-3 py-1.5 text-xs font-extrabold hover:bg-[color-mix(in_srgb,var(--danger)_8%,transparent)]"
+								onClick={onRetry}
+								disabled={retrying}
+								aria-busy={retrying}
+							>
+								{retrying ? `${retryLabel}…` : retryLabel}
+							</button>
+						)}
+					</div>
 				)}
 			</div>
 		</div>

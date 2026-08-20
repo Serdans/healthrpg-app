@@ -10,7 +10,10 @@ import { LabelledSelect } from '#/components/ui/select-field';
 import type { EquipmentSlot } from '#/lib/api';
 import { useEquipLoadout, useInventory, useLoadout, useUnequipLoadout } from '#/lib/queries';
 
-export const Route = createFileRoute('/_app/inventory')({ component: InventoryPage });
+export const Route = createFileRoute('/_app/inventory')({
+	head: () => ({ meta: [{ title: 'Kit · HealthRPG' }] }),
+	component: InventoryPage,
+});
 
 const slots: EquipmentSlot[] = ['weapon', 'armor', 'accessory'];
 const slotLabels: Record<EquipmentSlot, string> = {
@@ -29,10 +32,24 @@ function InventoryPage() {
 	if (inventoryQuery.isPending || loadoutQuery.isPending) return <LoadingState label="Opening your satchel…" />;
 	if (inventoryQuery.isError)
 		return (
-			<ErrorNotice message={inventoryQuery.error.message} onRetry={() => void inventoryQuery.refetch()} retryLabel="Retry inventory" />
+			<ErrorNotice
+				error={inventoryQuery.error}
+				message={inventoryQuery.error.message}
+				onRetry={() => void inventoryQuery.refetch()}
+				retrying={inventoryQuery.isFetching}
+				retryLabel="Retry inventory"
+			/>
 		);
 	if (loadoutQuery.isError)
-		return <ErrorNotice message={loadoutQuery.error.message} onRetry={() => void loadoutQuery.refetch()} retryLabel="Retry loadout" />;
+		return (
+			<ErrorNotice
+				error={loadoutQuery.error}
+				message={loadoutQuery.error.message}
+				onRetry={() => void loadoutQuery.refetch()}
+				retrying={loadoutQuery.isFetching}
+				retryLabel="Retry loadout"
+			/>
+		);
 
 	const inventory = inventoryQuery.data;
 	const loadout = loadoutQuery.data;
@@ -48,7 +65,7 @@ function InventoryPage() {
 				</p>
 			</div>
 
-			{mutationError && <ErrorNotice message={mutationError.message} />}
+			{mutationError && <ErrorNotice error={mutationError} message={mutationError.message} />}
 
 			<section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
 				<Card>

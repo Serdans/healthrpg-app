@@ -60,7 +60,7 @@ export function EventDecision({
 			</CardContent>
 			{mutation.isError && (
 				<div className="px-7 pb-7">
-					<ErrorNotice message={mutation.error.message} />
+					<ErrorNotice error={mutation.error} message={mutation.error.message} />
 				</div>
 			)}
 		</Card>

@@ -5,9 +5,11 @@ import { ErrorNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
+import { FieldError } from '#/components/ui/field-error';
 import type { Village } from '#/lib/api';
 import { formatDateTime, formatTimeRemaining } from '#/lib/dates';
 import { usePurchaseVillage, useStartVillageDeparture } from '#/lib/queries';
+import { purchaseQuantitySchema } from '#/lib/validation';
 
 export function VillagePanel({
 	partyId,
@@ -22,12 +24,13 @@ export function VillagePanel({
 }) {
 	const purchaseMutation = usePurchaseVillage(partyId);
 	const departureMutation = useStartVillageDeparture(partyId);
-	const [quantities, setQuantities] = useState<Record<string, number>>({});
+	const [quantities, setQuantities] = useState<Record<string, string>>({});
+	const [quantityErrors, setQuantityErrors] = useState<Record<string, string | undefined>>({});
 
 	const mutationError = purchaseMutation.error ?? departureMutation.error;
 	const setQuantity = (key: string, value: string) => {
-		const parsed = Number(value);
-		setQuantities((current) => ({ ...current, [key]: Number.isFinite(parsed) ? Math.max(1, Math.min(99, Math.floor(parsed))) : 1 }));
+		setQuantities((current) => ({ ...current, [key]: value }));
+		setQuantityErrors((current) => ({ ...current, [key]: undefined }));
 	};
 
 	return (
@@ -37,7 +40,7 @@ export function VillagePanel({
 					This expedition is no longer active. Village details are available to view, but purchases and departure are closed.
 				</p>
 			)}
-			{mutationError && <ErrorNotice message={mutationError.message} />}
+			{mutationError && <ErrorNotice error={mutationError} message={mutationError.message} />}
 			<Card>
 				<CardHeader>
 					<div className="flex items-start justify-between gap-4">
@@ -73,7 +76,11 @@ export function VillagePanel({
 
 					<div className="grid gap-3 md:grid-cols-2">
 						{village.offers.map((offer) => {
-							const quantity = quantities[offer.key] ?? 1;
+							const quantityInput = quantities[offer.key] ?? '1';
+							const quantityResult = purchaseQuantitySchema.safeParse(quantityInput);
+							const quantity = quantityResult.success ? quantityResult.data : 1;
+							const quantityError = quantityErrors[offer.key];
+							const quantityErrorId = `${offer.key}-quantity-error`;
 							return (
 								<div key={offer.key} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
 									<div className="flex items-start justify-between gap-3">
@@ -91,11 +98,14 @@ export function VillagePanel({
 												className="mt-2 h-11 w-full rounded-xl border border-[var(--line-strong)] bg-[var(--surface-strong)] px-3 font-mono text-[var(--indigo)] outline-none focus:border-[var(--gold)]"
 												type="number"
 												min={1}
-												max={99}
+												max={offer.kind === 'equipment' ? 1 : 99}
 												disabled={readOnly}
-												value={quantity}
+												value={quantityInput}
+												aria-invalid={Boolean(quantityError)}
+												aria-describedby={quantityError ? quantityErrorId : undefined}
 												onChange={(event) => setQuantity(offer.key, event.target.value)}
 											/>
+											<FieldError id={quantityErrorId} errors={quantityError ? [quantityError] : []} />
 										</label>
 										<div className="pb-1 text-right">
 											<p className="font-mono text-sm text-[var(--gold-deep)]">{offer.unitPrice} each</p>
@@ -105,7 +115,20 @@ export function VillagePanel({
 									<Button
 										className="mt-3 w-full"
 										disabled={readOnly || purchaseMutation.isPending}
-										onClick={() => purchaseMutation.mutate({ catalogKey: offer.key, quantity })}
+										onClick={() => {
+											if (!quantityResult.success) {
+												setQuantityErrors((current) => ({
+													...current,
+													[offer.key]: quantityResult.error.issues[0]?.message ?? 'Enter a valid quantity.',
+												}));
+												return;
+											}
+											if (offer.kind === 'equipment' && quantityResult.data !== 1) {
+												setQuantityErrors((current) => ({ ...current, [offer.key]: 'Equipment can only be purchased one at a time.' }));
+												return;
+											}
+											purchaseMutation.mutate({ catalogKey: offer.key, quantity: quantityResult.data });
+										}}
 									>
 										{purchaseMutation.isPending ? 'Purchasing…' : 'Purchase'}
 									</Button>

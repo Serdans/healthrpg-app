@@ -1,17 +1,23 @@
 import { useState } from 'react';
 import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { useForm } from '@tanstack/react-form';
 import { ArrowUpRight, Copy, Plus, UsersRound } from 'lucide-react';
 
 import { EmptyState, ErrorNotice, LoadingState } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
+import { FieldError } from '#/components/ui/field-error';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
 import type { Party } from '#/lib/api';
 import { useCreateParty, useJoinParty, useParties } from '#/lib/queries';
+import { inviteTokenFormSchema, inviteTokenSchema, partyNameFormSchema, partyNameSchema } from '#/lib/validation';
 
-export const Route = createFileRoute('/_app/parties')({ component: PartiesPage });
+export const Route = createFileRoute('/_app/parties')({
+	head: () => ({ meta: [{ title: 'Parties · HealthRPG' }] }),
+	component: PartiesPage,
+});
 
 function PartiesPage() {
 	const pathname = useLocation({ select: (location) => location.pathname });
@@ -26,14 +32,35 @@ function PartiesIndex() {
 	const createMutation = useCreateParty();
 	const joinMutation = useJoinParty();
 	const navigate = useNavigate();
-	const [partyName, setPartyName] = useState('');
-	const [inviteToken, setInviteToken] = useState('');
+	const navigateToParty = async (party: Party) => {
+		await navigate({ to: '/parties/$partyId', params: { partyId: party.id } });
+	};
+	const createForm = useForm({
+		defaultValues: { name: '' },
+		validators: { onSubmit: partyNameFormSchema },
+		onSubmit: async ({ value }) => {
+			await navigateToParty(await createMutation.mutateAsync(value.name.trim()));
+		},
+	});
+	const joinForm = useForm({
+		defaultValues: { inviteToken: '' },
+		validators: { onSubmit: inviteTokenFormSchema },
+		onSubmit: async ({ value }) => {
+			await navigateToParty(await joinMutation.mutateAsync(value.inviteToken.trim()));
+		},
+	});
 
 	if (partiesQuery.isPending) return <LoadingState label="Finding your parties…" />;
 	if (partiesQuery.isError)
-		return <ErrorNotice message={partiesQuery.error.message} onRetry={() => void partiesQuery.refetch()} retryLabel="Retry parties" />;
-
-	const navigateToParty = (party: Party) => void navigate({ to: '/parties/$partyId', params: { partyId: party.id } });
+		return (
+			<ErrorNotice
+				error={partiesQuery.error}
+				message={partiesQuery.error.message}
+				onRetry={() => void partiesQuery.refetch()}
+				retrying={partiesQuery.isFetching}
+				retryLabel="Retry parties"
+			/>
+		);
 
 	return (
 		<div className="space-y-8">
@@ -60,22 +87,59 @@ function PartiesIndex() {
 						<CardDescription>Give your trail a name. The first party creates the world’s trailhead.</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<Label htmlFor="party-name">Party name</Label>
-						<Input
-							id="party-name"
-							value={partyName}
-							maxLength={80}
-							placeholder="e.g. Sunday Wayfarers"
-							onChange={(event) => setPartyName(event.target.value)}
-						/>
-						<Button
-							className="w-full"
-							disabled={!partyName.trim() || createMutation.isPending}
-							onClick={() => createMutation.mutate(partyName.trim(), { onSuccess: navigateToParty })}
+						<form
+							className="space-y-4"
+							onSubmit={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								void createForm.handleSubmit();
+							}}
 						>
-							Create party <ArrowUpRight className="size-4" />
-						</Button>
-						{createMutation.isError && <ErrorNotice message={createMutation.error.message} />}
+							<createForm.Field name="name" validators={{ onBlur: partyNameSchema }}>
+								{(field) => {
+									const errorId = 'party-name-error';
+									const hasError = field.state.meta.errors.length > 0;
+									return (
+										<div>
+											<Label htmlFor="party-name">Party name</Label>
+											<Input
+												id="party-name"
+												value={field.state.value}
+												maxLength={80}
+												placeholder="e.g. Sunday Wayfarers"
+												aria-invalid={hasError}
+												aria-describedby={hasError ? errorId : undefined}
+												onBlur={field.handleBlur}
+												onChange={(event) => {
+													createMutation.reset();
+													field.handleChange(event.target.value);
+												}}
+											/>
+											<FieldError id={errorId} errors={field.state.meta.errors} />
+										</div>
+									);
+								}}
+							</createForm.Field>
+							<createForm.Subscribe
+								selector={(state) => ({
+									canSubmit: state.canSubmit,
+									isSubmitting: state.isSubmitting,
+									name: state.values.name,
+								})}
+							>
+								{({ canSubmit, isSubmitting, name }) => (
+									<Button
+										className="w-full"
+										type="submit"
+										disabled={!name.trim() || !canSubmit || isSubmitting || createMutation.isPending}
+										aria-busy={isSubmitting || createMutation.isPending}
+									>
+										{isSubmitting || createMutation.isPending ? 'Creating…' : 'Create party'} <ArrowUpRight className="size-4" />
+									</Button>
+								)}
+							</createForm.Subscribe>
+						</form>
+						{createMutation.isError && <ErrorNotice error={createMutation.error} message={createMutation.error.message} />}
 					</CardContent>
 				</Card>
 
@@ -95,22 +159,60 @@ function PartiesIndex() {
 						<CardDescription>Paste the one-time-visible token your party leader shared with you.</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<Label htmlFor="invite-token">Invite token</Label>
-						<Input
-							id="invite-token"
-							value={inviteToken}
-							placeholder="Paste invite token"
-							onChange={(event) => setInviteToken(event.target.value)}
-						/>
-						<Button
-							variant="secondary"
-							className="w-full"
-							disabled={!inviteToken.trim() || joinMutation.isPending}
-							onClick={() => joinMutation.mutate(inviteToken.trim(), { onSuccess: navigateToParty })}
+						<form
+							className="space-y-4"
+							onSubmit={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								void joinForm.handleSubmit();
+							}}
 						>
-							Join party <ArrowUpRight className="size-4" />
-						</Button>
-						{joinMutation.isError && <ErrorNotice message={joinMutation.error.message} />}
+							<joinForm.Field name="inviteToken" validators={{ onBlur: inviteTokenSchema }}>
+								{(field) => {
+									const errorId = 'invite-token-error';
+									const hasError = field.state.meta.errors.length > 0;
+									return (
+										<div>
+											<Label htmlFor="invite-token">Invite token</Label>
+											<Input
+												id="invite-token"
+												value={field.state.value}
+												maxLength={256}
+												placeholder="Paste invite token"
+												aria-invalid={hasError}
+												aria-describedby={hasError ? errorId : undefined}
+												onBlur={field.handleBlur}
+												onChange={(event) => {
+													joinMutation.reset();
+													field.handleChange(event.target.value);
+												}}
+											/>
+											<FieldError id={errorId} errors={field.state.meta.errors} />
+										</div>
+									);
+								}}
+							</joinForm.Field>
+							<joinForm.Subscribe
+								selector={(state) => ({
+									canSubmit: state.canSubmit,
+									isSubmitting: state.isSubmitting,
+									inviteToken: state.values.inviteToken,
+								})}
+							>
+								{({ canSubmit, isSubmitting, inviteToken }) => (
+									<Button
+										variant="secondary"
+										className="w-full"
+										type="submit"
+										disabled={!inviteToken.trim() || !canSubmit || isSubmitting || joinMutation.isPending}
+										aria-busy={isSubmitting || joinMutation.isPending}
+									>
+										{isSubmitting || joinMutation.isPending ? 'Joining…' : 'Join party'} <ArrowUpRight className="size-4" />
+									</Button>
+								)}
+							</joinForm.Subscribe>
+						</form>
+						{joinMutation.isError && <ErrorNotice error={joinMutation.error} message={joinMutation.error.message} />}
 					</CardContent>
 				</Card>
 			</div>

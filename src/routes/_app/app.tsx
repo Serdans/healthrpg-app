@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowUpRight, Footprints, HeartPulse, Moon } from 'lucide-react';
 
 import { EmptyState, ErrorNotice, LoadingState } from '#/components/app-state';
@@ -10,24 +10,50 @@ import { useCharacter, useMe, useParties, useProgress } from '#/lib/queries';
 import { Metric } from '#/components/dashboard/metric';
 import { PartyPreview } from '#/components/dashboard/party-preview';
 
-export const Route = createFileRoute('/_app/app')({ component: AppDashboard });
+export const Route = createFileRoute('/_app/app')({
+	head: () => ({ meta: [{ title: 'Trail · HealthRPG' }] }),
+	component: AppDashboard,
+});
 
 function AppDashboard() {
 	const characterQuery = useCharacter();
 	const partiesQuery = useParties();
 	const meQuery = useMe();
+	const navigate = useNavigate();
 	const localDate = localDateForTimezone(meQuery.data?.timezone ?? 'UTC');
 	const progressQuery = useProgress(localDate, Boolean(meQuery.data), 15_000);
 
 	if (characterQuery.isPending || partiesQuery.isPending || meQuery.isPending) return <LoadingState label="Gathering your expedition…" />;
 	if (characterQuery.isError)
 		return (
-			<ErrorNotice message={characterQuery.error.message} onRetry={() => void characterQuery.refetch()} retryLabel="Retry character" />
+			<ErrorNotice
+				error={characterQuery.error}
+				message={characterQuery.error.message}
+				onRetry={() => void characterQuery.refetch()}
+				retrying={characterQuery.isFetching}
+				retryLabel="Retry character"
+			/>
 		);
 	if (partiesQuery.isError)
-		return <ErrorNotice message={partiesQuery.error.message} onRetry={() => void partiesQuery.refetch()} retryLabel="Retry parties" />;
+		return (
+			<ErrorNotice
+				error={partiesQuery.error}
+				message={partiesQuery.error.message}
+				onRetry={() => void partiesQuery.refetch()}
+				retrying={partiesQuery.isFetching}
+				retryLabel="Retry parties"
+			/>
+		);
 	if (meQuery.isError)
-		return <ErrorNotice message={meQuery.error.message} onRetry={() => void meQuery.refetch()} retryLabel="Retry profile" />;
+		return (
+			<ErrorNotice
+				error={meQuery.error}
+				message={meQuery.error.message}
+				onRetry={() => void meQuery.refetch()}
+				retrying={meQuery.isFetching}
+				retryLabel="Retry profile"
+			/>
+		);
 
 	const character = characterQuery.data;
 	const parties = partiesQuery.data;
@@ -47,7 +73,13 @@ function AppDashboard() {
 			</div>
 
 			{progressQuery.isError && (
-				<ErrorNotice message={progressQuery.error.message} onRetry={() => void progressQuery.refetch()} retryLabel="Retry progress" />
+				<ErrorNotice
+					error={progressQuery.error}
+					message={progressQuery.error.message}
+					onRetry={() => void progressQuery.refetch()}
+					retrying={progressQuery.isFetching}
+					retryLabel="Retry progress"
+				/>
 			)}
 
 			{!character && (
@@ -61,12 +93,7 @@ function AppDashboard() {
 								contributes to the journey.
 							</p>
 						</div>
-						<Button
-							className="shrink-0"
-							onClick={() => {
-								window.location.href = '/character';
-							}}
-						>
+						<Button className="shrink-0" onClick={() => void navigate({ to: '/character' })}>
 							Create character <ArrowUpRight className="size-4" />
 						</Button>
 					</div>

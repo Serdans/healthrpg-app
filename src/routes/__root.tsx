@@ -4,9 +4,11 @@ import { TanStackDevtools } from '@tanstack/react-devtools';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 
+import { RootError, RootNotFound } from '#/components/route-state';
 import appCss from '../styles.css?url';
 
 export const Route = createRootRoute({
+	errorComponent: RootError,
 	head: () => ({
 		meta: [
 			{
@@ -27,6 +29,7 @@ export const Route = createRootRoute({
 			},
 		],
 	}),
+	notFoundComponent: RootNotFound,
 	shellComponent: RootDocument,
 });
 

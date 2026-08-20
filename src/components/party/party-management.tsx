@@ -86,7 +86,7 @@ export function PartyManagement({
 						This expedition is abandoned. Party management is read-only.
 					</p>
 				)}
-				{mutationError && <ErrorNotice message={mutationError.message} />}
+				{mutationError && <ErrorNotice error={mutationError} message={mutationError.message} />}
 
 				<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--gold-line)] bg-[var(--gold-wash)] p-4">
 					<div>
@@ -94,7 +94,7 @@ export function PartyManagement({
 						<p className="mt-1 text-sm text-[var(--ink-soft)]">The token is visible once and expires on the server’s schedule.</p>
 					</div>
 					{isLeader ? (
-						<Button variant="secondary" disabled={readOnly || createInviteMutation.isPending} onClick={createInvite}>
+						<Button variant="secondary" disabled={createInviteMutation.isPending} onClick={createInvite}>
 							<Send className="size-4" /> {createInviteMutation.isPending ? 'Creating…' : 'Create invite'}
 						</Button>
 					) : (
@@ -160,7 +160,7 @@ export function PartyManagement({
 										<Button
 											variant="ghost"
 											size="sm"
-											disabled={readOnly || kickMutation.isPending}
+											disabled={kickMutation.isPending}
 											onClick={() => kickMember(member.userId, member.displayName)}
 										>
 											<UserMinus className="size-4" /> Remove
@@ -168,7 +168,7 @@ export function PartyManagement({
 										<Button
 											variant="secondary"
 											size="sm"
-											disabled={readOnly || transferMutation.isPending}
+											disabled={transferMutation.isPending}
 											onClick={() => transferLeadership(member.userId, member.displayName)}
 										>
 											<Crown className="size-4" /> Make leader

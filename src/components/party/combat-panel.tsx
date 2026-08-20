@@ -41,7 +41,13 @@ export function CombatPanel({
 	if (inventoryQuery.isPending) return <LoadingState label="Checking your field kit…" />;
 	if (inventoryQuery.isError)
 		return (
-			<ErrorNotice message={inventoryQuery.error.message} onRetry={() => void inventoryQuery.refetch()} retryLabel="Retry field kit" />
+			<ErrorNotice
+				error={inventoryQuery.error}
+				message={inventoryQuery.error.message}
+				onRetry={() => void inventoryQuery.refetch()}
+				retrying={inventoryQuery.isFetching}
+				retryLabel="Retry field kit"
+			/>
 		);
 
 	const signature = currentMember.signatureAction;
@@ -68,7 +74,7 @@ export function CombatPanel({
 					This expedition is no longer active. The encounter record is available to view, but new actions are closed.
 				</p>
 			)}
-			{actionError && <ErrorNotice message={actionError.message} />}
+			{actionError && <ErrorNotice error={actionError} message={actionError.message} />}
 			<Card>
 				<CardHeader>
 					<div className="flex items-start justify-between gap-4">

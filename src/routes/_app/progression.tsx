@@ -7,7 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
 import { Progress } from '#/components/ui/progress';
 import { useProgression } from '#/lib/queries';
 
-export const Route = createFileRoute('/_app/progression')({ component: ProgressionPage });
+export const Route = createFileRoute('/_app/progression')({
+	head: () => ({ meta: [{ title: 'Progress · HealthRPG' }] }),
+	component: ProgressionPage,
+});
 
 function ProgressionPage() {
 	const progressionQuery = useProgression();
@@ -16,8 +19,10 @@ function ProgressionPage() {
 	if (progressionQuery.isError)
 		return (
 			<ErrorNotice
+				error={progressionQuery.error}
 				message={progressionQuery.error.message}
 				onRetry={() => void progressionQuery.refetch()}
+				retrying={progressionQuery.isFetching}
 				retryLabel="Retry progression"
 			/>
 		);

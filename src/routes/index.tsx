@@ -8,6 +8,7 @@ export const Route = createFileRoute('/')({
 		const session = await getSession();
 		if (session.user) throw redirect({ to: '/app' });
 	},
+	head: () => ({ meta: [{ title: 'HealthRPG · The trail is waiting' }] }),
 	component: LandingPage,
 });
 

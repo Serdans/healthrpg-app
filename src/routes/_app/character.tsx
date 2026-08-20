@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useForm } from '@tanstack/react-form';
 import { ChevronRight, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -7,6 +7,7 @@ import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
+import { FieldError } from '#/components/ui/field-error';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
 import { CharacterSheet } from '#/components/character/character-sheet';
@@ -14,8 +15,12 @@ import { PageIntro } from '#/components/character/page-intro';
 import { Stat } from '#/components/character/stat';
 import { getCharacter, startCharacterCreation } from '#/lib/api';
 import { queryKeys, useCharacterAnswer, useCommitCharacter, useResetCharacterCreation } from '#/lib/queries';
+import { characterNameFormSchema, characterNameSchema } from '#/lib/validation';
 
-export const Route = createFileRoute('/_app/character')({ component: CharacterPage });
+export const Route = createFileRoute('/_app/character')({
+	head: () => ({ meta: [{ title: 'Character · HealthRPG' }] }),
+	component: CharacterPage,
+});
 
 function CharacterPage() {
 	const characterQuery = useQuery({ queryKey: queryKeys.character, queryFn: getCharacter });
@@ -28,21 +33,44 @@ function CharacterPage() {
 	const commitMutation = useCommitCharacter();
 	const resetMutation = useResetCharacterCreation();
 	const navigate = useNavigate();
-	const [name, setName] = useState('');
+	const characterForm = useForm({
+		defaultValues: { name: '' },
+		validators: { onSubmit: characterNameFormSchema },
+		onSubmit: async ({ value }) => {
+			await commitMutation.mutateAsync(value.name.trim());
+			await navigate({ to: '/app' });
+		},
+	});
 	const resetCreation = () => {
 		if (!window.confirm('Start character creation over? Your current answers will be discarded.')) return;
-		resetMutation.mutate();
+		resetMutation.mutate(undefined, {
+			onSuccess: () => characterForm.reset(),
+		});
 	};
 
 	if (characterQuery.isPending) return <LoadingState label="Checking your character sheet…" />;
 	if (characterQuery.isError)
 		return (
-			<ErrorNotice message={characterQuery.error.message} onRetry={() => void characterQuery.refetch()} retryLabel="Retry character" />
+			<ErrorNotice
+				error={characterQuery.error}
+				message={characterQuery.error.message}
+				onRetry={() => void characterQuery.refetch()}
+				retrying={characterQuery.isFetching}
+				retryLabel="Retry character"
+			/>
 		);
 	if (characterQuery.data) return <CharacterSheet character={characterQuery.data} />;
 	if (creationQuery.isPending) return <LoadingState label="Preparing your origin story…" />;
 	if (creationQuery.isError)
-		return <ErrorNotice message={creationQuery.error.message} onRetry={() => void creationQuery.refetch()} retryLabel="Retry origin" />;
+		return (
+			<ErrorNotice
+				error={creationQuery.error}
+				message={creationQuery.error.message}
+				onRetry={() => void creationQuery.refetch()}
+				retrying={creationQuery.isFetching}
+				retryLabel="Retry origin"
+			/>
+		);
 
 	const creation = creationQuery.data;
 
@@ -90,8 +118,8 @@ function CharacterPage() {
 							</button>
 						))}
 					</CardContent>
-					{answerMutation.isError && <ErrorNotice message={answerMutation.error.message} />}
-					{resetMutation.isError && <ErrorNotice message={resetMutation.error.message} />}
+					{answerMutation.isError && <ErrorNotice error={answerMutation.error} message={answerMutation.error.message} />}
+					{resetMutation.isError && <ErrorNotice error={resetMutation.error} message={resetMutation.error.message} />}
 				</Card>
 			</div>
 		);
@@ -146,23 +174,61 @@ function CharacterPage() {
 						<CardDescription>This name follows you through every party and chapter.</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<Label htmlFor="character-name">Traveler name</Label>
-						<Input
-							id="character-name"
-							value={name}
-							maxLength={64}
-							placeholder="e.g. Mira of Mossway"
-							onChange={(event) => setName(event.target.value)}
-						/>
-						<Button
-							className="w-full"
-							disabled={!name.trim() || commitMutation.isPending}
-							onClick={() => commitMutation.mutate(name.trim(), { onSuccess: () => void navigate({ to: '/app' }) })}
+						<form
+							className="space-y-4"
+							onSubmit={(event) => {
+								event.preventDefault();
+								event.stopPropagation();
+								void characterForm.handleSubmit();
+							}}
 						>
-							Enter the trail <ChevronRight className="size-4" />
-						</Button>
-						{commitMutation.isError && <ErrorNotice message={commitMutation.error.message} />}
-						{resetMutation.isError && <ErrorNotice message={resetMutation.error.message} />}
+							<characterForm.Field name="name" validators={{ onBlur: characterNameSchema }}>
+								{(field) => {
+									const errorId = 'character-name-error';
+									const hasError = field.state.meta.errors.length > 0;
+									return (
+										<div>
+											<Label htmlFor="character-name">Traveler name</Label>
+											<Input
+												id="character-name"
+												value={field.state.value}
+												maxLength={64}
+												placeholder="e.g. Mira of Mossway"
+												aria-invalid={hasError}
+												aria-describedby={hasError ? errorId : undefined}
+												onBlur={field.handleBlur}
+												onChange={(event) => {
+													commitMutation.reset();
+													field.handleChange(event.target.value);
+												}}
+											/>
+											<FieldError id={errorId} errors={field.state.meta.errors} />
+										</div>
+									);
+								}}
+							</characterForm.Field>
+							<characterForm.Subscribe
+								selector={(state) => ({
+									canSubmit: state.canSubmit,
+									isSubmitting: state.isSubmitting,
+									name: state.values.name,
+								})}
+							>
+								{({ canSubmit, isSubmitting, name: currentName }) => (
+									<Button
+										className="w-full"
+										type="submit"
+										disabled={!currentName.trim() || !canSubmit || isSubmitting || commitMutation.isPending}
+										aria-busy={isSubmitting || commitMutation.isPending}
+									>
+										{isSubmitting || commitMutation.isPending ? 'Entering the trail…' : 'Enter the trail'}{' '}
+										<ChevronRight className="size-4" />
+									</Button>
+								)}
+							</characterForm.Subscribe>
+						</form>
+						{commitMutation.isError && <ErrorNotice error={commitMutation.error} message={commitMutation.error.message} />}
+						{resetMutation.isError && <ErrorNotice error={resetMutation.error} message={resetMutation.error.message} />}
 					</CardContent>
 				</Card>
 			</div>
