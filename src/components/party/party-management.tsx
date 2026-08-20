@@ -2,13 +2,22 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Copy, Crown, LogOut, Send, UserMinus, UsersRound } from 'lucide-react';
 
-import { ErrorNotice } from '#/components/app-state';
+import { ErrorNotice, SuccessNotice } from '#/components/app-state';
+import { ConfirmActionDialog } from '#/components/ui/alert-dialog';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import type { Invite, Party } from '#/lib/api';
+import { copyText } from '#/lib/clipboard';
 import { formatDateTime } from '#/lib/dates';
 import { useCreateInvite, useKickMember, useLeaveParty, useRevokeInvite, useTransferLeadership } from '#/lib/queries';
+
+type ManagementConfirmation =
+	| { action: 'leave' }
+	| { action: 'kick'; memberUserId: string; displayName: string | null }
+	| { action: 'transfer'; memberUserId: string; displayName: string | null }
+	| { action: 'revoke'; inviteId: string }
+	| null;
 
 export function PartyManagement({
 	partyId,
@@ -29,43 +38,89 @@ export function PartyManagement({
 	const transferMutation = useTransferLeadership(partyId);
 	const [currentInvite, setCurrentInvite] = useState<Invite | null>(null);
 	const [copied, setCopied] = useState(false);
+	const [copyError, setCopyError] = useState(false);
+	const [status, setStatus] = useState<string | null>(null);
+	const [confirmation, setConfirmation] = useState<ManagementConfirmation>(null);
 
 	const isLeader = !readOnly && party.members.some((member) => member.userId === userId && member.role === 'leader');
+	const managementBusy =
+		createInviteMutation.isPending ||
+		revokeInviteMutation.isPending ||
+		leaveMutation.isPending ||
+		kickMutation.isPending ||
+		transferMutation.isPending;
 	const mutationError =
 		createInviteMutation.error ?? revokeInviteMutation.error ?? leaveMutation.error ?? kickMutation.error ?? transferMutation.error;
 
 	const createInvite = () => {
 		setCopied(false);
+		setCopyError(false);
+		setStatus(null);
 		createInviteMutation.mutate(undefined, {
-			onSuccess: (invite) => setCurrentInvite(invite),
+			onSuccess: (invite) => {
+				setCurrentInvite(invite);
+				setStatus('A fresh invite token is ready to share.');
+			},
 		});
 	};
 
 	const copyInvite = async () => {
 		if (!currentInvite) return;
-		try {
-			await navigator.clipboard.writeText(currentInvite.token);
-			setCopied(true);
-		} catch {
-			setCopied(false);
-		}
+		const didCopy = await copyText(currentInvite.token);
+		setCopied(didCopy);
+		setCopyError(!didCopy);
+		setStatus(didCopy ? 'Invite token copied to your clipboard.' : null);
 	};
 
 	const leaveParty = () => {
-		if (!window.confirm('Leave this party? You can rejoin only with a fresh invite.')) return;
+		setStatus(null);
 		leaveMutation.mutate(partyId, {
-			onSuccess: () => void navigate({ to: '/parties' }),
+			onSuccess: () => {
+				void navigate({ to: '/parties' });
+			},
 		});
 	};
 
-	const kickMember = (memberUserId: string, displayName: string | null) => {
-		if (!window.confirm(`Remove ${displayName ?? 'this traveler'} from the party?`)) return;
-		kickMutation.mutate(memberUserId);
+	const kickMember = (memberUserId: string) => {
+		setStatus(null);
+		kickMutation.mutate(memberUserId, {
+			onSuccess: () => setStatus('Traveler removed from the party.'),
+		});
 	};
 
-	const transferLeadership = (memberUserId: string, displayName: string | null) => {
-		if (!window.confirm(`Make ${displayName ?? 'this traveler'} the party leader?`)) return;
-		transferMutation.mutate(memberUserId);
+	const transferLeadership = (memberUserId: string) => {
+		setStatus(null);
+		transferMutation.mutate(memberUserId, {
+			onSuccess: () => setStatus('Leadership transferred.'),
+		});
+	};
+
+	const revokeInvite = (inviteId: string) => {
+		setStatus(null);
+		revokeInviteMutation.mutate(inviteId, {
+			onSuccess: () => {
+				setCurrentInvite(null);
+				setStatus('Invite revoked.');
+			},
+		});
+	};
+
+	const confirmAction = () => {
+		if (!confirmation) return;
+		switch (confirmation.action) {
+			case 'leave':
+				leaveParty();
+				break;
+			case 'kick':
+				kickMember(confirmation.memberUserId);
+				break;
+			case 'transfer':
+				transferLeadership(confirmation.memberUserId);
+				break;
+			case 'revoke':
+				revokeInvite(confirmation.inviteId);
+				break;
+		}
 	};
 
 	return (
@@ -87,6 +142,8 @@ export function PartyManagement({
 					</p>
 				)}
 				{mutationError && <ErrorNotice error={mutationError} message={mutationError.message} />}
+				{copyError && <ErrorNotice message="Could not copy the invite token. Select the token and copy it manually." />}
+				{status && <SuccessNotice>{status}</SuccessNotice>}
 
 				<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--gold-line)] bg-[var(--gold-wash)] p-4">
 					<div>
@@ -94,7 +151,7 @@ export function PartyManagement({
 						<p className="mt-1 text-sm text-[var(--ink-soft)]">The token is visible once and expires on the server’s schedule.</p>
 					</div>
 					{isLeader ? (
-						<Button variant="secondary" disabled={createInviteMutation.isPending} onClick={createInvite}>
+						<Button variant="secondary" disabled={managementBusy} onClick={createInvite}>
 							<Send className="size-4" /> {createInviteMutation.isPending ? 'Creating…' : 'Create invite'}
 						</Button>
 					) : (
@@ -112,8 +169,8 @@ export function PartyManagement({
 							<Button
 								variant="ghost"
 								size="sm"
-								disabled={readOnly || revokeInviteMutation.isPending}
-								onClick={() => revokeInviteMutation.mutate(currentInvite.id, { onSuccess: () => setCurrentInvite(null) })}
+								disabled={readOnly || managementBusy}
+								onClick={() => setConfirmation({ action: 'revoke', inviteId: currentInvite.id })}
 							>
 								Revoke
 							</Button>
@@ -160,16 +217,16 @@ export function PartyManagement({
 										<Button
 											variant="ghost"
 											size="sm"
-											disabled={kickMutation.isPending}
-											onClick={() => kickMember(member.userId, member.displayName)}
+											disabled={managementBusy}
+											onClick={() => setConfirmation({ action: 'kick', memberUserId: member.userId, displayName: member.displayName })}
 										>
 											<UserMinus className="size-4" /> Remove
 										</Button>
 										<Button
 											variant="secondary"
 											size="sm"
-											disabled={transferMutation.isPending}
-											onClick={() => transferLeadership(member.userId, member.displayName)}
+											disabled={managementBusy}
+											onClick={() => setConfirmation({ action: 'transfer', memberUserId: member.userId, displayName: member.displayName })}
 										>
 											<Crown className="size-4" /> Make leader
 										</Button>
@@ -184,10 +241,46 @@ export function PartyManagement({
 					<p className="max-w-lg text-sm text-[var(--ink-soft)]">
 						Leaving removes you from this expedition. The rest of the party keeps its trail.
 					</p>
-					<Button variant="danger" disabled={readOnly || leaveMutation.isPending} onClick={leaveParty}>
+					<Button variant="danger" disabled={readOnly || managementBusy} onClick={() => setConfirmation({ action: 'leave' })}>
 						<LogOut className="size-4" /> {leaveMutation.isPending ? 'Leaving…' : 'Leave party'}
 					</Button>
 				</div>
+				<ConfirmActionDialog
+					open={confirmation !== null}
+					onOpenChange={(open) => {
+						if (!open) setConfirmation(null);
+					}}
+					title={
+						confirmation?.action === 'leave'
+							? 'Leave this party?'
+							: confirmation?.action === 'kick'
+								? `Remove ${confirmation.displayName ?? 'this traveler'}?`
+								: confirmation?.action === 'transfer'
+									? `Make ${confirmation.displayName ?? 'this traveler'} the party leader?`
+									: 'Revoke this invite?'
+					}
+					description={
+						confirmation?.action === 'leave'
+							? 'You can rejoin only with a fresh invite. The rest of the party keeps its trail.'
+							: confirmation?.action === 'kick'
+								? 'This traveler will be removed from the expedition.'
+								: confirmation?.action === 'transfer'
+									? 'Leadership controls invites and roster management for this party.'
+									: 'This token will stop working immediately and cannot be restored.'
+					}
+					confirmLabel={
+						confirmation?.action === 'transfer'
+							? 'Make leader'
+							: confirmation?.action === 'revoke'
+								? 'Revoke invite'
+								: confirmation?.action === 'kick'
+									? 'Remove traveler'
+									: 'Leave party'
+					}
+					destructive={confirmation?.action !== 'transfer'}
+					pending={managementBusy}
+					onConfirm={confirmAction}
+				/>
 			</CardContent>
 		</Card>
 	);

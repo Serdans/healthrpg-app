@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router';
 import { Backpack, Compass, LogOut, Settings2, Sparkles, UsersRound } from 'lucide-react';
 
+import { NavigationStatus, OfflineNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { getSession } from '#/lib/session';
 
@@ -39,7 +40,9 @@ function AppLayout() {
 
 	return (
 		<div className="route-shell">
+			<NavigationStatus />
 			<header className="border-b border-[var(--line)] bg-[rgba(255,250,240,0.68)] backdrop-blur-md">
+				<OfflineNotice />
 				<div className="page-wrap flex min-h-18 items-center justify-between gap-5 py-3">
 					<Link to="/app" className="flex items-center gap-3 no-underline">
 						<span className="sigil" aria-hidden="true">

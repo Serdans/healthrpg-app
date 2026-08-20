@@ -2,11 +2,13 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { ChevronRight, Sparkles } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
+import { ConfirmActionDialog } from '#/components/ui/alert-dialog';
 import { FieldError } from '#/components/ui/field-error';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
@@ -33,6 +35,7 @@ function CharacterPage() {
 	const commitMutation = useCommitCharacter();
 	const resetMutation = useResetCharacterCreation();
 	const navigate = useNavigate();
+	const [resetDialogOpen, setResetDialogOpen] = useState(false);
 	const characterForm = useForm({
 		defaultValues: { name: '' },
 		validators: { onSubmit: characterNameFormSchema },
@@ -42,7 +45,6 @@ function CharacterPage() {
 		},
 	});
 	const resetCreation = () => {
-		if (!window.confirm('Start character creation over? Your current answers will be discarded.')) return;
 		resetMutation.mutate(undefined, {
 			onSuccess: () => characterForm.reset(),
 		});
@@ -95,7 +97,7 @@ function CharacterPage() {
 						</div>
 						<div className="flex items-center gap-3">
 							<Sparkles className="size-6 text-[var(--gold)]" />
-							<Button variant="ghost" size="sm" disabled={resetMutation.isPending} onClick={resetCreation}>
+							<Button variant="ghost" size="sm" disabled={resetMutation.isPending} onClick={() => setResetDialogOpen(true)}>
 								{resetMutation.isPending ? 'Starting over…' : 'Start over'}
 							</Button>
 						</div>
@@ -107,7 +109,7 @@ function CharacterPage() {
 								key={option.id}
 								type="button"
 								className="choice-card group flex items-center gap-4 rounded-2xl p-4 text-left"
-								disabled={answerMutation.isPending}
+								disabled={answerMutation.isPending || resetMutation.isPending}
 								onClick={() => answerMutation.mutate({ questionId: creation.question.id, answerId: option.id })}
 							>
 								<span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--indigo)] font-mono text-sm font-bold text-[var(--parchment-bright)] transition group-hover:bg-[var(--amethyst)]">
@@ -121,6 +123,16 @@ function CharacterPage() {
 					{answerMutation.isError && <ErrorNotice error={answerMutation.error} message={answerMutation.error.message} />}
 					{resetMutation.isError && <ErrorNotice error={resetMutation.error} message={resetMutation.error.message} />}
 				</Card>
+				<ConfirmActionDialog
+					open={resetDialogOpen}
+					onOpenChange={setResetDialogOpen}
+					title="Start character creation over?"
+					description="Your current answers will be discarded and you will return to the first origin question."
+					confirmLabel="Start over"
+					destructive
+					pending={resetMutation.isPending}
+					onConfirm={resetCreation}
+				/>
 			</div>
 		);
 	}
@@ -141,7 +153,7 @@ function CharacterPage() {
 								<Badge>Origin preview</Badge>
 								<CardTitle className="mt-4 text-4xl">{preview.flavorTitle}</CardTitle>
 							</div>
-							<Button variant="ghost" size="sm" disabled={resetMutation.isPending} onClick={resetCreation}>
+							<Button variant="ghost" size="sm" disabled={resetMutation.isPending} onClick={() => setResetDialogOpen(true)}>
 								{resetMutation.isPending ? 'Starting over…' : 'Start over'}
 							</Button>
 						</div>
@@ -218,8 +230,8 @@ function CharacterPage() {
 									<Button
 										className="w-full"
 										type="submit"
-										disabled={!currentName.trim() || !canSubmit || isSubmitting || commitMutation.isPending}
-										aria-busy={isSubmitting || commitMutation.isPending}
+										disabled={!currentName.trim() || !canSubmit || isSubmitting || commitMutation.isPending || resetMutation.isPending}
+										aria-busy={isSubmitting || commitMutation.isPending || resetMutation.isPending}
 									>
 										{isSubmitting || commitMutation.isPending ? 'Entering the trail…' : 'Enter the trail'}{' '}
 										<ChevronRight className="size-4" />
@@ -232,6 +244,16 @@ function CharacterPage() {
 					</CardContent>
 				</Card>
 			</div>
+			<ConfirmActionDialog
+				open={resetDialogOpen}
+				onOpenChange={setResetDialogOpen}
+				title="Start character creation over?"
+				description="Your current answers will be discarded and you will return to the first origin question."
+				confirmLabel="Start over"
+				destructive
+				pending={resetMutation.isPending}
+				onConfirm={resetCreation}
+			/>
 		</div>
 	);
 }

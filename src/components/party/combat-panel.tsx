@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Check, HeartPulse, Shield, Sparkles, Swords } from 'lucide-react';
 
-import { ErrorNotice, LoadingState } from '#/components/app-state';
+import { ErrorNotice, LoadingState, SuccessNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
@@ -56,6 +56,7 @@ export function CombatPanel({
 	const selectedTargetUserId = targetUserId || userId;
 	const usableItems = inventoryQuery.data.items.filter((item) => item.quantity > 0);
 	const actionError = actionMutation.error ?? itemMutation.error;
+	const combatBusy = actionMutation.isPending || itemMutation.isPending;
 	const partyMemberName = (memberUserId: string) =>
 		party.members.find((member) => member.userId === memberUserId)?.displayName ?? 'Traveler';
 
@@ -75,6 +76,7 @@ export function CombatPanel({
 				</p>
 			)}
 			{actionError && <ErrorNotice error={actionError} message={actionError.message} />}
+			{actionMutation.isSuccess && <SuccessNotice>Your encounter action is saved.</SuccessNotice>}
 			<Card>
 				<CardHeader>
 					<div className="flex items-start justify-between gap-4">
@@ -103,7 +105,7 @@ export function CombatPanel({
 									className="choice-card rounded-2xl p-4 text-left"
 									data-selected={selected && targetMode === 'enemy'}
 									aria-pressed={selected && targetMode === 'enemy'}
-									disabled={readOnly || encounter.status === 'completed' || enemy.currentHealth === 0}
+									disabled={readOnly || encounter.status === 'completed' || enemy.currentHealth === 0 || combatBusy}
 									onClick={() => setTargetEnemyId(enemy.id)}
 								>
 									<div className="flex items-start justify-between gap-3">
@@ -153,7 +155,7 @@ export function CombatPanel({
 											variant={selected ? 'secondary' : 'ghost'}
 											size="sm"
 											className="mt-3"
-											disabled={readOnly || encounter.status === 'completed'}
+											disabled={readOnly || encounter.status === 'completed' || combatBusy}
 											onClick={() => setTargetUserId(member.userId)}
 										>
 											{selected ? 'Ally selected' : 'Select ally'}
@@ -170,7 +172,7 @@ export function CombatPanel({
 							className="choice-card rounded-2xl p-4 text-left"
 							data-selected={actionKey === null}
 							aria-pressed={actionKey === null}
-							disabled={readOnly || encounter.status === 'completed' || actionMutation.isPending}
+							disabled={readOnly || encounter.status === 'completed' || combatBusy}
 							onClick={() => setActionKey(null)}
 						>
 							<div className="flex items-center justify-between gap-3">
@@ -186,7 +188,7 @@ export function CombatPanel({
 							className="choice-card rounded-2xl p-4 text-left"
 							data-selected={actionKey === signature.key}
 							aria-pressed={actionKey === signature.key}
-							disabled={readOnly || encounter.status === 'completed' || actionMutation.isPending}
+							disabled={readOnly || encounter.status === 'completed' || combatBusy}
 							onClick={() => setActionKey(signature.key)}
 						>
 							<div className="flex items-center justify-between gap-3">
@@ -204,7 +206,7 @@ export function CombatPanel({
 						</button>
 					</div>
 
-					<Button disabled={readOnly || encounter.status === 'completed' || actionMutation.isPending} onClick={submitAction}>
+					<Button disabled={readOnly || encounter.status === 'completed' || combatBusy} onClick={submitAction}>
 						<Sparkles className="size-4" />{' '}
 						{actionMutation.isPending ? 'Saving action…' : currentMember.selectedActionKey ? 'Update action' : 'Choose action'}
 					</Button>
@@ -227,7 +229,7 @@ export function CombatPanel({
 								<select
 									className="mt-2 h-11 w-full rounded-xl border border-[var(--line-strong)] bg-[var(--surface-strong)] px-3 text-sm font-bold normal-case tracking-normal text-[var(--indigo)]"
 									value={itemKey || usableItems[0]?.key}
-									disabled={readOnly}
+									disabled={readOnly || combatBusy}
 									onChange={(event) => setItemKey(event.target.value)}
 								>
 									{usableItems.map((item) => (
@@ -242,7 +244,7 @@ export function CombatPanel({
 								<select
 									className="mt-2 h-11 w-full rounded-xl border border-[var(--line-strong)] bg-[var(--surface-strong)] px-3 text-sm font-bold normal-case tracking-normal text-[var(--indigo)]"
 									value={selectedTargetUserId}
-									disabled={readOnly}
+									disabled={readOnly || combatBusy}
 									onChange={(event) => setTargetUserId(event.target.value)}
 								>
 									{encounter.members.map((member) => (
@@ -253,7 +255,7 @@ export function CombatPanel({
 								</select>
 							</label>
 							<Button
-								disabled={readOnly || encounter.status === 'completed' || itemMutation.isPending}
+								disabled={readOnly || encounter.status === 'completed' || combatBusy}
 								onClick={() => itemMutation.mutate({ itemKey: itemKey || usableItems[0]?.key || '', targetUserId: selectedTargetUserId })}
 							>
 								<HeartPulse className="size-4" /> {itemMutation.isPending ? 'Using…' : 'Use item'}

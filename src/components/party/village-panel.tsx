@@ -28,6 +28,7 @@ export function VillagePanel({
 	const [quantityErrors, setQuantityErrors] = useState<Record<string, string | undefined>>({});
 
 	const mutationError = purchaseMutation.error ?? departureMutation.error;
+	const villageBusy = purchaseMutation.isPending || departureMutation.isPending;
 	const setQuantity = (key: string, value: string) => {
 		setQuantities((current) => ({ ...current, [key]: value }));
 		setQuantityErrors((current) => ({ ...current, [key]: undefined }));
@@ -114,7 +115,7 @@ export function VillagePanel({
 									</div>
 									<Button
 										className="mt-3 w-full"
-										disabled={readOnly || purchaseMutation.isPending}
+										disabled={readOnly || villageBusy}
 										onClick={() => {
 											if (!quantityResult.success) {
 												setQuantityErrors((current) => ({
@@ -146,7 +147,7 @@ export function VillagePanel({
 					<CardDescription>When the party is ready, start a vote for the next route beyond the village.</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<Button disabled={readOnly || departureOpen || departureMutation.isPending} onClick={() => departureMutation.mutate()}>
+					<Button disabled={readOnly || departureOpen || villageBusy} onClick={() => departureMutation.mutate()}>
 						<DoorOpen className="size-4" />
 						{departureMutation.isPending ? 'Opening the route…' : departureOpen ? 'Departure vote open' : 'Start departure vote'}
 					</Button>

@@ -1,6 +1,6 @@
 import { Check, Sparkles } from 'lucide-react';
 
-import { ErrorNotice } from '#/components/app-state';
+import { ErrorNotice, SuccessNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
 import type { PartyEvent } from '#/lib/api';
@@ -27,6 +27,7 @@ export function EventDecision({
 						This expedition is no longer active. The event history is available to view, but new choices are closed.
 					</p>
 				)}
+				{mutation.data && <SuccessNotice>Your event choice is saved.</SuccessNotice>}
 			</CardHeader>
 			<CardContent className="grid gap-3 sm:grid-cols-2">
 				{event.choices.map((choice) => {

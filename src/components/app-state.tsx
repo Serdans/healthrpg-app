@@ -1,13 +1,56 @@
 import { AlertCircle, LoaderCircle } from 'lucide-react';
-import { Link } from '@tanstack/react-router';
+import { Link, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 
 import { ApiError } from '#/lib/api';
+import { useOnlineStatus } from '#/lib/online-status';
 
 export function LoadingState({ label = 'Reading the trail…' }: { label?: string }) {
 	return (
 		<div role="status" aria-live="polite" className="flex items-center gap-3 py-12 text-sm font-bold text-[var(--ink-soft)]">
 			<LoaderCircle className="size-5 animate-spin text-[var(--gold-deep)]" /> {label}
+		</div>
+	);
+}
+
+export function SuccessNotice({ children }: { children: ReactNode }) {
+	return (
+		<div
+			role="status"
+			aria-live="polite"
+			className="rounded-2xl border border-[color-mix(in_srgb,var(--teal)_30%,transparent)] bg-[color-mix(in_srgb,var(--teal)_10%,transparent)] p-4 text-sm font-bold text-[var(--teal-deep)]"
+		>
+			{children}
+		</div>
+	);
+}
+
+export function OfflineNotice() {
+	const isOnline = useOnlineStatus();
+	if (isOnline) return null;
+
+	return (
+		<div
+			role="status"
+			aria-live="polite"
+			className="border-b border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-[color-mix(in_srgb,var(--danger)_10%,transparent)] px-4 py-2 text-center text-sm font-bold text-[var(--danger)]"
+		>
+			You are offline. New actions will not reach the trail until your connection returns.
+		</div>
+	);
+}
+
+export function NavigationStatus() {
+	const isLoading = useRouterState({ select: (state) => state.isLoading });
+	if (!isLoading) return null;
+
+	return (
+		<div
+			role="status"
+			aria-live="polite"
+			className="fixed inset-x-0 top-0 z-[60] h-1 bg-[var(--gold)] shadow-[0_0_16px_rgba(209,155,60,0.8)]"
+		>
+			<span className="sr-only">Loading the next trail page…</span>
 		</div>
 	);
 }

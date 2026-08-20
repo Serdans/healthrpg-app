@@ -11,6 +11,7 @@ import { FieldError } from '#/components/ui/field-error';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
 import type { Party } from '#/lib/api';
+import { copyText } from '#/lib/clipboard';
 import { useCreateParty, useJoinParty, useParties } from '#/lib/queries';
 import { inviteTokenFormSchema, inviteTokenSchema, partyNameFormSchema, partyNameSchema } from '#/lib/validation';
 
@@ -270,14 +271,12 @@ function PartyCard({ party }: { party: Party }) {
 
 export function CopyToken({ token }: { token: string }) {
 	const [copied, setCopied] = useState(false);
+	const [copyError, setCopyError] = useState(false);
 
 	const copyToken = async () => {
-		try {
-			await navigator.clipboard.writeText(token);
-			setCopied(true);
-		} catch {
-			setCopied(false);
-		}
+		const didCopy = await copyText(token);
+		setCopied(didCopy);
+		setCopyError(!didCopy);
 	};
 
 	return (
@@ -287,9 +286,10 @@ export function CopyToken({ token }: { token: string }) {
 			onClick={copyToken}
 		>
 			<span className="min-w-0 truncate font-mono text-xs text-[var(--gold-deep)]">{token}</span>
-			<span className="flex shrink-0 items-center gap-1 text-xs font-extrabold text-[var(--gold-deep)]">
+			<span className="flex shrink-0 items-center gap-1 text-xs font-extrabold text-[var(--gold-deep)]" role="status" aria-live="polite">
 				{copied ? 'Copied' : 'Copy'} <Copy className="size-3.5" />
 			</span>
+			{copyError && <span className="sr-only">Copy failed; select the token and copy it manually.</span>}
 		</button>
 	);
 }

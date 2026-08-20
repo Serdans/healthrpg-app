@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Backpack, Shield, Sparkles, Sword } from 'lucide-react';
 
-import { ErrorNotice, EmptyState, LoadingState } from '#/components/app-state';
+import { ErrorNotice, EmptyState, LoadingState, SuccessNotice } from '#/components/app-state';
+import { ConfirmActionDialog } from '#/components/ui/alert-dialog';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
@@ -28,6 +29,8 @@ function InventoryPage() {
 	const equipMutation = useEquipLoadout();
 	const unequipMutation = useUnequipLoadout();
 	const [selectedSlot, setSelectedSlot] = useState<EquipmentSlot>('weapon');
+	const [unequipSlot, setUnequipSlot] = useState<EquipmentSlot | null>(null);
+	const [status, setStatus] = useState<string | null>(null);
 
 	if (inventoryQuery.isPending || loadoutQuery.isPending) return <LoadingState label="Opening your satchel…" />;
 	if (inventoryQuery.isError)
@@ -54,6 +57,15 @@ function InventoryPage() {
 	const inventory = inventoryQuery.data;
 	const loadout = loadoutQuery.data;
 	const mutationError = equipMutation.error ?? unequipMutation.error;
+	const loadoutBusy = equipMutation.isPending || unequipMutation.isPending;
+	const confirmUnequip = () => {
+		if (!unequipSlot) return;
+		const slot = unequipSlot;
+		setStatus(null);
+		unequipMutation.mutate(slot, {
+			onSuccess: () => setStatus(`${slotLabels[slot]} unequipped.`),
+		});
+	};
 
 	return (
 		<div className="space-y-8">
@@ -66,6 +78,7 @@ function InventoryPage() {
 			</div>
 
 			{mutationError && <ErrorNotice error={mutationError} message={mutationError.message} />}
+			{status && <SuccessNotice>{status}</SuccessNotice>}
 
 			<section className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
 				<Card>
@@ -96,7 +109,7 @@ function InventoryPage() {
 											</div>
 										</div>
 										{equipped && (
-											<Button variant="ghost" size="sm" disabled={unequipMutation.isPending} onClick={() => unequipMutation.mutate(slot)}>
+											<Button variant="ghost" size="sm" disabled={loadoutBusy} onClick={() => setUnequipSlot(slot)}>
 												Unequip
 											</Button>
 										)}
@@ -162,8 +175,14 @@ function InventoryPage() {
 										<Button
 											key={item.key}
 											size="sm"
-											disabled={equipMutation.isPending}
-											onClick={() => equipMutation.mutate({ slot: selectedSlot, catalogKey: item.key })}
+											disabled={loadoutBusy}
+											onClick={() => {
+												setStatus(null);
+												equipMutation.mutate(
+													{ slot: selectedSlot, catalogKey: item.key },
+													{ onSuccess: () => setStatus(`${item.displayName} equipped as ${slotLabels[selectedSlot]}.`) },
+												);
+											}}
 										>
 											Equip {item.displayName}
 										</Button>
@@ -174,6 +193,17 @@ function InventoryPage() {
 					</CardContent>
 				</Card>
 			</section>
+			<ConfirmActionDialog
+				open={unequipSlot !== null}
+				onOpenChange={(open) => {
+					if (!open) setUnequipSlot(null);
+				}}
+				title={`Unequip ${unequipSlot ? slotLabels[unequipSlot].toLowerCase() : 'this item'}?`}
+				description="The item will return to your inventory and no longer affect your current loadout."
+				confirmLabel="Unequip"
+				pending={unequipMutation.isPending}
+				onConfirm={confirmUnequip}
+			/>
 		</div>
 	);
 }

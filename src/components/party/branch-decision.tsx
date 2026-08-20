@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 
+import { SuccessNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
 import type { PartyMap, PartyVotes } from '#/lib/api';
@@ -59,6 +60,7 @@ export function BranchDecision({
 						This expedition is no longer active. The route history is available to view, but new votes are closed.
 					</p>
 				)}
+				{mutation.data && <SuccessNotice>Your route vote is saved.</SuccessNotice>}
 			</CardHeader>
 			<CardContent className="grid gap-3 pt-1 sm:grid-cols-2">
 				{edges.map((edge) => {

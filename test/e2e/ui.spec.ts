@@ -28,6 +28,20 @@ test('renders the public landing page', async ({ page }) => {
 	await expect(page.getByRole('link', { name: /Continue with Google/i })).toBeVisible();
 });
 
+test('uses an accessible confirmation dialog for consequential party actions', async ({ page, request }) => {
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	await page.getByRole('button', { name: /Leave party/i }).click();
+	const dialog = page.getByRole('alertdialog');
+	await expect(dialog).toBeVisible();
+	await expect(dialog.getByRole('heading', { name: /Leave this party/i })).toBeVisible();
+
+	await dialog.getByRole('button', { name: 'Cancel' }).click();
+	await expect(dialog).not.toBeVisible();
+	await expect.poll(async () => lastMutation(request)).toEqual({ path: null, body: null });
+});
+
 test('opens a village departure vote and casts a route vote', async ({ page, request }) => {
 	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'village' } });
 	await authenticate(page);
