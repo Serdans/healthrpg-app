@@ -1,0 +1,15 @@
+import type { HTMLAttributes } from 'react';
+
+import { cn } from '#/lib/utils';
+
+export function Badge({ className, ...props }: HTMLAttributes<HTMLSpanElement>) {
+	return (
+		<span
+			className={cn(
+				'inline-flex items-center rounded-full border border-[var(--gold-line)] bg-[var(--gold-wash)] px-2.5 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.13em] text-[var(--gold-deep)]',
+				className,
+			)}
+			{...props}
+		/>
+	);
+}

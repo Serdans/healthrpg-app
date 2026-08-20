@@ -1,0 +1,10 @@
+minimumReleaseAge: 1440
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 10080
+blockExoticSubdeps: true
+
+allowBuilds:
+  esbuild: true
+  lightningcss: true
+  sharp: true
+  unrs-resolver: true
