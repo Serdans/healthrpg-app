@@ -58,7 +58,10 @@ export async function requestBackend(request: Request, path: string, includeSess
 	};
 
 	if (request.method !== 'GET' && request.method !== 'HEAD') {
-		init.body = request.body;
+		// Buffer the incoming body before forwarding it. This keeps the proxy
+		// portable across Nitro adapters and avoids Node's streaming-fetch
+		// `duplex: 'half'` requirement for browser mutations.
+		init.body = request.body ? await request.arrayBuffer() : undefined;
 	}
 
 	return fetch(backendUrl(path), init);

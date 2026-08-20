@@ -25,17 +25,26 @@ WEB_ORIGIN=http://localhost:3001
 The browser never receives the backend bearer token. The UI BFF stores it in
 the `healthrpg_session` HttpOnly cookie and forwards it server-side.
 
-## First playable slice
+## Current UI slice
 
 - Google sign-in and callback handling
 - Eight-question character creation and origin preview
 - Party creation, invite generation, and invite joining
 - Party dashboard with current node, visible map, roster, daily movement/recovery signal
 - Branch votes and non-combat event choices
+- Health connection status, manual sync, and timezone preferences
+- Inventory, loadout, equipment, and personal progression views
+- Combat action selection, target selection, and field-kit healing
+- Village merchant purchases and departure voting
+- Party progression history and leader roster management
 
-Combat, inventory, villages, and progression screens remain outside this first
-slice even though their typed API operations are available in the generated
-contract.
+Persistent invite listing is deferred because the current backend contract only
+supports creating and revoking invites; the freshly-created token remains
+available in the party management panel for the current session.
+
+The adventure/land panel is deferred until the backend’s new adventure contract
+is stable and reflected in the checked-in OpenAPI types. No UI code depends on
+that endpoint yet.
 
 ## Backend contract
 

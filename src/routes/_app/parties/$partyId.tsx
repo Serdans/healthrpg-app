@@ -1,27 +1,31 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowLeft, Clock3, HeartPulse, Map as MapIcon, MapPin, Send, UsersRound } from 'lucide-react';
+import { ArrowLeft, Clock3, HeartPulse, Map as MapIcon, MapPin, UsersRound } from 'lucide-react';
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { BranchDecision } from '#/components/party/branch-decision';
+import { CombatPanel } from '#/components/party/combat-panel';
 import { DailyStatus } from '#/components/party/daily-status';
 import { EventDecision } from '#/components/party/event-decision';
 import { MapTrail } from '#/components/party/map-trail';
+import { PartyManagement } from '#/components/party/party-management';
+import { ProgressionHistory } from '#/components/party/progression-history';
 import { Roster } from '#/components/party/roster';
 import { StatusCard } from '#/components/party/status-card';
+import { VillagePanel } from '#/components/party/village-panel';
 import { Badge } from '#/components/ui/badge';
-import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import {
 	useCastVote,
 	useChooseEvent,
-	useCreateInvite,
 	useDailyProgress,
+	useEncounter,
 	useParty,
 	usePartyEvent,
 	usePartyMap,
 	usePartyVotes,
+	useVillage,
 } from '#/lib/queries';
-import { CopyToken } from '../parties';
+import { isPartyReadOnly } from '#/lib/party-state';
 
 export const Route = createFileRoute('/_app/parties/$partyId')({ component: PartyDashboard });
 
@@ -32,26 +36,55 @@ function PartyDashboard() {
 	const mapQuery = usePartyMap(partyId);
 	const dailyQuery = useDailyProgress(partyId);
 	const currentNodeId = partyQuery.data?.currentNode.id ?? '';
-	const eventEnabled = Boolean(partyQuery.data && ['narrative', 'treasure', 'rest'].includes(partyQuery.data.currentNode.nodeType));
+	const currentNodeType = partyQuery.data?.currentNode.nodeType;
+	const isCombat = currentNodeType === 'combat';
+	const isVillage = currentNodeType === 'village';
+	const eventEnabled = Boolean(partyQuery.data && ['narrative', 'treasure', 'rest'].includes(currentNodeType ?? ''));
 	const eventQuery = usePartyEvent(partyId, eventEnabled);
+	const encounterQuery = useEncounter(partyId, isCombat);
+	const villageQuery = useVillage(partyId, isVillage);
 	const mapEdges = mapQuery.data?.edges.filter((edge) => edge.fromNodeId === mapQuery.data.currentNodeId) ?? [];
-	const votesQuery = usePartyVotes(partyId, currentNodeId, mapEdges.length > 0);
-	const inviteMutation = useCreateInvite(partyId);
+	const votesEnabled =
+		Boolean(partyQuery.data) &&
+		mapEdges.length > 0 &&
+		!isCombat &&
+		!eventEnabled &&
+		(!isVillage || Boolean(partyQuery.data?.decisionStartedAt));
+	const votesQuery = usePartyVotes(partyId, currentNodeId, votesEnabled);
 	const castVoteMutation = useCastVote(partyId, currentNodeId);
 	const chooseEventMutation = useChooseEvent(partyId);
 
-	if (partyQuery.isPending || mapQuery.isPending || dailyQuery.isPending) return <LoadingState label="Mapping the party trail…" />;
-	if (partyQuery.isError) return <ErrorNotice message={partyQuery.error.message} />;
-	if (mapQuery.isError) return <ErrorNotice message={mapQuery.error.message} />;
+	if (
+		partyQuery.isPending ||
+		mapQuery.isPending ||
+		dailyQuery.isPending ||
+		(eventEnabled && eventQuery.isPending) ||
+		(isCombat && encounterQuery.isPending) ||
+		(isVillage && villageQuery.isPending) ||
+		(votesEnabled && votesQuery.isPending)
+	)
+		return <LoadingState label="Mapping the party trail…" />;
+	if (partyQuery.isError)
+		return <ErrorNotice message={partyQuery.error.message} onRetry={() => void partyQuery.refetch()} retryLabel="Retry party" />;
+	if (mapQuery.isError)
+		return <ErrorNotice message={mapQuery.error.message} onRetry={() => void mapQuery.refetch()} retryLabel="Retry map" />;
+	if (dailyQuery.isError)
+		return <ErrorNotice message={dailyQuery.error.message} onRetry={() => void dailyQuery.refetch()} retryLabel="Retry daily progress" />;
+	if (isCombat && encounterQuery.isError)
+		return (
+			<ErrorNotice message={encounterQuery.error.message} onRetry={() => void encounterQuery.refetch()} retryLabel="Retry encounter" />
+		);
+	if (isVillage && villageQuery.isError)
+		return <ErrorNotice message={villageQuery.error.message} onRetry={() => void villageQuery.refetch()} retryLabel="Retry village" />;
 
 	const party = partyQuery.data;
 	const map = mapQuery.data;
 	const daily = dailyQuery.data;
-	if (!daily) return <ErrorNotice />;
-	const isLeader = party.members.some((member) => member.userId === user.id && member.role === 'leader');
+	const readOnly = isPartyReadOnly(party.status);
 	const currentEdges = map.edges.filter((edge) => edge.fromNodeId === map.currentNodeId);
 	const currentVotes = votesQuery.data;
 	const currentEvent = eventQuery.data;
+	const hasBranchDecision = !isCombat && !eventEnabled && currentEdges.length > 0 && (!isVillage || Boolean(party.decisionStartedAt));
 
 	return (
 		<div className="space-y-7">
@@ -73,16 +106,14 @@ function PartyDashboard() {
 						The world moves at the party’s pace. Make the next decision together.
 					</p>
 				</div>
-				{isLeader && (
-					<div className="flex flex-col items-stretch gap-2 sm:items-end">
-						<Button variant="secondary" disabled={inviteMutation.isPending} onClick={() => inviteMutation.mutate()}>
-							<Send className="size-4" /> Create invite
-						</Button>
-						{inviteMutation.data && <CopyToken token={inviteMutation.data.token} />}
-						{inviteMutation.isError && <p className="text-xs text-[var(--danger)]">{inviteMutation.error.message}</p>}
-					</div>
-				)}
 			</div>
+
+			{readOnly && (
+				<div role="status" className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 text-sm text-[var(--ink-soft)]">
+					<p className="font-extrabold text-[var(--indigo)]">This expedition is abandoned.</p>
+					<p className="mt-1">You can still review its trail and history, but new party actions are closed.</p>
+				</div>
+			)}
 
 			<div className="grid gap-4 md:grid-cols-3">
 				<StatusCard
@@ -128,7 +159,62 @@ function PartyDashboard() {
 				</div>
 			</div>
 
-			{(currentEdges.length > 0 || currentEvent) && (
+			{isCombat && encounterQuery.data && (
+				<section>
+					<div className="mb-4 flex items-end justify-between gap-4">
+						<div>
+							<p className="eyebrow">Encounter actions</p>
+							<h2 className="display-title mt-2 text-3xl text-[var(--indigo)]">Every turn is a party decision.</h2>
+						</div>
+						<Clock3 className="size-5 text-[var(--gold-deep)]" />
+					</div>
+					<CombatPanel partyId={partyId} userId={user.id} party={party} encounter={encounterQuery.data} readOnly={readOnly} />
+				</section>
+			)}
+
+			{isVillage && villageQuery.data && (
+				<section>
+					<VillagePanel
+						partyId={partyId}
+						village={villageQuery.data}
+						departureOpen={Boolean(party.decisionStartedAt)}
+						readOnly={readOnly}
+					/>
+				</section>
+			)}
+
+			{eventEnabled && eventQuery.isError && (
+				<section>
+					<ErrorNotice message={eventQuery.error.message} onRetry={() => void eventQuery.refetch()} retryLabel="Retry event" />
+				</section>
+			)}
+
+			{hasBranchDecision && (
+				<section>
+					<div className="mb-4 flex items-end justify-between gap-4">
+						<div>
+							<p className="eyebrow">{isVillage ? 'Departure decision' : 'Today’s decision'}</p>
+							<h2 className="display-title mt-2 text-3xl text-[var(--indigo)]">Which way does the party lean?</h2>
+						</div>
+						<Clock3 className="size-5 text-[var(--gold-deep)]" />
+					</div>
+					{votesQuery.isError ? (
+						<ErrorNotice message={votesQuery.error.message} onRetry={() => void votesQuery.refetch()} retryLabel="Retry vote details" />
+					) : (
+						<BranchDecision
+							map={map}
+							votes={currentVotes}
+							edges={currentEdges}
+							mutation={castVoteMutation}
+							userId={user.id}
+							memberCount={party.members.length}
+							readOnly={readOnly}
+						/>
+					)}
+				</section>
+			)}
+
+			{!isCombat && !isVillage && eventEnabled && currentEvent && (
 				<section>
 					<div className="mb-4 flex items-end justify-between gap-4">
 						<div>
@@ -137,13 +223,14 @@ function PartyDashboard() {
 						</div>
 						<Clock3 className="size-5 text-[var(--gold-deep)]" />
 					</div>
-					{currentEvent ? (
-						<EventDecision event={currentEvent} mutation={chooseEventMutation} />
-					) : (
-						<BranchDecision map={map} votes={currentVotes} edges={currentEdges} mutation={castVoteMutation} />
-					)}
+					<EventDecision event={currentEvent} mutation={chooseEventMutation} readOnly={readOnly} />
 				</section>
 			)}
+
+			<div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+				<ProgressionHistory partyId={partyId} />
+				<PartyManagement partyId={partyId} party={party} userId={user.id} readOnly={readOnly} />
+			</div>
 		</div>
 	);
 }

@@ -5,7 +5,8 @@ import { EmptyState, ErrorNotice, LoadingState } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
-import { useCharacter, useParties } from '#/lib/queries';
+import { localDateForTimezone } from '#/lib/dates';
+import { useCharacter, useMe, useParties, useProgress } from '#/lib/queries';
 import { Metric } from '#/components/dashboard/metric';
 import { PartyPreview } from '#/components/dashboard/party-preview';
 
@@ -14,13 +15,23 @@ export const Route = createFileRoute('/_app/app')({ component: AppDashboard });
 function AppDashboard() {
 	const characterQuery = useCharacter();
 	const partiesQuery = useParties();
+	const meQuery = useMe();
+	const localDate = localDateForTimezone(meQuery.data?.timezone ?? 'UTC');
+	const progressQuery = useProgress(localDate, Boolean(meQuery.data), 15_000);
 
-	if (characterQuery.isPending || partiesQuery.isPending) return <LoadingState label="Gathering your expedition…" />;
-	if (characterQuery.isError) return <ErrorNotice message={characterQuery.error.message} />;
-	if (partiesQuery.isError) return <ErrorNotice message={partiesQuery.error.message} />;
+	if (characterQuery.isPending || partiesQuery.isPending || meQuery.isPending) return <LoadingState label="Gathering your expedition…" />;
+	if (characterQuery.isError)
+		return (
+			<ErrorNotice message={characterQuery.error.message} onRetry={() => void characterQuery.refetch()} retryLabel="Retry character" />
+		);
+	if (partiesQuery.isError)
+		return <ErrorNotice message={partiesQuery.error.message} onRetry={() => void partiesQuery.refetch()} retryLabel="Retry parties" />;
+	if (meQuery.isError)
+		return <ErrorNotice message={meQuery.error.message} onRetry={() => void meQuery.refetch()} retryLabel="Retry profile" />;
 
 	const character = characterQuery.data;
 	const parties = partiesQuery.data;
+	const progress = progressQuery.data;
 
 	return (
 		<div className="space-y-8">
@@ -34,6 +45,10 @@ function AppDashboard() {
 				</div>
 				<Badge className="w-fit">Daylight · provisional</Badge>
 			</div>
+
+			{progressQuery.isError && (
+				<ErrorNotice message={progressQuery.error.message} onRetry={() => void progressQuery.refetch()} retryLabel="Retry progress" />
+			)}
 
 			{!character && (
 				<Card className="overflow-hidden border-[color-mix(in_srgb,var(--amethyst)_32%,var(--line-strong))] bg-[linear-gradient(135deg,rgba(134,98,178,0.12),rgba(255,250,240,0.82))]">
@@ -59,13 +74,31 @@ function AppDashboard() {
 			)}
 
 			<section className="grid gap-4 md:grid-cols-3">
-				<Metric icon={<Footprints />} label="Movement" value="—" copy="Steps become travel units." />
-				<Metric icon={<Moon />} label="Recovery" value="—" copy="Sleep steadies your party." />
+				<Metric
+					icon={<Footprints />}
+					label="Movement"
+					value={progress ? `${progress.movementUnits}` : '—'}
+					copy={
+						progress?.steps === null || progress?.steps === undefined
+							? 'Steps become travel units.'
+							: `${progress.steps.toLocaleString()} steps today`
+					}
+				/>
+				<Metric
+					icon={<Moon />}
+					label="Recovery"
+					value={progress ? `${progress.recoveryPoints}` : '—'}
+					copy={
+						progress?.sleepMinutes === null || progress?.sleepMinutes === undefined
+							? 'Sleep steadies your party.'
+							: `${progress.sleepMinutes} minutes asleep`
+					}
+				/>
 				<Metric
 					icon={<HeartPulse />}
 					label="Party health"
-					value={character ? 'Ready' : 'Waiting'}
-					copy="Private signals, shared momentum."
+					value={progress?.status === 'complete' ? 'Complete' : character ? 'Provisional' : 'Waiting'}
+					copy={`Signals for ${localDate}. Private data, shared momentum.`}
 				/>
 			</section>
 

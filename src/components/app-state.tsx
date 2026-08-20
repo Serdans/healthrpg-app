@@ -2,17 +2,39 @@ import { AlertCircle, LoaderCircle } from 'lucide-react';
 
 export function LoadingState({ label = 'Reading the trail…' }: { label?: string }) {
 	return (
-		<div className="flex items-center gap-3 py-12 text-sm font-bold text-[var(--ink-soft)]">
+		<div role="status" aria-live="polite" className="flex items-center gap-3 py-12 text-sm font-bold text-[var(--ink-soft)]">
 			<LoaderCircle className="size-5 animate-spin text-[var(--gold-deep)]" /> {label}
 		</div>
 	);
 }
 
-export function ErrorNotice({ message = 'Something interrupted the expedition.' }: { message?: string }) {
+export function ErrorNotice({
+	message = 'Something interrupted the expedition.',
+	onRetry,
+	retryLabel = 'Try again',
+}: {
+	message?: string;
+	onRetry?: () => void;
+	retryLabel?: string;
+}) {
 	return (
-		<div className="flex items-start gap-3 rounded-2xl border border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-[color-mix(in_srgb,var(--danger)_8%,transparent)] p-4 text-sm text-[var(--danger)]">
+		<div
+			role="alert"
+			className="flex items-start gap-3 rounded-2xl border border-[color-mix(in_srgb,var(--danger)_30%,transparent)] bg-[color-mix(in_srgb,var(--danger)_8%,transparent)] p-4 text-sm text-[var(--danger)]"
+		>
 			<AlertCircle className="mt-0.5 size-5 shrink-0" />
-			<p>{message}</p>
+			<div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3">
+				<p>{message}</p>
+				{onRetry && (
+					<button
+						type="button"
+						className="rounded-lg border border-current px-3 py-1.5 text-xs font-extrabold hover:bg-[color-mix(in_srgb,var(--danger)_8%,transparent)]"
+						onClick={onRetry}
+					>
+						{retryLabel}
+					</button>
+				)}
+			</div>
 		</div>
 	);
 }

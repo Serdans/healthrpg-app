@@ -37,6 +37,12 @@ type SuccessBody<TOperation> = TOperation extends { responses: infer TResponses 
 			: never
 	: never;
 
+type RequestBody<TOperation> = TOperation extends {
+	requestBody: { content: { 'application/json': infer Body } };
+}
+	? Body
+	: never;
+
 type MeResponse = SuccessBody<paths['/v1/me']['get']>;
 type PartiesResponse = SuccessBody<paths['/v1/me/parties']['get']>;
 type CharacterResponse = SuccessBody<paths['/v1/me/character']['get']>;
@@ -53,6 +59,26 @@ type CastVoteResponse = SuccessBody<paths['/v1/parties/{partyId}/votes']['post']
 type EventResponse = SuccessBody<paths['/v1/parties/{partyId}/event']['get']>;
 type ChooseEventResponse = SuccessBody<paths['/v1/parties/{partyId}/event/choice']['put']>;
 type InviteResponse = SuccessBody<paths['/v1/parties/{partyId}/invites']['post']>;
+type ProgressResponse = SuccessBody<paths['/v1/progress/{localDate}']['get']>;
+type HealthStatusResponse = SuccessBody<paths['/v1/health/status']['get']>;
+type HealthSyncResponse = SuccessBody<paths['/v1/health/sync']['post']>;
+type UserProgressionResponse = SuccessBody<paths['/v1/me/progression']['get']>;
+type InventoryResponse = SuccessBody<paths['/v1/me/inventory']['get']>;
+type LoadoutResponse = SuccessBody<paths['/v1/me/loadout']['get']>;
+type VillageResponse = SuccessBody<paths['/v1/parties/{partyId}/village']['get']>;
+type VillagePurchaseResponse = SuccessBody<paths['/v1/parties/{partyId}/village/purchase']['post']>;
+type VillageDepartureResponse = SuccessBody<paths['/v1/parties/{partyId}/village/departure']['post']>;
+type EncounterResponse = SuccessBody<paths['/v1/parties/{partyId}/encounter']['get']>;
+type PartyItemUseResponse = SuccessBody<paths['/v1/parties/{partyId}/items/use']['post']>;
+type PartyProgressionResponse = SuccessBody<paths['/v1/parties/{partyId}/progression']['get']>;
+type HealthSyncBody = RequestBody<paths['/v1/health/sync']['post']>;
+type PreferencesBody = RequestBody<paths['/v1/me/preferences']['patch']>;
+type VillagePurchaseBody = RequestBody<paths['/v1/parties/{partyId}/village/purchase']['post']>;
+type EncounterActionBody = RequestBody<paths['/v1/parties/{partyId}/encounter/action']['put']>;
+type PartyItemUseBody = RequestBody<paths['/v1/parties/{partyId}/items/use']['post']>;
+type LeaderTransferBody = RequestBody<paths['/v1/parties/{partyId}/leader']['put']>;
+type LoadoutSlot = paths['/v1/me/loadout/{slot}']['put']['parameters']['path']['slot'];
+type PartyProgressionQuery = NonNullable<paths['/v1/parties/{partyId}/progression']['get']['parameters']['query']>;
 
 export class ApiError extends Error {
 	constructor(
@@ -85,6 +111,18 @@ async function requestJson<T>(input: string, options?: Options): Promise<T> {
 	}
 }
 
+async function requestVoid(input: string, options?: Options): Promise<void> {
+	try {
+		await http(input, options);
+	} catch (error) {
+		if (isHTTPError(error)) {
+			throw new ApiError(errorMessage(error.data), error.response.status);
+		}
+
+		throw new ApiError('Network request failed. Check your connection and try again.', 0);
+	}
+}
+
 function partyPath(partyId: string, suffix = '') {
 	return `v1/parties/${encodeURIComponent(partyId)}${suffix}`;
 }
@@ -99,6 +137,8 @@ export const startCharacterCreation = () =>
 	requestJson<CharacterCreationResponse>('v1/me/character/creation', {
 		method: 'post',
 	});
+
+export const resetCharacterCreation = () => requestVoid('v1/me/character/creation', { method: 'delete' });
 
 export const answerCharacter = (questionId: string, answerId: string) =>
 	requestJson<CharacterAnswerResponse>('v1/me/character/creation/answer', {
@@ -152,6 +192,89 @@ export const createInvite = (partyId: string) =>
 		method: 'post',
 	});
 
+export const getProgress = (localDate: string) => requestJson<ProgressResponse>(`v1/progress/${encodeURIComponent(localDate)}`);
+
+export const getHealthStatus = () => requestJson<HealthStatusResponse>('v1/health/status');
+
+export const syncHealth = (body: HealthSyncBody = {}) =>
+	requestJson<HealthSyncResponse>('v1/health/sync', {
+		method: 'post',
+		json: body,
+	});
+
+export const updatePreferences = (body: PreferencesBody) =>
+	requestJson<MeResponse>('v1/me/preferences', {
+		method: 'patch',
+		json: body,
+	});
+
+export const getProgression = () => requestJson<UserProgressionResponse>('v1/me/progression');
+
+export const getInventory = () => requestJson<InventoryResponse>('v1/me/inventory');
+
+export const getLoadout = () => requestJson<LoadoutResponse>('v1/me/loadout');
+
+export const equipLoadout = (slot: LoadoutSlot, catalogKey: string) =>
+	requestJson<LoadoutResponse>(`v1/me/loadout/${slot}`, {
+		method: 'put',
+		json: { catalogKey },
+	});
+
+export const unequipLoadout = (slot: LoadoutSlot) => requestVoid(`v1/me/loadout/${slot}`, { method: 'delete' });
+
+export const getVillage = (partyId: string) => requestJson<VillageResponse>(partyPath(partyId, '/village'));
+
+export const purchaseVillage = (partyId: string, body: VillagePurchaseBody) =>
+	requestJson<VillagePurchaseResponse>(partyPath(partyId, '/village/purchase'), {
+		method: 'post',
+		json: body,
+	});
+
+export const startVillageDeparture = (partyId: string) =>
+	requestJson<VillageDepartureResponse>(partyPath(partyId, '/village/departure'), {
+		method: 'post',
+	});
+
+export const getEncounter = (partyId: string) => requestJson<EncounterResponse>(partyPath(partyId, '/encounter'));
+
+export const setEncounterAction = (partyId: string, body: EncounterActionBody) =>
+	requestJson<EncounterResponse>(partyPath(partyId, '/encounter/action'), {
+		method: 'put',
+		json: body,
+	});
+
+export const usePartyItem = (partyId: string, body: PartyItemUseBody) =>
+	requestJson<PartyItemUseResponse>(partyPath(partyId, '/items/use'), {
+		method: 'post',
+		json: body,
+	});
+
+export const getPartyProgression = (partyId: string, query?: PartyProgressionQuery) => {
+	const searchParams = new URLSearchParams();
+	if (query?.limit !== undefined) searchParams.set('limit', String(query.limit));
+	if (query?.cursor) searchParams.set('cursor', query.cursor);
+
+	return requestJson<PartyProgressionResponse>(partyPath(partyId, '/progression'), {
+		searchParams,
+	});
+};
+
+export const leaveParty = (partyId: string) => requestVoid(partyPath(partyId, '/membership'), { method: 'delete' });
+
+export const kickMember = (partyId: string, memberUserId: string) =>
+	requestJson<PartyResponse>(partyPath(partyId, `/members/${encodeURIComponent(memberUserId)}`), {
+		method: 'delete',
+	});
+
+export const transferLeadership = (partyId: string, body: LeaderTransferBody) =>
+	requestJson<PartyResponse>(partyPath(partyId, '/leader'), {
+		method: 'put',
+		json: body,
+	});
+
+export const revokeInvite = (partyId: string, inviteId: string) =>
+	requestVoid(partyPath(partyId, `/invites/${encodeURIComponent(inviteId)}`), { method: 'delete' });
+
 export type User = MeResponse;
 export type Party = PartyResponse;
 export type PartyMap = MapResponse;
@@ -161,3 +284,22 @@ export type CharacterPreview = Extract<CharacterCreation, { status: 'ready' }>['
 export type DailyProgress = DailyProgressResponse;
 export type PartyVotes = VotesResponse;
 export type PartyEvent = EventResponse;
+export type Invite = InviteResponse;
+export type Progress = ProgressResponse;
+export type HealthStatus = HealthStatusResponse;
+export type HealthSync = HealthSyncResponse;
+export type HealthSyncInput = HealthSyncBody;
+export type PreferencesInput = PreferencesBody;
+export type UserProgression = UserProgressionResponse;
+export type Inventory = InventoryResponse;
+export type Loadout = LoadoutResponse;
+export type EquipmentSlot = LoadoutSlot;
+export type Village = VillageResponse;
+export type VillagePurchase = VillagePurchaseResponse;
+export type VillagePurchaseInput = VillagePurchaseBody;
+export type VillageDeparture = VillageDepartureResponse;
+export type Encounter = EncounterResponse;
+export type EncounterActionInput = EncounterActionBody;
+export type PartyItemUse = PartyItemUseResponse;
+export type PartyItemUseInput = PartyItemUseBody;
+export type PartyProgression = PartyProgressionResponse;

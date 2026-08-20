@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router';
-import { Compass, LogOut, UsersRound } from 'lucide-react';
+import { Backpack, Compass, LogOut, Settings2, Sparkles, UsersRound } from 'lucide-react';
 
 import { Badge } from '#/components/ui/badge';
 import { getSession } from '#/lib/session';
@@ -12,6 +12,15 @@ export const Route = createFileRoute('/_app')({
 	},
 	component: AppLayout,
 });
+
+const mobileLinks = [
+	{ to: '/app', label: 'Trail' },
+	{ to: '/character', label: 'Character' },
+	{ to: '/parties', label: 'Parties' },
+	{ to: '/inventory', label: 'Kit' },
+	{ to: '/progression', label: 'Progress' },
+	{ to: '/settings', label: 'Settings' },
+] as const;
 
 function initials(name: string | null, email: string) {
 	if (name) {
@@ -65,6 +74,27 @@ function AppLayout() {
 						>
 							<UsersRound className="mr-1.5 inline-block size-4" /> Parties
 						</Link>
+						<Link
+							to="/inventory"
+							activeProps={{ className: 'bg-[var(--indigo)] text-[var(--parchment-bright)]' }}
+							className="rounded-lg px-3 py-2 text-sm font-bold text-[var(--ink-soft)] no-underline hover:bg-[var(--surface)] hover:text-[var(--indigo)]"
+						>
+							<Backpack className="mr-1.5 inline-block size-4" /> Kit
+						</Link>
+						<Link
+							to="/progression"
+							activeProps={{ className: 'bg-[var(--indigo)] text-[var(--parchment-bright)]' }}
+							className="rounded-lg px-3 py-2 text-sm font-bold text-[var(--ink-soft)] no-underline hover:bg-[var(--surface)] hover:text-[var(--indigo)]"
+						>
+							<Sparkles className="mr-1.5 inline-block size-4" /> Progress
+						</Link>
+						<Link
+							to="/settings"
+							activeProps={{ className: 'bg-[var(--indigo)] text-[var(--parchment-bright)]' }}
+							className="rounded-lg px-3 py-2 text-sm font-bold text-[var(--ink-soft)] no-underline hover:bg-[var(--surface)] hover:text-[var(--indigo)]"
+						>
+							<Settings2 className="mr-1.5 inline-block size-4" /> Settings
+						</Link>
 					</nav>
 
 					<div className="flex items-center gap-3">
@@ -87,6 +117,18 @@ function AppLayout() {
 						</Link>
 					</div>
 				</div>
+				<nav className="page-wrap flex gap-1 overflow-x-auto border-t border-[var(--line)] py-2 sm:hidden" aria-label="Mobile navigation">
+					{mobileLinks.map(({ to, label }) => (
+						<Link
+							key={to}
+							to={to}
+							activeProps={{ className: 'bg-[var(--indigo)] text-[var(--parchment-bright)]' }}
+							className="shrink-0 rounded-lg px-3 py-2 text-xs font-bold text-[var(--ink-soft)] no-underline hover:bg-[var(--surface)] hover:text-[var(--indigo)]"
+						>
+							{label}
+						</Link>
+					))}
+				</nav>
 			</header>
 			<main className="page-wrap pt-8 sm:pt-12">
 				<Outlet />

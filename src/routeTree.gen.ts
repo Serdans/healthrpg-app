@@ -13,7 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as AppAppRouteImport } from './routes/_app/app'
 import { Route as AppCharacterRouteImport } from './routes/_app/character'
+import { Route as AppInventoryRouteImport } from './routes/_app/inventory'
 import { Route as AppPartiesRouteImport } from './routes/_app/parties'
+import { Route as AppProgressionRouteImport } from './routes/_app/progression'
+import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as ApiSplatRouteImport } from './routes/api/$'
 import { Route as ApiSessionRouteImport } from './routes/api/session'
 import { Route as AuthLogoutRouteImport } from './routes/auth/logout'
@@ -40,9 +43,24 @@ const AppCharacterRoute = AppCharacterRouteImport.update({
   path: '/character',
   getParentRoute: () => AppRoute,
 } as any)
+const AppInventoryRoute = AppInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppPartiesRoute = AppPartiesRouteImport.update({
   id: '/parties',
   path: '/parties',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProgressionRoute = AppProgressionRouteImport.update({
+  id: '/progression',
+  path: '/progression',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => AppRoute,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -80,7 +98,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppAppRoute
   '/character': typeof AppCharacterRoute
+  '/inventory': typeof AppInventoryRoute
   '/parties': typeof AppPartiesRouteWithChildren
+  '/progression': typeof AppProgressionRoute
+  '/settings': typeof AppSettingsRoute
   '/api/$': typeof ApiSplatRoute
   '/api/session': typeof ApiSessionRoute
   '/auth/logout': typeof AuthLogoutRoute
@@ -92,7 +113,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app': typeof AppAppRoute
   '/character': typeof AppCharacterRoute
+  '/inventory': typeof AppInventoryRoute
   '/parties': typeof AppPartiesRouteWithChildren
+  '/progression': typeof AppProgressionRoute
+  '/settings': typeof AppSettingsRoute
   '/api/$': typeof ApiSplatRoute
   '/api/session': typeof ApiSessionRoute
   '/auth/logout': typeof AuthLogoutRoute
@@ -106,7 +130,10 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/_app/app': typeof AppAppRoute
   '/_app/character': typeof AppCharacterRoute
+  '/_app/inventory': typeof AppInventoryRoute
   '/_app/parties': typeof AppPartiesRouteWithChildren
+  '/_app/progression': typeof AppProgressionRoute
+  '/_app/settings': typeof AppSettingsRoute
   '/api/$': typeof ApiSplatRoute
   '/api/session': typeof ApiSessionRoute
   '/auth/logout': typeof AuthLogoutRoute
@@ -120,7 +147,10 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/character'
+    | '/inventory'
     | '/parties'
+    | '/progression'
+    | '/settings'
     | '/api/$'
     | '/api/session'
     | '/auth/logout'
@@ -132,7 +162,10 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/character'
+    | '/inventory'
     | '/parties'
+    | '/progression'
+    | '/settings'
     | '/api/$'
     | '/api/session'
     | '/auth/logout'
@@ -145,7 +178,10 @@ export interface FileRouteTypes {
     | '/_app'
     | '/_app/app'
     | '/_app/character'
+    | '/_app/inventory'
     | '/_app/parties'
+    | '/_app/progression'
+    | '/_app/settings'
     | '/api/$'
     | '/api/session'
     | '/auth/logout'
@@ -194,11 +230,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCharacterRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/inventory': {
+      id: '/_app/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof AppInventoryRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/parties': {
       id: '/_app/parties'
       path: '/parties'
       fullPath: '/parties'
       preLoaderRoute: typeof AppPartiesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/progression': {
+      id: '/_app/progression'
+      path: '/progression'
+      fullPath: '/progression'
+      preLoaderRoute: typeof AppProgressionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
       parentRoute: typeof AppRoute
     }
     '/api/$': {
@@ -261,13 +318,19 @@ const AppPartiesRouteWithChildren = AppPartiesRoute._addFileChildren(
 interface AppRouteChildren {
   AppAppRoute: typeof AppAppRoute
   AppCharacterRoute: typeof AppCharacterRoute
+  AppInventoryRoute: typeof AppInventoryRoute
   AppPartiesRoute: typeof AppPartiesRouteWithChildren
+  AppProgressionRoute: typeof AppProgressionRoute
+  AppSettingsRoute: typeof AppSettingsRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppAppRoute: AppAppRoute,
   AppCharacterRoute: AppCharacterRoute,
+  AppInventoryRoute: AppInventoryRoute,
   AppPartiesRoute: AppPartiesRouteWithChildren,
+  AppProgressionRoute: AppProgressionRoute,
+  AppSettingsRoute: AppSettingsRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
 import { ArrowUpRight, Copy, Plus, UsersRound } from 'lucide-react';
 
 import { EmptyState, ErrorNotice, LoadingState } from '#/components/app-state';
@@ -14,6 +14,14 @@ import { useCreateParty, useJoinParty, useParties } from '#/lib/queries';
 export const Route = createFileRoute('/_app/parties')({ component: PartiesPage });
 
 function PartiesPage() {
+	const pathname = useLocation({ select: (location) => location.pathname });
+
+	if (pathname !== '/parties' && pathname !== '/parties/') return <Outlet />;
+
+	return <PartiesIndex />;
+}
+
+function PartiesIndex() {
 	const partiesQuery = useParties();
 	const createMutation = useCreateParty();
 	const joinMutation = useJoinParty();
@@ -22,7 +30,8 @@ function PartiesPage() {
 	const [inviteToken, setInviteToken] = useState('');
 
 	if (partiesQuery.isPending) return <LoadingState label="Finding your parties…" />;
-	if (partiesQuery.isError) return <ErrorNotice message={partiesQuery.error.message} />;
+	if (partiesQuery.isError)
+		return <ErrorNotice message={partiesQuery.error.message} onRetry={() => void partiesQuery.refetch()} retryLabel="Retry parties" />;
 
 	const navigateToParty = (party: Party) => void navigate({ to: '/parties/$partyId', params: { partyId: party.id } });
 

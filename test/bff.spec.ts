@@ -77,6 +77,34 @@ describe('BFF security boundary', () => {
 		expect(fetchMock).toHaveBeenCalledOnce();
 	});
 
+	it('buffers mutation bodies before forwarding them', async () => {
+		const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+			expect(String(input)).toBe('http://backend.test/v1/parties');
+			expect(init?.method).toBe('POST');
+			expect(new Headers(init?.headers).get('Content-Type')).toBe('application/json');
+			expect(await new Response(init?.body).json()).toEqual({ name: 'Lantern Walkers' });
+			return new Response(JSON.stringify({ id: 'party-1' }), {
+				status: 201,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const response = await requestBackend(
+			new Request('http://localhost:3001/api/v1/parties', {
+				method: 'POST',
+				headers: {
+					Cookie: 'healthrpg_session=token.abc',
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({ name: 'Lantern Walkers' }),
+			}),
+			'/v1/parties',
+		);
+
+		expect(response.status).toBe(201);
+	});
+
 	it('clears the session when the backend returns 401', () => {
 		const response = copyBackendResponse(
 			new Request('http://localhost:3001/api/v1/me'),

@@ -13,7 +13,7 @@ import { CharacterSheet } from '#/components/character/character-sheet';
 import { PageIntro } from '#/components/character/page-intro';
 import { Stat } from '#/components/character/stat';
 import { getCharacter, startCharacterCreation } from '#/lib/api';
-import { queryKeys, useCharacterAnswer, useCommitCharacter } from '#/lib/queries';
+import { queryKeys, useCharacterAnswer, useCommitCharacter, useResetCharacterCreation } from '#/lib/queries';
 
 export const Route = createFileRoute('/_app/character')({ component: CharacterPage });
 
@@ -26,14 +26,23 @@ function CharacterPage() {
 	});
 	const answerMutation = useCharacterAnswer();
 	const commitMutation = useCommitCharacter();
+	const resetMutation = useResetCharacterCreation();
 	const navigate = useNavigate();
 	const [name, setName] = useState('');
+	const resetCreation = () => {
+		if (!window.confirm('Start character creation over? Your current answers will be discarded.')) return;
+		resetMutation.mutate();
+	};
 
 	if (characterQuery.isPending) return <LoadingState label="Checking your character sheet…" />;
-	if (characterQuery.isError) return <ErrorNotice message={characterQuery.error.message} />;
+	if (characterQuery.isError)
+		return (
+			<ErrorNotice message={characterQuery.error.message} onRetry={() => void characterQuery.refetch()} retryLabel="Retry character" />
+		);
 	if (characterQuery.data) return <CharacterSheet character={characterQuery.data} />;
 	if (creationQuery.isPending) return <LoadingState label="Preparing your origin story…" />;
-	if (creationQuery.isError) return <ErrorNotice message={creationQuery.error.message} />;
+	if (creationQuery.isError)
+		return <ErrorNotice message={creationQuery.error.message} onRetry={() => void creationQuery.refetch()} retryLabel="Retry origin" />;
 
 	const creation = creationQuery.data;
 
@@ -47,7 +56,7 @@ function CharacterPage() {
 					copy="Eight small choices shape the traveler you bring to the trail."
 				/>
 				<Card className="mt-8">
-					<div className="mb-8 flex items-center justify-between gap-4">
+					<div className="mb-8 flex flex-wrap items-center justify-between gap-4">
 						<div>
 							<p className="eyebrow">
 								Question {creation.answeredCount + 1} of {creation.totalQuestions}
@@ -56,7 +65,12 @@ function CharacterPage() {
 								<div className="h-full rounded-full bg-[var(--gold)] transition-[width]" style={{ width: `${progress}%` }} />
 							</div>
 						</div>
-						<Sparkles className="size-6 text-[var(--gold)]" />
+						<div className="flex items-center gap-3">
+							<Sparkles className="size-6 text-[var(--gold)]" />
+							<Button variant="ghost" size="sm" disabled={resetMutation.isPending} onClick={resetCreation}>
+								{resetMutation.isPending ? 'Starting over…' : 'Start over'}
+							</Button>
+						</div>
 					</div>
 					<CardTitle className="max-w-2xl text-3xl sm:text-4xl">{creation.question.prompt}</CardTitle>
 					<CardContent className="mt-8 grid gap-3">
@@ -77,6 +91,7 @@ function CharacterPage() {
 						))}
 					</CardContent>
 					{answerMutation.isError && <ErrorNotice message={answerMutation.error.message} />}
+					{resetMutation.isError && <ErrorNotice message={resetMutation.error.message} />}
 				</Card>
 			</div>
 		);
@@ -93,8 +108,15 @@ function CharacterPage() {
 			<div className="mt-8 grid gap-5 lg:grid-cols-[1fr_0.72fr]">
 				<Card>
 					<CardHeader>
-						<Badge>Origin preview</Badge>
-						<CardTitle className="mt-4 text-4xl">{preview.flavorTitle}</CardTitle>
+						<div className="flex flex-wrap items-start justify-between gap-4">
+							<div>
+								<Badge>Origin preview</Badge>
+								<CardTitle className="mt-4 text-4xl">{preview.flavorTitle}</CardTitle>
+							</div>
+							<Button variant="ghost" size="sm" disabled={resetMutation.isPending} onClick={resetCreation}>
+								{resetMutation.isPending ? 'Starting over…' : 'Start over'}
+							</Button>
+						</div>
 						<CardDescription>{preview.flavorSummary}</CardDescription>
 					</CardHeader>
 					<CardContent>
@@ -140,6 +162,7 @@ function CharacterPage() {
 							Enter the trail <ChevronRight className="size-4" />
 						</Button>
 						{commitMutation.isError && <ErrorNotice message={commitMutation.error.message} />}
+						{resetMutation.isError && <ErrorNotice message={resetMutation.error.message} />}
 					</CardContent>
 				</Card>
 			</div>
