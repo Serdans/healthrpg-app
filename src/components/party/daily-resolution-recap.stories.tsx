@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 
 import type { PartyRecap } from '#/lib/api';
 
@@ -35,6 +36,32 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Travel: Story = {};
+
+export const Rewards: Story = {
+	args: {
+		recap: {
+			...recap,
+			resolution: {
+				...baseResolution,
+				rewards: [
+					{
+						experience: 100,
+						currency: { key: 'gold', amount: 40 },
+						item: { key: 'field-herb', quantity: 2 },
+						equipment: { key: 'trail-blade' },
+					},
+					{ item: { key: 'moon-seed', quantity: 1 } },
+				],
+			},
+		},
+	},
+	play: async ({ canvas }) => {
+		await expect(canvas.getByTestId('inventory-item-sprite-gold')).toBeInTheDocument();
+		await expect(canvas.getByTestId('inventory-item-sprite-field-herb')).toBeInTheDocument();
+		await expect(canvas.getByTestId('inventory-item-sprite-trail-blade')).toBeInTheDocument();
+		await expect(canvas.getByTestId('inventory-item-sprite-moon-seed')).toHaveAttribute('data-fallback', 'true');
+	},
+};
 
 export const EventFailure: Story = {
 	args: {

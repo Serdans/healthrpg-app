@@ -471,6 +471,17 @@ a {
 	color: var(--parchment-bright) !important;
 }
 
+.game-shell-header .game-nav-link:focus-visible {
+	border-color: var(--gold);
+	outline: 3px solid var(--gold);
+	outline-offset: 2px;
+}
+
+.game-mobile-nav {
+	scrollbar-color: var(--gold-line) transparent;
+	scrollbar-width: thin;
+}
+
 .gameplay-surface {
 	position: relative;
 }
@@ -2268,6 +2279,43 @@ a {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 0.45rem;
+}
+
+.battle-selected-item {
+	display: flex;
+	min-width: 0;
+	grid-column: 1 / -1;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.45rem 0.55rem;
+	border: 1px solid rgba(255, 243, 210, 0.2);
+	border-radius: 0.16rem;
+	background: rgba(23, 20, 60, 0.5);
+}
+
+.battle-selected-item > span:last-child {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 0.14rem;
+}
+
+.battle-selected-item strong {
+	overflow: hidden;
+	color: var(--game-parchment-light);
+	font-family: var(--font-mono);
+	font-size: 0.66rem;
+	font-weight: 600;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.battle-selected-item small {
+	color: rgba(255, 243, 210, 0.58);
+	font-family: var(--font-pixel);
+	font-size: 0.47rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
 }
 
 .battle-item-controls label {

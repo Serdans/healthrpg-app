@@ -3,6 +3,7 @@ import { Check, Crosshair, HeartPulse, PackageOpen, Shield, Sparkles, Swords, Ta
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Progress } from '#/components/ui/progress';
+import { InventoryItemSprite } from '#/components/inventory/inventory-item-sprite';
 import type { DailyProgress, Encounter, Inventory, PartyItemUse } from '#/lib/api';
 import type { CombatCommandState } from '#/lib/combat-command-state';
 import { battleEnemyArtForArchetype, battlePartyArtForClass, gameplayBackgroundArt } from '#/lib/game-art';
@@ -262,6 +263,7 @@ function BattleCommandTray({
 	const commandName = actionKey ? signature.displayName : 'Basic attack';
 	const commandDescription = actionKey ? signature.description : 'A reliable strike against a selected enemy.';
 	const interactionDisabled = readOnly || encounter.status === 'completed' || actionBusy;
+	const selectedItem = usableItems.find((item) => item.key === itemKey) ?? usableItems[0];
 	const hasRequiredTarget = targetMode !== 'enemy' || Boolean(targetEnemyId);
 	const targetNote =
 		targetMode === 'enemy'
@@ -355,9 +357,17 @@ function BattleCommandTray({
 				</div>
 				{usableItems.length > 0 ? (
 					<div className="battle-item-controls">
+						<div className="battle-selected-item" data-testid="battle-selected-item">
+							<InventoryItemSprite itemKey={selectedItem.key} kind={selectedItem.kind} size="sm" />
+							<span>
+								<strong>{selectedItem.displayName}</strong>
+								<small>{selectedItem.quantity} available</small>
+							</span>
+						</div>
 						<label>
 							<span>Item</span>
 							<select
+								data-testid="battle-item-select"
 								value={itemKey || usableItems[0]?.key}
 								disabled={interactionDisabled}
 								onChange={(event) => onItemKeyChange(event.target.value)}

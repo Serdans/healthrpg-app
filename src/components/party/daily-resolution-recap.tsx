@@ -3,10 +3,12 @@ import type { ReactNode } from 'react';
 import { ArrowRight, HeartPulse, MapPinned, Shield, Sparkles, Swords } from 'lucide-react';
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
+import { InventoryItemSprite } from '#/components/inventory/inventory-item-sprite';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import type { PartyRecap } from '#/lib/api';
 import { formatDateTime } from '#/lib/dates';
+import type { InventoryItemKind } from '#/lib/game-art';
 
 function label(value: string) {
 	return value
@@ -42,6 +44,25 @@ function rewardSummary(reward: PartyRecap['resolution']['rewards'][number]) {
 		reward.milestoneKey ? `Milestone: ${label(reward.milestoneKey)}` : null,
 	].filter((value): value is string => Boolean(value));
 	return rewards.length > 0 ? rewards.join(' · ') : 'Progress recorded';
+}
+
+function rewardVisuals(reward: PartyRecap['resolution']['rewards'][number]) {
+	const visuals: { itemKey: string; kind: InventoryItemKind }[] = [];
+	if (reward.currency) visuals.push({ itemKey: reward.currency.key, kind: 'currency' });
+	if (reward.item) visuals.push({ itemKey: reward.item.key, kind: 'item' });
+	if (reward.equipment) visuals.push({ itemKey: reward.equipment.key, kind: 'equipment' });
+	return visuals;
+}
+
+function rewardKey(reward: PartyRecap['resolution']['rewards'][number]) {
+	return [
+		reward.experience ?? '',
+		reward.currency ? `${reward.currency.key}:${reward.currency.amount}` : '',
+		reward.item ? `${reward.item.key}:${reward.item.quantity}` : '',
+		reward.equipment?.key ?? '',
+		reward.unlockKey ?? '',
+		reward.milestoneKey ?? '',
+	].join('|');
 }
 
 function signedHealth(value: number) {
@@ -196,9 +217,29 @@ export function DailyResolutionRecap({
 					<div className="game-inset game-inset-teal p-4">
 						<p className="game-pixel-label text-[var(--teal-deep)]">Rewards</p>
 						<ul className="mt-2 space-y-1 text-sm font-bold text-[var(--teal-deep)]">
-							{resolution.rewards.map((reward) => (
-								<li key={rewardSummary(reward)}>{rewardSummary(reward)}</li>
-							))}
+							{resolution.rewards.map((reward) => {
+								const summary = rewardSummary(reward);
+								const visuals = rewardVisuals(reward);
+
+								return (
+									<li key={rewardKey(reward)} className="flex items-center gap-3">
+										{visuals.length > 0 && (
+											<span className="flex shrink-0 gap-1" aria-hidden="true">
+												{visuals.map((visual) => (
+													<InventoryItemSprite
+														key={`${visual.kind}-${visual.itemKey}`}
+														itemKey={visual.itemKey}
+														kind={visual.kind}
+														size="sm"
+														className="bg-[var(--surface)]"
+													/>
+												))}
+											</span>
+										)}
+										<span>{summary}</span>
+									</li>
+								);
+							})}
 						</ul>
 					</div>
 				)}

@@ -126,6 +126,8 @@ const inventory: Inventory = {
 	equipment: [{ key: 'trail-blade', kind: 'equipment', displayName: 'Trail Blade', quantity: 1 }],
 };
 
+const extendedFieldKit = [...inventory.items, { key: 'moon-seed', kind: 'item' as const, displayName: 'Moon Seed', quantity: 1 }];
+
 type ActionKey = Encounter['members'][number]['signatureAction']['key'];
 
 interface BattlePreviewProps {
@@ -240,9 +242,20 @@ type Story = StoryObj<typeof meta>;
 export const ActiveEncounter: Story = {
 	render: () => <BattlePreview />,
 	play: async ({ canvas, userEvent }) => {
+		await expect(canvas.getByTestId('battle-selected-item')).toHaveTextContent('Field Herb');
+		await expect(canvas.getByTestId('inventory-item-sprite-field-herb')).toBeInTheDocument();
 		await userEvent.click(canvas.getByTestId('battle-action-signature'));
 		await userEvent.click(canvas.getByTestId('battle-save-command'));
 		await expect(canvas.getByTestId('battle-status')).toHaveTextContent('locked in');
+	},
+};
+
+export const FieldKitSelection: Story = {
+	render: () => <BattlePreview usableItems={extendedFieldKit} />,
+	play: async ({ canvas, userEvent }) => {
+		await userEvent.selectOptions(canvas.getByTestId('battle-item-select'), 'moon-seed');
+		await expect(canvas.getByTestId('battle-selected-item')).toHaveTextContent('Moon Seed');
+		await expect(canvas.getByTestId('inventory-item-sprite-moon-seed')).toHaveAttribute('data-fallback', 'true');
 	},
 };
 
