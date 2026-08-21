@@ -43,42 +43,43 @@ type RequestBody<TOperation> = TOperation extends {
 	? Body
 	: never;
 
-type MeResponse = SuccessBody<paths['/v1/me']['get']>;
-type PartiesResponse = SuccessBody<paths['/v1/me/parties']['get']>;
-type CharacterResponse = SuccessBody<paths['/v1/me/character']['get']>;
-type CharacterCreationResponse = SuccessBody<paths['/v1/me/character/creation']['post']>;
-type CharacterAnswerResponse = SuccessBody<paths['/v1/me/character/creation/answer']['post']>;
-type CharacterCommitResponse = SuccessBody<paths['/v1/me/character/creation/commit']['post']>;
-type PartyResponse = SuccessBody<paths['/v1/parties/{partyId}']['get']>;
-type CreatePartyResponse = SuccessBody<paths['/v1/parties']['post']>;
-type JoinPartyResponse = SuccessBody<paths['/v1/parties/join']['post']>;
-type MapResponse = SuccessBody<paths['/v1/parties/{partyId}/map']['get']>;
-type DailyProgressResponse = SuccessBody<paths['/v1/parties/{partyId}/daily-progress']['get']>;
-type VotesResponse = SuccessBody<paths['/v1/parties/{partyId}/votes/{nodeId}']['get']>;
-type CastVoteResponse = SuccessBody<paths['/v1/parties/{partyId}/votes']['post']>;
-type EventResponse = SuccessBody<paths['/v1/parties/{partyId}/event']['get']>;
-type ChooseEventResponse = SuccessBody<paths['/v1/parties/{partyId}/event/choice']['put']>;
-type InviteResponse = SuccessBody<paths['/v1/parties/{partyId}/invites']['post']>;
-type ProgressResponse = SuccessBody<paths['/v1/progress/{localDate}']['get']>;
-type HealthStatusResponse = SuccessBody<paths['/v1/health/status']['get']>;
-type HealthSyncResponse = SuccessBody<paths['/v1/health/sync']['post']>;
-type UserProgressionResponse = SuccessBody<paths['/v1/me/progression']['get']>;
-type InventoryResponse = SuccessBody<paths['/v1/me/inventory']['get']>;
-type LoadoutResponse = SuccessBody<paths['/v1/me/loadout']['get']>;
-type VillageResponse = SuccessBody<paths['/v1/parties/{partyId}/village']['get']>;
-type VillagePurchaseResponse = SuccessBody<paths['/v1/parties/{partyId}/village/purchase']['post']>;
-type VillageDepartureResponse = SuccessBody<paths['/v1/parties/{partyId}/village/departure']['post']>;
-type EncounterResponse = SuccessBody<paths['/v1/parties/{partyId}/encounter']['get']>;
-type PartyItemUseResponse = SuccessBody<paths['/v1/parties/{partyId}/items/use']['post']>;
-type PartyProgressionResponse = SuccessBody<paths['/v1/parties/{partyId}/progression']['get']>;
-type HealthSyncBody = RequestBody<paths['/v1/health/sync']['post']>;
-type PreferencesBody = RequestBody<paths['/v1/me/preferences']['patch']>;
-type VillagePurchaseBody = RequestBody<paths['/v1/parties/{partyId}/village/purchase']['post']>;
-type EncounterActionBody = RequestBody<paths['/v1/parties/{partyId}/encounter/action']['put']>;
-type PartyItemUseBody = RequestBody<paths['/v1/parties/{partyId}/items/use']['post']>;
-type LeaderTransferBody = RequestBody<paths['/v1/parties/{partyId}/leader']['put']>;
-type LoadoutSlot = paths['/v1/me/loadout/{slot}']['put']['parameters']['path']['slot'];
-type PartyProgressionQuery = NonNullable<paths['/v1/parties/{partyId}/progression']['get']['parameters']['query']>;
+type MeResponse = SuccessBody<paths['/api/v1/me']['get']>;
+type PartiesResponse = SuccessBody<paths['/api/v1/parties']['get']>;
+type CharacterResponse = SuccessBody<paths['/api/v1/me/character']['get']>;
+type CharacterCreationResponse = SuccessBody<paths['/api/v1/me/character-creation']['post']>;
+type CharacterAnswerResponse = SuccessBody<paths['/api/v1/me/character-creation/answers']['post']>;
+type CharacterCommitResponse = SuccessBody<paths['/api/v1/me/character']['post']>;
+type PartyResponse = SuccessBody<paths['/api/v1/parties/{partyId}']['get']>;
+type CreatePartyResponse = SuccessBody<paths['/api/v1/parties']['post']>;
+type JoinPartyResponse = SuccessBody<paths['/api/v1/party-memberships']['post']>;
+type MapResponse = SuccessBody<paths['/api/v1/parties/{partyId}/map']['get']>;
+type AdventureResponse = SuccessBody<paths['/api/v1/parties/{partyId}/adventure']['get']>;
+type DailyProgressResponse = SuccessBody<paths['/api/v1/parties/{partyId}/progress']['get']>;
+type VotesResponse = SuccessBody<paths['/api/v1/parties/{partyId}/branch-votes/{nodeId}']['get']>;
+type CastVoteResponse = SuccessBody<paths['/api/v1/parties/{partyId}/branch-votes/{nodeId}']['put']>;
+type EventResponse = SuccessBody<paths['/api/v1/parties/{partyId}/event']['get']>;
+type ChooseEventResponse = SuccessBody<paths['/api/v1/parties/{partyId}/event/choices/me']['put']>;
+type InviteResponse = SuccessBody<paths['/api/v1/parties/{partyId}/invites']['post']>;
+type ProgressResponse = SuccessBody<paths['/api/v1/me/progress/{localDate}']['get']>;
+type HealthStatusResponse = SuccessBody<paths['/api/v1/me/health']['get']>;
+type HealthSyncResponse = SuccessBody<paths['/api/v1/me/health/sync']['post']>;
+type UserProgressionResponse = SuccessBody<paths['/api/v1/me/progression']['get']>;
+type InventoryResponse = SuccessBody<paths['/api/v1/me/inventory']['get']>;
+type LoadoutResponse = SuccessBody<paths['/api/v1/me/loadout']['get']>;
+type VillageResponse = SuccessBody<paths['/api/v1/parties/{partyId}/village']['get']>;
+type VillagePurchaseResponse = SuccessBody<paths['/api/v1/parties/{partyId}/village/purchases']['post']>;
+type VillageDepartureResponse = SuccessBody<paths['/api/v1/parties/{partyId}/village/departures']['post']>;
+type EncounterResponse = SuccessBody<paths['/api/v1/parties/{partyId}/encounter']['get']>;
+type PartyItemUseResponse = SuccessBody<paths['/api/v1/parties/{partyId}/item-uses']['post']>;
+type PartyProgressionResponse = SuccessBody<paths['/api/v1/parties/{partyId}/progression']['get']>;
+type HealthSyncBody = RequestBody<paths['/api/v1/me/health/sync']['post']>;
+type PreferencesBody = RequestBody<paths['/api/v1/me']['patch']>;
+type VillagePurchaseBody = RequestBody<paths['/api/v1/parties/{partyId}/village/purchases']['post']>;
+type EncounterActionBody = RequestBody<paths['/api/v1/parties/{partyId}/encounter/actions/me']['put']>;
+type PartyItemUseBody = RequestBody<paths['/api/v1/parties/{partyId}/item-uses']['post']>;
+type LeaderTransferBody = RequestBody<paths['/api/v1/parties/{partyId}/leader']['put']>;
+type LoadoutSlot = paths['/api/v1/me/loadout/{slot}']['put']['parameters']['path']['slot'];
+type PartyProgressionQuery = NonNullable<paths['/api/v1/parties/{partyId}/progression']['get']['parameters']['query']>;
 
 export class ApiError extends Error {
 	constructor(
@@ -92,8 +93,10 @@ export class ApiError extends Error {
 
 function errorMessage(value: unknown) {
 	if (typeof value === 'object' && value !== null) {
-		const message = Reflect.get(value, 'error');
-		if (typeof message === 'string' && message.length > 0) return message;
+		for (const property of ['detail', 'error', 'title']) {
+			const message = Reflect.get(value, property);
+			if (typeof message === 'string' && message.length > 0) return message;
+		}
 	}
 
 	return 'The request could not be completed.';
@@ -129,25 +132,25 @@ function partyPath(partyId: string, suffix = '') {
 
 export const getMe = () => requestJson<MeResponse>('v1/me');
 
-export const getParties = () => requestJson<PartiesResponse>('v1/me/parties');
+export const getParties = () => requestJson<PartiesResponse>('v1/parties');
 
 export const getCharacter = () => requestJson<CharacterResponse>('v1/me/character');
 
 export const startCharacterCreation = () =>
-	requestJson<CharacterCreationResponse>('v1/me/character/creation', {
+	requestJson<CharacterCreationResponse>('v1/me/character-creation', {
 		method: 'post',
 	});
 
-export const resetCharacterCreation = () => requestVoid('v1/me/character/creation', { method: 'delete' });
+export const resetCharacterCreation = () => requestVoid('v1/me/character-creation', { method: 'delete' });
 
 export const answerCharacter = (questionId: string, answerId: string) =>
-	requestJson<CharacterAnswerResponse>('v1/me/character/creation/answer', {
+	requestJson<CharacterAnswerResponse>('v1/me/character-creation/answers', {
 		method: 'post',
 		json: { questionId, answerId },
 	});
 
 export const commitCharacter = (name: string) =>
-	requestJson<CharacterCommitResponse>('v1/me/character/creation/commit', {
+	requestJson<CharacterCommitResponse>('v1/me/character', {
 		method: 'post',
 		json: { name },
 	});
@@ -159,7 +162,7 @@ export const createParty = (name: string) =>
 	});
 
 export const joinParty = (inviteToken: string) =>
-	requestJson<JoinPartyResponse>('v1/parties/join', {
+	requestJson<JoinPartyResponse>('v1/party-memberships', {
 		method: 'post',
 		json: { inviteToken },
 	});
@@ -168,21 +171,23 @@ export const getParty = (partyId: string) => requestJson<PartyResponse>(partyPat
 
 export const getMap = (partyId: string) => requestJson<MapResponse>(partyPath(partyId, '/map'));
 
-export const getDailyProgress = (partyId: string) => requestJson<DailyProgressResponse>(partyPath(partyId, '/daily-progress'));
+export const getAdventure = (partyId: string) => requestJson<AdventureResponse>(partyPath(partyId, '/adventure'));
+
+export const getDailyProgress = (partyId: string) => requestJson<DailyProgressResponse>(partyPath(partyId, '/progress'));
 
 export const getVotes = (partyId: string, nodeId: string) =>
-	requestJson<VotesResponse>(partyPath(partyId, `/votes/${encodeURIComponent(nodeId)}`));
+	requestJson<VotesResponse>(partyPath(partyId, `/branch-votes/${encodeURIComponent(nodeId)}`));
 
 export const castVote = (partyId: string, nodeId: string, edgeId: string) =>
-	requestJson<CastVoteResponse>(partyPath(partyId, '/votes'), {
-		method: 'post',
-		json: { nodeId, edgeId },
+	requestJson<CastVoteResponse>(partyPath(partyId, `/branch-votes/${encodeURIComponent(nodeId)}`), {
+		method: 'put',
+		json: { edgeId },
 	});
 
 export const getEvent = (partyId: string) => requestJson<EventResponse>(partyPath(partyId, '/event'));
 
 export const chooseEvent = (partyId: string, choiceKey: string) =>
-	requestJson<ChooseEventResponse>(partyPath(partyId, '/event/choice'), {
+	requestJson<ChooseEventResponse>(partyPath(partyId, '/event/choices/me'), {
 		method: 'put',
 		json: { choiceKey },
 	});
@@ -192,18 +197,18 @@ export const createInvite = (partyId: string) =>
 		method: 'post',
 	});
 
-export const getProgress = (localDate: string) => requestJson<ProgressResponse>(`v1/progress/${encodeURIComponent(localDate)}`);
+export const getProgress = (localDate: string) => requestJson<ProgressResponse>(`v1/me/progress/${encodeURIComponent(localDate)}`);
 
-export const getHealthStatus = () => requestJson<HealthStatusResponse>('v1/health/status');
+export const getHealthStatus = () => requestJson<HealthStatusResponse>('v1/me/health');
 
 export const syncHealth = (body: HealthSyncBody = {}) =>
-	requestJson<HealthSyncResponse>('v1/health/sync', {
+	requestJson<HealthSyncResponse>('v1/me/health/sync', {
 		method: 'post',
 		json: body,
 	});
 
 export const updatePreferences = (body: PreferencesBody) =>
-	requestJson<MeResponse>('v1/me/preferences', {
+	requestJson<MeResponse>('v1/me', {
 		method: 'patch',
 		json: body,
 	});
@@ -225,26 +230,26 @@ export const unequipLoadout = (slot: LoadoutSlot) => requestVoid(`v1/me/loadout/
 export const getVillage = (partyId: string) => requestJson<VillageResponse>(partyPath(partyId, '/village'));
 
 export const purchaseVillage = (partyId: string, body: VillagePurchaseBody) =>
-	requestJson<VillagePurchaseResponse>(partyPath(partyId, '/village/purchase'), {
+	requestJson<VillagePurchaseResponse>(partyPath(partyId, '/village/purchases'), {
 		method: 'post',
 		json: body,
 	});
 
 export const startVillageDeparture = (partyId: string) =>
-	requestJson<VillageDepartureResponse>(partyPath(partyId, '/village/departure'), {
+	requestJson<VillageDepartureResponse>(partyPath(partyId, '/village/departures'), {
 		method: 'post',
 	});
 
 export const getEncounter = (partyId: string) => requestJson<EncounterResponse>(partyPath(partyId, '/encounter'));
 
 export const setEncounterAction = (partyId: string, body: EncounterActionBody) =>
-	requestJson<EncounterResponse>(partyPath(partyId, '/encounter/action'), {
+	requestJson<EncounterResponse>(partyPath(partyId, '/encounter/actions/me'), {
 		method: 'put',
 		json: body,
 	});
 
 export const usePartyItem = (partyId: string, body: PartyItemUseBody) =>
-	requestJson<PartyItemUseResponse>(partyPath(partyId, '/items/use'), {
+	requestJson<PartyItemUseResponse>(partyPath(partyId, '/item-uses'), {
 		method: 'post',
 		json: body,
 	});
@@ -259,7 +264,7 @@ export const getPartyProgression = (partyId: string, query?: PartyProgressionQue
 	});
 };
 
-export const leaveParty = (partyId: string) => requestVoid(partyPath(partyId, '/membership'), { method: 'delete' });
+export const leaveParty = (partyId: string) => requestVoid(partyPath(partyId, '/members/me'), { method: 'delete' });
 
 export const kickMember = (partyId: string, memberUserId: string) =>
 	requestJson<PartyResponse>(partyPath(partyId, `/members/${encodeURIComponent(memberUserId)}`), {
@@ -278,6 +283,7 @@ export const revokeInvite = (partyId: string, inviteId: string) =>
 export type User = MeResponse;
 export type Party = PartyResponse;
 export type PartyMap = MapResponse;
+export type Adventure = AdventureResponse;
 export type Character = CharacterResponse;
 export type CharacterCreation = CharacterCreationResponse;
 export type CharacterPreview = Extract<CharacterCreation, { status: 'ready' }>['preview'];

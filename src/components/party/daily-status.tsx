@@ -6,7 +6,7 @@ import type { DailyProgress } from '#/lib/api';
 export function DailyStatus({ daily }: { daily: DailyProgress }) {
 	const movementPercent = daily.movementCost > 0 ? (daily.movementUnits / daily.movementCost) * 100 : 100;
 	return (
-		<Card>
+		<Card variant="game" tone="village">
 			<CardHeader>
 				<div className="flex items-center justify-between gap-3">
 					<div>

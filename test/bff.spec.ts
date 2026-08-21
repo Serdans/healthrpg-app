@@ -57,7 +57,7 @@ describe('BFF security boundary', () => {
 
 	it('forwards the bearer token only to the backend origin', async () => {
 		const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-			expect(String(input)).toBe('http://backend.test/v1/me');
+			expect(String(input)).toBe('http://backend.test/api/v1/me');
 			expect(new Headers(init?.headers).get('Authorization')).toBe('Bearer token.abc');
 			return new Response(JSON.stringify({ ok: true }), {
 				status: 200,
@@ -79,7 +79,7 @@ describe('BFF security boundary', () => {
 
 	it('buffers mutation bodies before forwarding them', async () => {
 		const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-			expect(String(input)).toBe('http://backend.test/v1/parties');
+			expect(String(input)).toBe('http://backend.test/api/v1/parties');
 			expect(init?.method).toBe('POST');
 			expect(new Headers(init?.headers).get('Content-Type')).toBe('application/json');
 			expect(await new Response(init?.body).json()).toEqual({ name: 'Lantern Walkers' });

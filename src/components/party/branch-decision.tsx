@@ -34,7 +34,7 @@ export function BranchDecision({
 		: null;
 	const totalVotes = votes?.votes.length ?? 0;
 	return (
-		<Card>
+		<Card variant="game" tone="arcane">
 			<CardHeader>
 				<div className="flex flex-wrap items-start justify-between gap-3">
 					<div>

@@ -38,10 +38,18 @@ describe('API client', () => {
 		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
 			const request = input instanceof Request ? input : new Request(input);
 			expect(request.method).toBe('POST');
-			return new Response(JSON.stringify({ error: 'Party name is already taken.' }), {
-				status: 503,
-				headers: { 'Content-Type': 'application/json' },
-			});
+			return new Response(
+				JSON.stringify({
+					type: 'https://healthrpg.dev/problems/conflict',
+					title: 'Conflict',
+					status: 503,
+					detail: 'Party name is already taken.',
+				}),
+				{
+					status: 503,
+					headers: { 'Content-Type': 'application/problem+json' },
+				},
+			);
 		});
 		vi.stubGlobal('fetch', fetchMock);
 
@@ -63,7 +71,7 @@ describe('API client', () => {
 			const request = input instanceof Request ? input : new Request(input);
 			calls.push({ url: request.url, method: request.method, body: await request.clone().text() });
 
-			if (request.url.endsWith('/v1/progress/2026-08-20')) {
+			if (request.url.endsWith('/api/v1/me/progress/2026-08-20')) {
 				return new Response(
 					JSON.stringify({
 						localDate: '2026-08-20',
@@ -79,13 +87,13 @@ describe('API client', () => {
 					},
 				);
 			}
-			if (request.url.endsWith('/v1/health/status')) {
+			if (request.url.endsWith('/api/v1/me/health')) {
 				return new Response(JSON.stringify({ status: null, lastSyncAt: null, healthUserId: null }), {
 					status: 200,
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
-			if (request.url.endsWith('/v1/parties/party-1/encounter/action')) {
+			if (request.url.endsWith('/api/v1/parties/party-1/encounter/actions/me')) {
 				return new Response(JSON.stringify({ partyId: 'party-1', nodeId: 'node-1', worldDate: '2026-08-20', status: 'active' }), {
 					status: 200,
 					headers: { 'Content-Type': 'application/json' },
@@ -105,7 +113,7 @@ describe('API client', () => {
 		await expect(unequipLoadout('weapon')).resolves.toBeUndefined();
 
 		expect(calls[2]).toMatchObject({
-			url: 'http://localhost:3001/api/v1/parties/party-1/encounter/action',
+			url: 'http://localhost:3001/api/v1/parties/party-1/encounter/actions/me',
 			method: 'PUT',
 		});
 		expect(JSON.parse(calls[2].body)).toEqual({ actionKey: null, targetEnemyId: 'enemy-1', targetUserId: null });
@@ -135,7 +143,7 @@ describe('API client', () => {
 		await revokeInvite('party/1', 'invite/1');
 
 		expect(urls[0]).toBe('http://localhost:3001/api/v1/parties/party%2F1/progression?limit=20&cursor=next+page');
-		expect(urls[1]).toBe('http://localhost:3001/api/v1/parties/party%2F1/membership');
+		expect(urls[1]).toBe('http://localhost:3001/api/v1/parties/party%2F1/members/me');
 		expect(urls[2]).toBe('http://localhost:3001/api/v1/parties/party%2F1/invites/invite%2F1');
 	});
 
@@ -143,7 +151,7 @@ describe('API client', () => {
 		vi.stubGlobal('location', { origin: 'http://localhost:3001' });
 		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
 			const request = input instanceof Request ? input : new Request(input);
-			expect(request.url).toBe('http://localhost:3001/api/v1/me/character/creation');
+			expect(request.url).toBe('http://localhost:3001/api/v1/me/character-creation');
 			expect(request.method).toBe('DELETE');
 			return new Response(null, { status: 204 });
 		});

@@ -44,7 +44,7 @@ export function VillagePanel({
 				</p>
 			)}
 			{mutationError && <ErrorNotice error={mutationError} message={mutationError.message} />}
-			<Card>
+			<Card variant="game" tone="village">
 				<CardHeader>
 					<div className="flex items-start justify-between gap-4">
 						<div>
@@ -116,6 +116,7 @@ export function VillagePanel({
 										</div>
 									</div>
 									<Button
+										game
 										className="mt-3 w-full"
 										disabled={readOnly || villageBusy}
 										onClick={() => {
@@ -142,14 +143,14 @@ export function VillagePanel({
 				</CardContent>
 			</Card>
 
-			<Card>
+			<Card variant="game" tone="village">
 				<CardHeader>
 					<Badge>Departure</Badge>
 					<CardTitle className="mt-3 text-2xl">Choose the road out</CardTitle>
 					<CardDescription>When the party is ready, start a vote for the next route beyond the village.</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<Button disabled={readOnly || departureOpen || villageBusy} onClick={() => departureMutation.mutate()}>
+					<Button game disabled={readOnly || departureOpen || villageBusy} onClick={() => departureMutation.mutate()}>
 						<DoorOpen className="size-4" />
 						{departureMutation.isPending ? 'Opening the route…' : departureOpen ? 'Departure vote open' : 'Start departure vote'}
 					</Button>

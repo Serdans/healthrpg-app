@@ -77,7 +77,7 @@ export function CombatPanel({
 			)}
 			{actionError && <ErrorNotice error={actionError} message={actionError.message} />}
 			{actionMutation.isSuccess && <SuccessNotice>Your encounter action is saved.</SuccessNotice>}
-			<Card>
+			<Card variant="game" tone="combat">
 				<CardHeader>
 					<div className="flex items-start justify-between gap-4">
 						<div>
@@ -152,6 +152,7 @@ export function CombatPanel({
 									<Progress value={(member.currentHealth / member.maxHealth) * 100} className="mt-3" />
 									{targetMode === 'ally' && (
 										<Button
+											game
 											variant={selected ? 'secondary' : 'ghost'}
 											size="sm"
 											className="mt-3"
@@ -206,14 +207,14 @@ export function CombatPanel({
 						</button>
 					</div>
 
-					<Button disabled={readOnly || encounter.status === 'completed' || combatBusy} onClick={submitAction}>
+					<Button game disabled={readOnly || encounter.status === 'completed' || combatBusy} onClick={submitAction}>
 						<Sparkles className="size-4" />{' '}
 						{actionMutation.isPending ? 'Saving action…' : currentMember.selectedActionKey ? 'Update action' : 'Choose action'}
 					</Button>
 				</CardContent>
 			</Card>
 
-			<Card>
+			<Card variant="game" tone="combat">
 				<CardHeader>
 					<Badge>Field kit</Badge>
 					<CardTitle className="mt-3 text-2xl">Keep someone standing</CardTitle>
@@ -255,6 +256,7 @@ export function CombatPanel({
 								</select>
 							</label>
 							<Button
+								game
 								disabled={readOnly || encounter.status === 'completed' || combatBusy}
 								onClick={() => itemMutation.mutate({ itemKey: itemKey || usableItems[0]?.key || '', targetUserId: selectedTargetUserId })}
 							>

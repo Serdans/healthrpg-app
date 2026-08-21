@@ -11,6 +11,8 @@
 	},
 	"scripts": {
 		"dev": "vite dev",
+		"storybook": "storybook dev --port 6006",
+		"build-storybook": "storybook build",
 		"generate-routes": "tsr generate",
 		"api:generate": "openapi-typescript ../healthrpg/openapi.json -o src/api/generated.ts",
 		"build": "vite build",
@@ -48,6 +50,8 @@
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.62.1",
+		"@storybook/addon-a11y": "^10.5.9",
+		"@storybook/react-vite": "^10.5.9",
 		"@tailwindcss/typography": "^0.5.16",
 		"@tanstack/devtools-vite": "latest",
 		"@tanstack/eslint-config": "latest",
@@ -61,6 +65,7 @@
 		"openapi-typescript": "^7.13.0",
 		"prettier": "^3.8.1",
 		"react-doctor": "0.9.12",
+		"storybook": "^10.5.9",
 		"typescript": "^6.0.2",
 		"vite": "^8.0.0",
 		"vitest": "^4.1.11"

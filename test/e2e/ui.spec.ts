@@ -54,24 +54,35 @@ test('uses an accessible confirmation dialog for consequential party actions', a
 	await expect.poll(async () => lastMutation(request)).toEqual({ path: null, body: null });
 });
 
+test('inspects a revealed branch on the party atlas', async ({ page }) => {
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	await expect(page.getByTestId('world-map')).toBeVisible();
+	await expect(page.getByTestId('world-map-party-marker')).toBeVisible();
+	await page.getByRole('button', { name: /North Lantern Road, Next possible route/i }).click();
+	await expect(page.getByTestId('world-map-inspector')).toContainText('North Lantern Road');
+	await expect(page.getByTestId('world-map-inspector')).toContainText(/Next possible route/i);
+});
+
 test('opens a village departure vote and casts a route vote', async ({ page, request }) => {
 	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'village' } });
 	await authenticate(page);
 	await page.goto('/parties/party-1');
 
-	await expect(page.getByRole('heading', { name: 'Mossway Village' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Mossway Village', level: 2 })).toBeVisible();
 	await page.getByRole('button', { name: /Start departure vote/i }).click();
 	await expect(page.getByRole('button', { name: /Departure vote open/i })).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'Choose the next trail' })).toBeVisible();
 
-	await page.getByRole('button', { name: /North Lantern Road/i }).click();
+	await page.locator('button.choice-card').filter({ hasText: 'North Lantern Road' }).click();
 	await expect
 		.poll(async () => lastMutation(request))
 		.toEqual({
-			path: '/v1/parties/party-1/votes',
-			body: { nodeId: 'node-1', edgeId: 'edge-1' },
+			path: '/api/v1/parties/party-1/branch-votes/node-1',
+			body: { edgeId: 'edge-1' },
 		});
-	await expect(page.getByRole('button', { name: /North Lantern Road/i })).toHaveAttribute('data-selected', 'true');
+	await expect(page.locator('button.choice-card').filter({ hasText: 'North Lantern Road' })).toHaveAttribute('data-selected', 'true');
 });
 
 test('submits a combat action and uses a field item', async ({ page, request }) => {
@@ -85,7 +96,7 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 	await expect
 		.poll(async () => lastMutation(request))
 		.toEqual({
-			path: '/v1/parties/party-1/encounter/action',
+			path: '/api/v1/parties/party-1/encounter/actions/me',
 			body: { actionKey: 'shield-wall', targetEnemyId: 'enemy-1', targetUserId: null },
 		});
 

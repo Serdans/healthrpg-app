@@ -2,20 +2,14 @@ import { getRequest } from '@tanstack/react-start/server';
 
 import type { paths } from '#/api/generated';
 
+import { backendApiUrl } from './backend';
 import { readSessionToken } from './cookies';
 
-export type SessionUser = paths['/v1/me']['get']['responses'][200]['content']['application/json'];
+export type SessionUser = paths['/api/v1/me']['get']['responses'][200]['content']['application/json'];
 
 export type SessionState = {
 	user: SessionUser | null;
 };
-
-function backendMeUrl() {
-	const apiBaseUrl = process.env.API_BASE_URL?.trim();
-	if (!apiBaseUrl) throw new Error('Missing API_BASE_URL');
-	const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`;
-	return new URL('v1/me', baseUrl);
-}
 
 function isSessionUser(value: unknown): value is SessionUser {
 	if (typeof value !== 'object' || value === null) return false;
@@ -39,7 +33,7 @@ export async function loadSession(): Promise<SessionState> {
 	if (!token) return { user: null };
 
 	try {
-		const upstream = await fetch(backendMeUrl(), {
+		const upstream = await fetch(backendApiUrl('me'), {
 			headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
 		});
 

@@ -28,8 +28,14 @@ const buttonVariants = cva(
 	},
 );
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof buttonVariants>;
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof buttonVariants> & { game?: boolean };
 
-export function Button({ className, variant, size, ...props }: ButtonProps) {
-	return <button className={cn(buttonVariants({ variant, size }), className)} {...props} />;
+export function Button({ className, variant, size, game = false, ...props }: ButtonProps) {
+	return (
+		<button
+			className={cn(buttonVariants({ variant, size }), game && 'game-button', className)}
+			data-game-button={game || undefined}
+			{...props}
+		/>
+	);
 }

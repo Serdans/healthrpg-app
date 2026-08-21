@@ -76,8 +76,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -91,7 +99,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/auth/google/start': {
+	'/api/v1/auth/google': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -124,7 +132,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/auth/google/callback': {
+	'/api/v1/auth/google/callback': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -180,8 +188,35 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -191,8 +226,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -206,7 +249,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/me': {
+	'/api/v1/me': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -243,8 +286,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -255,24 +306,20 @@ export interface paths {
 		delete?: never;
 		options?: never;
 		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/me/parties': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
+		patch: {
 			parameters: {
 				query?: never;
 				header?: never;
 				path?: never;
 				cookie?: never;
 			};
-			requestBody?: never;
+			requestBody: {
+				content: {
+					'application/json': {
+						timezone: string;
+					};
+				};
+			};
 			responses: {
 				/** @description Default Response */
 				200: {
@@ -282,52 +329,30 @@ export interface paths {
 					content: {
 						'application/json': {
 							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
+							googleSubject: string;
+							email: string;
+							displayName: string | null;
+							timezone: string;
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									obstacleCost: number;
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							gateProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
+								reason: string;
 							}[];
-						}[];
+						};
 					};
 				};
 				/** @description Default Response */
@@ -336,22 +361,24 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
 			};
 		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
 		trace?: never;
 	};
-	'/v1/me/character': {
+	'/api/v1/me/character': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -401,22 +428,131 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
 			};
 		};
 		put?: never;
-		post?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': {
+						name: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Default Response */
+				201: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							userId: string;
+							name: string;
+							classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
+							className: string;
+							backgroundKey: 'exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper';
+							backgroundName: string;
+							backgroundTags: ('exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper')[];
+							stats: {
+								strength: number;
+								agility: number;
+								vitality: number;
+								insight: number;
+							};
+							flavorTitle: string;
+							flavorSummary: string;
+							backstory: string;
+							/** Format: date-time */
+							createdAt: string;
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
 		delete?: never;
 		options?: never;
 		head?: never;
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/me/character/creation': {
+	'/api/v1/me/character-creation': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -490,8 +626,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -501,8 +645,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -512,8 +664,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -543,8 +703,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -554,8 +722,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -566,7 +742,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/me/character/creation/answer': {
+	'/api/v1/me/character-creation/answers': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -647,8 +823,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -658,8 +842,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -669,8 +861,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -682,100 +882,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/me/character/creation/commit': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						name: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				201: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							userId: string;
-							name: string;
-							classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
-							className: string;
-							backgroundKey: 'exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper';
-							backgroundName: string;
-							backgroundTags: ('exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper')[];
-							stats: {
-								strength: number;
-								agility: number;
-								vitality: number;
-								insight: number;
-							};
-							flavorTitle: string;
-							flavorSummary: string;
-							backstory: string;
-							/** Format: date-time */
-							createdAt: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/me/progression': {
+	'/api/v1/me/progression': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -815,8 +922,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -830,7 +945,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/me/inventory': {
+	'/api/v1/me/inventory': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -880,8 +995,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -895,7 +1018,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/me/loadout': {
+	'/api/v1/me/loadout': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -945,8 +1068,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -960,7 +1091,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/me/loadout/{slot}': {
+	'/api/v1/me/loadout/{slot}': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -1019,8 +1150,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1030,8 +1169,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1041,8 +1188,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1075,8 +1230,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1087,76 +1250,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/me/preferences': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						timezone: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							googleSubject: string;
-							email: string;
-							displayName: string | null;
-							timezone: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		trace?: never;
-	};
-	'/v1/health/status': {
+	'/api/v1/me/health': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -1191,8 +1285,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1206,7 +1308,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/health/sync': {
+	'/api/v1/me/health/sync': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -1255,8 +1357,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1266,8 +1376,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1277,8 +1395,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1290,14 +1416,187 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/parties': {
+	'/api/v1/me/progress/{localDate}': {
 		parameters: {
 			query?: never;
 			header?: never;
 			path?: never;
 			cookie?: never;
 		};
-		get?: never;
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					localDate: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							userId: string;
+							/** Format: date */
+							localDate: string;
+							rulesetId: string;
+							steps: number | null;
+							sleepMinutes: number | null;
+							movementUnits: number;
+							recoveryPoints: number;
+							status: 'provisional' | 'complete';
+						} | null;
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							id: string;
+							name: string;
+							status: 'active' | 'abandoned';
+							memberCapacity: number;
+							currentNode: {
+								id: string;
+								chapterNo: number;
+								regionNo: number;
+								name: string;
+								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								templateKey: string;
+								config: {
+									movementCost: number;
+									obstacleCost: number;
+									landmark?: {
+										key: string;
+									};
+									event?:
+										| {
+												/** @enum {string} */
+												eventType: 'combat';
+										  }
+										| {
+												eventType: 'treasure' | 'narrative' | 'rest';
+												prompt: string;
+												choices: {
+													key: string;
+													displayName: string;
+													description: string;
+													requirements: {
+														movementUnits: number;
+														recoveryPoints: number;
+													};
+												}[];
+										  }
+										| {
+												/** @enum {string} */
+												eventType: 'village';
+												settlementKey: string;
+										  };
+								};
+							};
+							gateProgress: number;
+							decisionStartedAt: string | null;
+							members: {
+								userId: string;
+								role: 'leader' | 'member';
+								displayName: string | null;
+							}[];
+						}[];
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
 		put?: never;
 		post: {
 			parameters: {
@@ -1335,6 +1634,9 @@ export interface paths {
 								config: {
 									movementCost: number;
 									obstacleCost: number;
+									landmark?: {
+										key: string;
+									};
 									event?:
 										| {
 												/** @enum {string} */
@@ -1376,8 +1678,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1387,8 +1697,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1398,8 +1716,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1411,7 +1737,151 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/parties/{partyId}/map': {
+	'/api/v1/parties/{partyId}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							id: string;
+							name: string;
+							status: 'active' | 'abandoned';
+							memberCapacity: number;
+							currentNode: {
+								id: string;
+								chapterNo: number;
+								regionNo: number;
+								name: string;
+								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								templateKey: string;
+								config: {
+									movementCost: number;
+									obstacleCost: number;
+									landmark?: {
+										key: string;
+									};
+									event?:
+										| {
+												/** @enum {string} */
+												eventType: 'combat';
+										  }
+										| {
+												eventType: 'treasure' | 'narrative' | 'rest';
+												prompt: string;
+												choices: {
+													key: string;
+													displayName: string;
+													description: string;
+													requirements: {
+														movementUnits: number;
+														recoveryPoints: number;
+													};
+												}[];
+										  }
+										| {
+												/** @enum {string} */
+												eventType: 'village';
+												settlementKey: string;
+										  };
+								};
+							};
+							gateProgress: number;
+							decisionStartedAt: string | null;
+							members: {
+								userId: string;
+								role: 'leader' | 'member';
+								displayName: string | null;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/map': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -1448,6 +1918,9 @@ export interface paths {
 								config: {
 									movementCost: number;
 									obstacleCost: number;
+									landmark?: {
+										key: string;
+									};
 									event?:
 										| {
 												/** @enum {string} */
@@ -1489,8 +1962,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1500,8 +1981,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1511,8 +2000,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1526,7 +2023,1572 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/parties/{partyId}/village': {
+	'/api/v1/parties/{partyId}/adventure': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							partyId: string;
+							currentNodeId: string;
+							land: {
+								key: string;
+								chapterNo: number;
+								displayName: string;
+								description: string;
+							};
+							currentObjective: {
+								key: string;
+								displayName: string;
+								description: string;
+								landmarkKey: string;
+							} | null;
+							history: {
+								landKey: string;
+								objectiveKey: string;
+								displayName: string;
+								description: string;
+								landmarkKey: string;
+								nodeId: string;
+								/** Format: date-time */
+								completedAt: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/progress': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							partyId: string;
+							nodeId: string;
+							/** Format: date */
+							worldDate: string;
+							movementUnits: number;
+							movementCost: number;
+							movementSatisfied: boolean;
+							recoveryPoints: number;
+							gateContribution: number;
+							gateProgress: number;
+							gateCost: number;
+							gateUnlocked: boolean;
+							status: 'provisional' | 'complete';
+							members: {
+								userId: string;
+								movementUnits: number;
+								recoveryPoints: number;
+								status: 'provisional' | 'complete';
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/progression': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: {
+					limit?: number;
+					cursor?: string;
+				};
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							items: {
+								id: string;
+								partyId: string;
+								nodeId: string;
+								nodeName: string;
+								resolutionId: string;
+								rewardIndex: number;
+								reward: {
+									experience?: number;
+									unlockKey?: string;
+									milestoneKey?: string;
+									currency?: {
+										key: string;
+										amount: number;
+									};
+									item?: {
+										key: string;
+										quantity: number;
+									};
+									equipment?: {
+										key: string;
+									};
+								};
+								/** Format: date-time */
+								createdAt: string;
+							}[];
+							nextCursor: string | null;
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/branch-votes/{nodeId}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+					nodeId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							accepted: boolean;
+							partyId: string;
+							nodeId: string;
+							/** Format: date-time */
+							deadlineAt: string;
+							resolvedEdgeId: string | null;
+							votes: {
+								userId: string;
+								edgeId: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+					nodeId: string;
+				};
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': {
+						edgeId: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							accepted: boolean;
+							partyId: string;
+							nodeId: string;
+							/** Format: date-time */
+							deadlineAt: string;
+							resolvedEdgeId: string | null;
+							votes: {
+								userId: string;
+								edgeId: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/party-memberships': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': {
+						inviteToken: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							id: string;
+							name: string;
+							status: 'active' | 'abandoned';
+							memberCapacity: number;
+							currentNode: {
+								id: string;
+								chapterNo: number;
+								regionNo: number;
+								name: string;
+								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								templateKey: string;
+								config: {
+									movementCost: number;
+									obstacleCost: number;
+									landmark?: {
+										key: string;
+									};
+									event?:
+										| {
+												/** @enum {string} */
+												eventType: 'combat';
+										  }
+										| {
+												eventType: 'treasure' | 'narrative' | 'rest';
+												prompt: string;
+												choices: {
+													key: string;
+													displayName: string;
+													description: string;
+													requirements: {
+														movementUnits: number;
+														recoveryPoints: number;
+													};
+												}[];
+										  }
+										| {
+												/** @enum {string} */
+												eventType: 'village';
+												settlementKey: string;
+										  };
+								};
+							};
+							gateProgress: number;
+							decisionStartedAt: string | null;
+							members: {
+								userId: string;
+								role: 'leader' | 'member';
+								displayName: string | null;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				201: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							id: string;
+							name: string;
+							status: 'active' | 'abandoned';
+							memberCapacity: number;
+							currentNode: {
+								id: string;
+								chapterNo: number;
+								regionNo: number;
+								name: string;
+								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								templateKey: string;
+								config: {
+									movementCost: number;
+									obstacleCost: number;
+									landmark?: {
+										key: string;
+									};
+									event?:
+										| {
+												/** @enum {string} */
+												eventType: 'combat';
+										  }
+										| {
+												eventType: 'treasure' | 'narrative' | 'rest';
+												prompt: string;
+												choices: {
+													key: string;
+													displayName: string;
+													description: string;
+													requirements: {
+														movementUnits: number;
+														recoveryPoints: number;
+													};
+												}[];
+										  }
+										| {
+												/** @enum {string} */
+												eventType: 'village';
+												settlementKey: string;
+										  };
+								};
+							};
+							gateProgress: number;
+							decisionStartedAt: string | null;
+							members: {
+								userId: string;
+								role: 'leader' | 'member';
+								displayName: string | null;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/invites': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				201: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							id: string;
+							partyId: string;
+							token: string;
+							/** Format: date-time */
+							expiresAt: string;
+							maxUses: number;
+							useCount: number;
+							revokedAt: string | null;
+							/** Format: date-time */
+							createdAt: string;
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/invites/{inviteId}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+					inviteId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': unknown;
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/members/me': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				204: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': unknown;
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/members/{memberUserId}': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+					memberUserId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							id: string;
+							name: string;
+							status: 'active' | 'abandoned';
+							memberCapacity: number;
+							currentNode: {
+								id: string;
+								chapterNo: number;
+								regionNo: number;
+								name: string;
+								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								templateKey: string;
+								config: {
+									movementCost: number;
+									obstacleCost: number;
+									landmark?: {
+										key: string;
+									};
+									event?:
+										| {
+												/** @enum {string} */
+												eventType: 'combat';
+										  }
+										| {
+												eventType: 'treasure' | 'narrative' | 'rest';
+												prompt: string;
+												choices: {
+													key: string;
+													displayName: string;
+													description: string;
+													requirements: {
+														movementUnits: number;
+														recoveryPoints: number;
+													};
+												}[];
+										  }
+										| {
+												/** @enum {string} */
+												eventType: 'village';
+												settlementKey: string;
+										  };
+								};
+							};
+							gateProgress: number;
+							decisionStartedAt: string | null;
+							members: {
+								userId: string;
+								role: 'leader' | 'member';
+								displayName: string | null;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/leader': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': {
+						targetUserId: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							id: string;
+							name: string;
+							status: 'active' | 'abandoned';
+							memberCapacity: number;
+							currentNode: {
+								id: string;
+								chapterNo: number;
+								regionNo: number;
+								name: string;
+								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								templateKey: string;
+								config: {
+									movementCost: number;
+									obstacleCost: number;
+									landmark?: {
+										key: string;
+									};
+									event?:
+										| {
+												/** @enum {string} */
+												eventType: 'combat';
+										  }
+										| {
+												eventType: 'treasure' | 'narrative' | 'rest';
+												prompt: string;
+												choices: {
+													key: string;
+													displayName: string;
+													description: string;
+													requirements: {
+														movementUnits: number;
+														recoveryPoints: number;
+													};
+												}[];
+										  }
+										| {
+												/** @enum {string} */
+												eventType: 'village';
+												settlementKey: string;
+										  };
+								};
+							};
+							gateProgress: number;
+							decisionStartedAt: string | null;
+							members: {
+								userId: string;
+								role: 'leader' | 'member';
+								displayName: string | null;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/village': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -1585,8 +3647,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1596,8 +3666,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1607,8 +3685,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1618,8 +3704,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1633,7 +3727,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/parties/{partyId}/village/purchase': {
+	'/api/v1/parties/{partyId}/village/purchases': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -1689,8 +3783,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1700,8 +3802,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1711,8 +3821,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1722,8 +3840,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1733,8 +3859,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -1746,7 +3880,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/parties/{partyId}/village/departure': {
+	'/api/v1/parties/{partyId}/village/departures': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -1792,632 +3926,35 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/votes': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						nodeId: string;
-						edgeId: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							accepted: boolean;
-							partyId: string;
-							nodeId: string;
-							/** Format: date-time */
-							deadlineAt: string;
-							resolvedEdgeId: string | null;
-							votes: {
-								userId: string;
-								edgeId: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/votes/{nodeId}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-					nodeId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							accepted: boolean;
-							partyId: string;
-							nodeId: string;
-							/** Format: date-time */
-							deadlineAt: string;
-							resolvedEdgeId: string | null;
-							votes: {
-								userId: string;
-								edgeId: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/join': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						inviteToken: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									obstacleCost: number;
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							gateProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
+								reason: string;
 							}[];
 						};
 					};
 				};
 				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/invites': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				201: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							partyId: string;
-							token: string;
-							/** Format: date-time */
-							expiresAt: string;
-							maxUses: number;
-							useCount: number;
-							revokedAt: string | null;
-							/** Format: date-time */
-							createdAt: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
 				403: {
 					headers: {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/invites/{inviteId}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-					inviteId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': unknown;
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									obstacleCost: number;
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							gateProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
+								reason: string;
 							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
 						};
 					};
 				};
@@ -2427,399 +3964,47 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
 			};
 		};
-		put?: never;
-		post?: never;
 		delete?: never;
 		options?: never;
 		head?: never;
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/parties/{partyId}/membership': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': unknown;
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/members/{memberUserId}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-					memberUserId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									obstacleCost: number;
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							gateProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/leader': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						targetUserId: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									obstacleCost: number;
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							gateProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/encounter': {
+	'/api/v1/parties/{partyId}/encounter': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -2883,8 +4068,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -2894,8 +4087,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -2905,8 +4106,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -2916,8 +4125,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -2931,318 +4148,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/parties/{partyId}/daily-progress': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							/** Format: date */
-							worldDate: string;
-							movementUnits: number;
-							movementCost: number;
-							movementSatisfied: boolean;
-							recoveryPoints: number;
-							gateContribution: number;
-							gateProgress: number;
-							gateCost: number;
-							gateUnlocked: boolean;
-							status: 'provisional' | 'complete';
-							members: {
-								userId: string;
-								movementUnits: number;
-								recoveryPoints: number;
-								status: 'provisional' | 'complete';
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/event': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							/** Format: date */
-							worldDate: string;
-							eventType: 'narrative' | 'treasure' | 'rest';
-							prompt: string;
-							choices: {
-								key: string;
-								displayName: string;
-								description: string;
-								requirements: {
-									movementUnits: number;
-									recoveryPoints: number;
-								};
-							}[];
-							selectedChoiceKey: string | null;
-							votes: {
-								userId: string;
-								choiceKey: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/event/choice': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						choiceKey: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							/** Format: date */
-							worldDate: string;
-							eventType: 'narrative' | 'treasure' | 'rest';
-							prompt: string;
-							choices: {
-								key: string;
-								displayName: string;
-								description: string;
-								requirements: {
-									movementUnits: number;
-									recoveryPoints: number;
-								};
-							}[];
-							selectedChoiceKey: string | null;
-							votes: {
-								userId: string;
-								choiceKey: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
-						};
-					};
-				};
-			};
-		};
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/v1/parties/{partyId}/encounter/action': {
+	'/api/v1/parties/{partyId}/encounter/actions/me': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -3315,8 +4221,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3326,8 +4240,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3337,8 +4259,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3348,8 +4278,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3359,8 +4297,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3373,7 +4319,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/parties/{partyId}/items/use': {
+	'/api/v1/parties/{partyId}/item-uses': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -3422,8 +4368,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3433,8 +4387,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3444,8 +4406,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3455,8 +4425,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3466,8 +4444,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3479,7 +4465,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/parties/{partyId}/progression': {
+	'/api/v1/parties/{partyId}/event': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -3488,10 +4474,7 @@ export interface paths {
 		};
 		get: {
 			parameters: {
-				query?: {
-					limit?: number;
-					cursor?: string;
-				};
+				query?: never;
 				header?: never;
 				path: {
 					partyId: string;
@@ -3507,44 +4490,26 @@ export interface paths {
 					};
 					content: {
 						'application/json': {
-							items: {
-								id: string;
-								partyId: string;
-								nodeId: string;
-								nodeName: string;
-								resolutionId: string;
-								rewardIndex: number;
-								reward: {
-									experience?: number;
-									unlockKey?: string;
-									milestoneKey?: string;
-									currency?: {
-										key: string;
-										amount: number;
-									};
-									item?: {
-										key: string;
-										quantity: number;
-									};
-									equipment?: {
-										key: string;
-									};
+							partyId: string;
+							nodeId: string;
+							/** Format: date */
+							worldDate: string;
+							eventType: 'narrative' | 'treasure' | 'rest';
+							prompt: string;
+							choices: {
+								key: string;
+								displayName: string;
+								description: string;
+								requirements: {
+									movementUnits: number;
+									recoveryPoints: number;
 								};
-								/** Format: date-time */
-								createdAt: string;
 							}[];
-							nextCursor: string | null;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							error: string;
+							selectedChoiceKey: string | null;
+							votes: {
+								userId: string;
+								choiceKey: string;
+							}[];
 						};
 					};
 				};
@@ -3554,8 +4519,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3565,8 +4538,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3576,8 +4557,35 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3591,23 +4599,30 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/v1/progress/{localDate}': {
+	'/api/v1/parties/{partyId}/event/choices/me': {
 		parameters: {
 			query?: never;
 			header?: never;
 			path?: never;
 			cookie?: never;
 		};
-		get: {
+		get?: never;
+		put: {
 			parameters: {
 				query?: never;
 				header?: never;
 				path: {
-					localDate: string;
+					partyId: string;
 				};
 				cookie?: never;
 			};
-			requestBody?: never;
+			requestBody: {
+				content: {
+					'application/json': {
+						choiceKey: string;
+					};
+				};
+			};
 			responses: {
 				/** @description Default Response */
 				200: {
@@ -3616,16 +4631,27 @@ export interface paths {
 					};
 					content: {
 						'application/json': {
-							userId: string;
+							partyId: string;
+							nodeId: string;
 							/** Format: date */
-							localDate: string;
-							rulesetId: string;
-							steps: number | null;
-							sleepMinutes: number | null;
-							movementUnits: number;
-							recoveryPoints: number;
-							status: 'provisional' | 'complete';
-						} | null;
+							worldDate: string;
+							eventType: 'narrative' | 'treasure' | 'rest';
+							prompt: string;
+							choices: {
+								key: string;
+								displayName: string;
+								description: string;
+								requirements: {
+									movementUnits: number;
+									recoveryPoints: number;
+								};
+							}[];
+							selectedChoiceKey: string | null;
+							votes: {
+								userId: string;
+								choiceKey: string;
+							}[];
+						};
 					};
 				};
 				/** @description Default Response */
@@ -3634,8 +4660,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3645,14 +4679,78 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
 			};
 		};
-		put?: never;
 		post?: never;
 		delete?: never;
 		options?: never;
@@ -3660,7 +4758,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	'/webhooks/google-health': {
+	'/api/v1/integrations/google-health/webhook': {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -3759,8 +4857,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};
@@ -3770,8 +4876,16 @@ export interface paths {
 						[name: string]: unknown;
 					};
 					content: {
-						'application/json': {
-							error: string;
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
 						};
 					};
 				};

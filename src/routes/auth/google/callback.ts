@@ -1,13 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 
-import { appendBackendCookie } from '#/server/backend';
+import { appendBackendCookie, backendApiUrl } from '#/server/backend';
 import { sessionCookie } from '#/server/cookies';
 
 function backendCallbackUrl(request: Request) {
-	const apiBaseUrl = process.env.API_BASE_URL?.trim();
-	if (!apiBaseUrl) throw new Error('Missing API_BASE_URL');
-	const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`;
-	const target = new URL('auth/google/callback', baseUrl);
+	const target = backendApiUrl('auth/google/callback');
 	target.search = new URL(request.url).search;
 	return target;
 }

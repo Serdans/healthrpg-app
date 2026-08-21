@@ -50,7 +50,7 @@ export function ProgressionHistory({ partyId, timeZone }: { partyId: string; tim
 	const nextCursor = progressionQuery.data?.nextCursor ?? null;
 
 	return (
-		<Card>
+		<Card variant="game" tone="history">
 			<CardHeader>
 				<div className="flex items-center justify-between gap-3">
 					<div>
@@ -97,7 +97,7 @@ export function ProgressionHistory({ partyId, timeZone }: { partyId: string; tim
 					/>
 				)}
 				{nextCursor && (
-					<Button variant="secondary" disabled={progressionQuery.isPending} onClick={() => setCursor(nextCursor)}>
+					<Button game variant="secondary" disabled={progressionQuery.isPending} onClick={() => setCursor(nextCursor)}>
 						{progressionQuery.isPending ? 'Loading…' : 'Load more history'}
 					</Button>
 				)}

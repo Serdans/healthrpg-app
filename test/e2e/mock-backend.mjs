@@ -67,7 +67,14 @@ function party() {
 			config: {
 				movementCost: 10,
 				obstacleCost: 0,
-				event: state.scenario === 'event' ? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] } : undefined,
+				event:
+					state.scenario === 'combat'
+						? { eventType: 'combat' }
+						: state.scenario === 'village'
+							? { eventType: 'village', settlementKey: 'mossway' }
+							: state.scenario === 'event'
+								? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
+								: undefined,
 			},
 		},
 		gateProgress: 4,
@@ -90,6 +97,19 @@ function map() {
 				regionNo: 1,
 				name: state.scenario === 'village' ? 'Mossway Village' : 'Mossway Crossing',
 				nodeType: currentNodeType(),
+				templateKey: `${currentNodeType()}-v1`,
+				config: {
+					movementCost: 10,
+					obstacleCost: 0,
+					event:
+						state.scenario === 'combat'
+							? { eventType: 'combat' }
+							: state.scenario === 'village'
+								? { eventType: 'village', settlementKey: 'mossway' }
+								: state.scenario === 'event'
+									? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
+									: undefined,
+				},
 				discovered: true,
 				adjacent: true,
 			},
@@ -99,6 +119,36 @@ function map() {
 		edges: [
 			{ id: 'edge-1', fromNodeId: 'node-1', toNodeId: 'node-2', optionKey: 'north-lantern-road', sortOrder: 0 },
 			{ id: 'edge-2', fromNodeId: 'node-1', toNodeId: 'node-3', optionKey: 'old-stone-road', sortOrder: 1 },
+		],
+	};
+}
+
+function adventure() {
+	return {
+		partyId: 'party-1',
+		currentNodeId: 'node-1',
+		land: {
+			key: 'mistwood',
+			chapterNo: 1,
+			displayName: 'The Mistwood Marches',
+			description: 'A lantern-lit frontier where every landmark marks a new promise.',
+		},
+		currentObjective: {
+			key: 'mossway-crossing',
+			displayName: 'Cross Mossway Crossing',
+			description: 'Guide the party through the first stretch of the Marches.',
+			landmarkKey: 'mossway-crossing',
+		},
+		history: [
+			{
+				landKey: 'mistwood',
+				objectiveKey: 'old-gate',
+				displayName: 'The Old Gate',
+				description: 'The party found the first safe road through the mist.',
+				landmarkKey: 'old-gate',
+				nodeId: 'node-0',
+				completedAt: '2026-08-19T18:30:00.000Z',
+			},
 		],
 	};
 }
@@ -227,9 +277,9 @@ async function handler(request) {
 	}
 	if (path === '/__last-mutation') return json(state.lastMutation);
 
-	if (path === '/v1/me') return json(user);
-	if (path === '/v1/me/parties') return json([party()]);
-	if (path === '/v1/me/character')
+	if (path === '/api/v1/me' && request.method === 'GET') return json(user);
+	if (path === '/api/v1/parties' && request.method === 'GET') return json([party()]);
+	if (path === '/api/v1/me/character')
 		return json({
 			userId: 'user-1',
 			name: 'Hero',
@@ -244,17 +294,18 @@ async function handler(request) {
 			backstory: 'Hero knows how to keep walking.',
 			createdAt: '2026-01-01T00:00:00.000Z',
 		});
-	if (path === '/v1/me/progression') return json({ userId: 'user-1', experience: 120, level: 2, nextLevelExperience: 400, unlocks: [] });
-	if (path === '/v1/me/inventory') return json(inventory());
-	if (path === '/v1/me/loadout') return json(loadout());
-	if (path === '/v1/me/preferences' && request.method === 'PATCH') {
+	if (path === '/api/v1/me/progression')
+		return json({ userId: 'user-1', experience: 120, level: 2, nextLevelExperience: 400, unlocks: [] });
+	if (path === '/api/v1/me/inventory') return json(inventory());
+	if (path === '/api/v1/me/loadout') return json(loadout());
+	if (path === '/api/v1/me' && request.method === 'PATCH') {
 		const payload = await body(request);
 		user.timezone = payload.timezone ?? user.timezone;
 		return json(user);
 	}
-	if (path.startsWith('/v1/me/loadout/') && request.method === 'PUT') return json(loadout());
-	if (path.startsWith('/v1/me/loadout/') && request.method === 'DELETE') return new Response(null, { status: 204 });
-	if (path.startsWith('/v1/progress/'))
+	if (path.startsWith('/api/v1/me/loadout/') && request.method === 'PUT') return json(loadout());
+	if (path.startsWith('/api/v1/me/loadout/') && request.method === 'DELETE') return new Response(null, { status: 204 });
+	if (path.startsWith('/api/v1/me/progress/'))
 		return json({
 			localDate: path.split('/').at(-1),
 			steps: 8_400,
@@ -263,38 +314,39 @@ async function handler(request) {
 			recoveryPoints: 4,
 			status: 'complete',
 		});
-	if (path === '/v1/health/status') return json(healthStatus());
-	if (path === '/v1/health/sync' && request.method === 'POST') {
+	if (path === '/api/v1/me/health') return json(healthStatus());
+	if (path === '/api/v1/me/health/sync' && request.method === 'POST') {
 		state.healthSyncReadyAt = Date.now() + 1_000;
 		return json({ queued: true, from: '2026-08-19', to: '2026-08-20' });
 	}
 
-	if (path === '/v1/parties/party-1') return json(party());
-	if (path === '/v1/parties/party-1/map') return json(map());
-	if (path === '/v1/parties/party-1/daily-progress') return json(dailyProgress());
-	if (path === '/v1/parties/party-1/village') return json(village());
-	if (path === '/v1/parties/party-1/encounter') return json(encounter());
-	if (path === '/v1/parties/party-1/progression') return json({ items: [], nextCursor: null });
-	if (path === '/v1/parties/party-1/votes/node-1') {
+	if (path === '/api/v1/parties/party-1') return json(party());
+	if (path === '/api/v1/parties/party-1/map') return json(map());
+	if (path === '/api/v1/parties/party-1/adventure') return json(adventure());
+	if (path === '/api/v1/parties/party-1/progress') return json(dailyProgress());
+	if (path === '/api/v1/parties/party-1/village') return json(village());
+	if (path === '/api/v1/parties/party-1/encounter') return json(encounter());
+	if (path === '/api/v1/parties/party-1/progression') return json({ items: [], nextCursor: null });
+	if (path === '/api/v1/parties/party-1/branch-votes/node-1' && request.method === 'GET') {
 		if (!state.decisionStartedAt) return json({ error: 'No active vote' }, 404);
 		return json(voteState());
 	}
-	if (path === '/v1/parties/party-1/village/departure' && request.method === 'POST') {
+	if (path === '/api/v1/parties/party-1/village/departures' && request.method === 'POST') {
 		state.decisionStartedAt = '2026-08-20T00:00:00.000Z';
 		return json(voteState());
 	}
-	if (path === '/v1/parties/party-1/votes' && request.method === 'POST') {
+	if (path === '/api/v1/parties/party-1/branch-votes/node-1' && request.method === 'PUT') {
 		const payload = await body(request);
 		state.lastMutation = { path, body: payload };
 		state.selectedEdgeId = payload.edgeId;
 		return json(voteState());
 	}
-	if (path === '/v1/parties/party-1/encounter/action' && request.method === 'PUT') {
+	if (path === '/api/v1/parties/party-1/encounter/actions/me' && request.method === 'PUT') {
 		state.selectedAction = await body(request);
 		state.lastMutation = { path, body: state.selectedAction };
 		return json(encounter());
 	}
-	if (path === '/v1/parties/party-1/items/use' && request.method === 'POST') {
+	if (path === '/api/v1/parties/party-1/item-uses' && request.method === 'POST') {
 		const payload = await body(request);
 		return json({
 			itemKey: payload.itemKey,

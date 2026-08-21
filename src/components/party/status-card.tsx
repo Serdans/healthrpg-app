@@ -4,7 +4,7 @@ import { Card } from '#/components/ui/card';
 
 export function StatusCard({ icon, eyebrow, value, detail }: { icon: ReactNode; eyebrow: string; value: string; detail: string }) {
 	return (
-		<Card className="p-5">
+		<Card variant="game" tone="atlas" className="p-5">
 			<div className="flex items-start justify-between gap-3">
 				<div>
 					<p className="eyebrow">{eyebrow}</p>

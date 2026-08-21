@@ -4,7 +4,7 @@ import type { Party } from '#/lib/api';
 
 export function Roster({ party }: { party: Party }) {
 	return (
-		<Card>
+		<Card variant="game" tone="atlas">
 			<CardHeader>
 				<p className="eyebrow">Travelers</p>
 				<CardTitle className="mt-3 text-2xl">The party roster</CardTitle>

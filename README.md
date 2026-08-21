@@ -25,6 +25,15 @@ WEB_ORIGIN=http://localhost:3001
 The browser never receives the backend bearer token. The UI BFF stores it in
 the `healthrpg_session` HttpOnly cookie and forwards it server-side.
 
+Run the component workbench independently of the backend with:
+
+```bash
+pnpm storybook
+```
+
+Storybook is available at `http://localhost:6006` and uses static fixtures for
+its initial component and party-state stories.
+
 ## Current UI slice
 
 - Google sign-in and callback handling
@@ -36,15 +45,12 @@ the `healthrpg_session` HttpOnly cookie and forwards it server-side.
 - Inventory, loadout, equipment, and personal progression views
 - Combat action selection, target selection, and field-kit healing
 - Village merchant purchases and departure voting
+- Adventure atlas with current land, objective, and completed landmark history
 - Party progression history and leader roster management
 
 Persistent invite listing is deferred because the current backend contract only
 supports creating and revoking invites; the freshly-created token remains
 available in the party management panel for the current session.
-
-The adventure/land panel is deferred until the backend’s new adventure contract
-is stable and reflected in the checked-in OpenAPI types. No UI code depends on
-that endpoint yet.
 
 ## Backend contract
 
@@ -58,21 +64,22 @@ pnpm api:generate
 ```
 
 The generated client is `src/api/generated.ts`; it should not be edited by hand.
-Regenerate it only after the backend contract is stable; while backend endpoint
-changes are in flight, the UI intentionally remains on the last compatible
-generated contract.
+The UI BFF accepts browser requests under `/api/v1` and forwards them to the
+backend’s `/api/v1` API. Regenerate the client whenever the backend OpenAPI
+contract changes.
 
 ## Checks and production build
 
 ```bash
 pnpm verify
+pnpm build-storybook
 pnpm test:e2e
 pnpm start
 ```
 
 `pnpm verify` runs formatting, ESLint, TypeScript, React Doctor, unit tests,
-and the production build. Playwright uses the local mock backend and remains a
-separate check.
+and the production build. Storybook has a separate production build check, and
+Playwright uses the local mock backend as a separate check.
 
 Nitro emits the production server to `.output/server/index.mjs`. Set
 `API_BASE_URL` and `APP_ORIGIN` in the hosting environment rather than

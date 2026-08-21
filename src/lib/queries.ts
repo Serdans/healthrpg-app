@@ -10,6 +10,7 @@ import {
 	equipLoadout,
 	getEncounter,
 	getCharacter,
+	getAdventure,
 	getDailyProgress,
 	getEvent,
 	getHealthStatus,
@@ -56,6 +57,7 @@ export const queryKeys = {
 	loadout: ['loadout'] as const,
 	party: (partyId: string) => ['party', partyId] as const,
 	map: (partyId: string) => ['party-map', partyId] as const,
+	adventure: (partyId: string) => ['party-adventure', partyId] as const,
 	dailyRoot: ['party-daily'] as const,
 	daily: (partyId: string) => ['party-daily', partyId] as const,
 	votes: (partyId: string, nodeId: string) => ['party-votes', partyId, nodeId] as const,
@@ -122,6 +124,15 @@ export function usePartyMap(partyId: string) {
 	return useQuery({
 		queryKey: queryKeys.map(partyId),
 		queryFn: () => getMap(partyId),
+		refetchInterval: partyRefreshInterval,
+		refetchIntervalInBackground: false,
+	});
+}
+
+export function useAdventure(partyId: string) {
+	return useQuery({
+		queryKey: queryKeys.adventure(partyId),
+		queryFn: () => getAdventure(partyId),
 		refetchInterval: partyRefreshInterval,
 		refetchIntervalInBackground: false,
 	});
@@ -291,6 +302,7 @@ export function useStartVillageDeparture(partyId: string) {
 			queryClient.setQueryData(queryKeys.votes(partyId, vote.nodeId), vote);
 			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.adventure(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
 		},
 	});
@@ -303,6 +315,10 @@ export function useSetEncounterAction(partyId: string) {
 		onSuccess: (encounter) => {
 			queryClient.setQueryData(queryKeys.encounter(partyId), encounter);
 			void queryClient.invalidateQueries({ queryKey: queryKeys.inventory });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.adventure(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
 		},
 	});
 }
@@ -391,6 +407,7 @@ export function useCastVote(partyId: string, nodeId: string) {
 			queryClient.setQueryData(queryKeys.votes(partyId, nodeId), vote);
 			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.adventure(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.votes(partyId, nodeId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
 		},
@@ -406,6 +423,7 @@ export function useChooseEvent(partyId: string) {
 			void queryClient.invalidateQueries({ queryKey: queryKeys.event(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.adventure(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.partyProgressionRoot(partyId) });
 		},

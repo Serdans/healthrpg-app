@@ -1,23 +1,25 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowLeft, Clock3, HeartPulse, Map as MapIcon, MapPin, UsersRound } from 'lucide-react';
+import { ArrowLeft, Clock3, Map as MapIcon } from 'lucide-react';
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
+import { AdventurePanel } from '#/components/party/adventure-panel';
 import { BranchDecision } from '#/components/party/branch-decision';
 import { CombatPanel } from '#/components/party/combat-panel';
 import { DailyStatus } from '#/components/party/daily-status';
 import { EventDecision } from '#/components/party/event-decision';
-import { MapTrail } from '#/components/party/map-trail';
 import { PartyManagement } from '#/components/party/party-management';
+import { PartyHud } from '#/components/party/party-hud';
 import { ProgressionHistory } from '#/components/party/progression-history';
 import { Roster } from '#/components/party/roster';
-import { StatusCard } from '#/components/party/status-card';
 import { VillagePanel } from '#/components/party/village-panel';
+import { WorldMap } from '#/components/party/world-map';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import {
 	useCastVote,
 	useChooseEvent,
 	useDailyProgress,
+	useAdventure,
 	useEncounter,
 	useParty,
 	usePartyEvent,
@@ -37,13 +39,14 @@ function PartyDashboard() {
 	const { user } = Route.useRouteContext();
 	const partyQuery = useParty(partyId);
 	const mapQuery = usePartyMap(partyId);
+	const adventureQuery = useAdventure(partyId);
 	const dailyQuery = useDailyProgress(partyId);
 	const currentNodeId = partyQuery.data?.currentNode.id ?? '';
-	const currentNodeType = partyQuery.data?.currentNode.nodeType;
-	const isCombat = currentNodeType === 'combat';
-	const isVillage = currentNodeType === 'village';
+	const currentEventType = partyQuery.data?.currentNode.config.event?.eventType;
+	const isCombat = currentEventType === 'combat';
+	const isVillage = currentEventType === 'village';
 	const villageEnabled = isVillage && partyQuery.data?.status === 'active';
-	const eventEnabled = Boolean(partyQuery.data && ['narrative', 'treasure', 'rest'].includes(currentNodeType ?? ''));
+	const eventEnabled = currentEventType === 'narrative' || currentEventType === 'treasure' || currentEventType === 'rest';
 	const eventQuery = usePartyEvent(partyId, eventEnabled);
 	const encounterQuery = useEncounter(partyId, isCombat);
 	const villageQuery = useVillage(partyId, villageEnabled);
@@ -129,15 +132,12 @@ function PartyDashboard() {
 	const hasBranchDecision = !isCombat && !eventEnabled && currentEdges.length > 0 && (!isVillage || Boolean(party.decisionStartedAt));
 
 	return (
-		<div className="space-y-7">
-			<Link
-				to="/parties"
-				className="inline-flex items-center gap-2 text-sm font-extrabold text-[var(--ink-soft)] no-underline hover:text-[var(--indigo)]"
-			>
+		<div className="gameplay-surface space-y-8">
+			<Link to="/parties" className="game-back-link inline-flex items-center gap-2 text-sm font-extrabold no-underline">
 				<ArrowLeft className="size-4" /> Back to party hall
 			</Link>
 
-			<div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+			<div className="game-hero flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
 				<div>
 					<p className="eyebrow">Party dashboard · chapter {party.currentNode.chapterNo}</p>
 					<div className="mt-3 flex items-center gap-3">
@@ -157,33 +157,14 @@ function PartyDashboard() {
 				</div>
 			)}
 
-			<div className="grid gap-4 md:grid-cols-3">
-				<StatusCard
-					icon={<MapPin />}
-					eyebrow="Current node"
-					value={party.currentNode.name}
-					detail={`${party.currentNode.nodeType} · region ${party.currentNode.regionNo}`}
-				/>
-				<StatusCard
-					icon={<UsersRound />}
-					eyebrow="Roster"
-					value={`${party.members.length} / ${party.memberCapacity}`}
-					detail="travelers on the trail"
-				/>
-				<StatusCard
-					icon={<HeartPulse />}
-					eyebrow="Gate progress"
-					value={`${party.gateProgress}`}
-					detail="units toward the next threshold"
-				/>
-			</div>
+			<PartyHud party={party} adventure={adventureQuery.data} daily={daily} />
 
 			<div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-				<Card>
+				<Card variant="game" tone="atlas" className="game-map-panel">
 					<CardHeader>
 						<div className="flex items-start justify-between gap-4">
 							<div>
-								<Badge>World map</Badge>
+								<Badge>World atlas</Badge>
 								<CardTitle className="mt-4 text-3xl">The visible trail</CardTitle>
 								<CardDescription>Only discovered and adjacent nodes are revealed. The rest stays beyond the mist.</CardDescription>
 							</div>
@@ -191,7 +172,7 @@ function PartyDashboard() {
 						</div>
 					</CardHeader>
 					<CardContent>
-						<MapTrail map={map} />
+						<WorldMap map={map} />
 					</CardContent>
 				</Card>
 
@@ -201,9 +182,20 @@ function PartyDashboard() {
 				</div>
 			</div>
 
+			<section>
+				<AdventurePanel
+					adventure={adventureQuery.data}
+					timeZone={user.timezone}
+					pending={adventureQuery.isPending}
+					error={adventureQuery.error}
+					onRetry={() => void adventureQuery.refetch()}
+					retrying={adventureQuery.isFetching}
+				/>
+			</section>
+
 			{isCombat && encounterQuery.data && (
 				<section>
-					<div className="mb-4 flex items-end justify-between gap-4">
+					<div className="game-section-heading mb-4 flex items-end justify-between gap-4">
 						<div>
 							<p className="eyebrow">Encounter actions</p>
 							<h2 className="display-title mt-2 text-3xl text-[var(--indigo)]">Every turn is a party decision.</h2>
@@ -228,7 +220,7 @@ function PartyDashboard() {
 
 			{isVillage && readOnly && (
 				<section>
-					<Card>
+					<Card variant="game" tone="history">
 						<CardHeader>
 							<Badge>Village closed</Badge>
 							<CardTitle className="mt-3 text-2xl">The market is part of the trail’s history.</CardTitle>
@@ -252,7 +244,7 @@ function PartyDashboard() {
 
 			{hasBranchDecision && (
 				<section>
-					<div className="mb-4 flex items-end justify-between gap-4">
+					<div className="game-section-heading mb-4 flex items-end justify-between gap-4">
 						<div>
 							<p className="eyebrow">{isVillage ? 'Departure decision' : 'Today’s decision'}</p>
 							<h2 className="display-title mt-2 text-3xl text-[var(--indigo)]">Which way does the party lean?</h2>
@@ -284,7 +276,7 @@ function PartyDashboard() {
 
 			{!isCombat && !isVillage && eventEnabled && currentEvent && (
 				<section>
-					<div className="mb-4 flex items-end justify-between gap-4">
+					<div className="game-section-heading mb-4 flex items-end justify-between gap-4">
 						<div>
 							<p className="eyebrow">Today’s decision</p>
 							<h2 className="display-title mt-2 text-3xl text-[var(--indigo)]">Which way does the party lean?</h2>

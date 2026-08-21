@@ -126,7 +126,7 @@ export function PartyManagement({
 	};
 
 	return (
-		<Card>
+		<Card variant="game" tone="history">
 			<CardHeader>
 				<div className="flex items-start justify-between gap-4">
 					<div>
@@ -153,7 +153,7 @@ export function PartyManagement({
 						<p className="mt-1 text-sm text-[var(--ink-soft)]">The token is visible once and expires on the server’s schedule.</p>
 					</div>
 					{isLeader ? (
-						<Button variant="secondary" disabled={managementBusy} onClick={createInvite}>
+						<Button game variant="secondary" disabled={managementBusy} onClick={createInvite}>
 							<Send className="size-4" /> {createInviteMutation.isPending ? 'Creating…' : 'Create invite'}
 						</Button>
 					) : (
@@ -169,6 +169,7 @@ export function PartyManagement({
 								<p className="mt-1 text-xs text-[var(--ink-soft)]">Expires {formatDateTime(currentInvite.expiresAt, timeZone)}</p>
 							</div>
 							<Button
+								game
 								variant="ghost"
 								size="sm"
 								disabled={readOnly || managementBusy}
@@ -217,6 +218,7 @@ export function PartyManagement({
 								{isLeader && !isCurrentUser && (
 									<div className="flex flex-wrap gap-2">
 										<Button
+											game
 											variant="ghost"
 											size="sm"
 											disabled={managementBusy}
@@ -225,6 +227,7 @@ export function PartyManagement({
 											<UserMinus className="size-4" /> Remove
 										</Button>
 										<Button
+											game
 											variant="secondary"
 											size="sm"
 											disabled={managementBusy}
@@ -243,7 +246,7 @@ export function PartyManagement({
 					<p className="max-w-lg text-sm text-[var(--ink-soft)]">
 						Leaving removes you from this expedition. The rest of the party keeps its trail.
 					</p>
-					<Button variant="danger" disabled={readOnly || managementBusy} onClick={() => setConfirmation({ action: 'leave' })}>
+					<Button game variant="danger" disabled={readOnly || managementBusy} onClick={() => setConfirmation({ action: 'leave' })}>
 						<LogOut className="size-4" /> {leaveMutation.isPending ? 'Leaving…' : 'Leave party'}
 					</Button>
 				</div>

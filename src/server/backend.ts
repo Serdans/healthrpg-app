@@ -33,10 +33,14 @@ export function passesSameOriginCheck(request: Request) {
 	return origin === runtimeEnv('APP_ORIGIN');
 }
 
-function backendUrl(path: string) {
+export function backendApiUrl(path: string) {
 	const apiBaseUrl = runtimeEnv('API_BASE_URL');
 	const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`;
-	return new URL(path.replace(/^\//, ''), baseUrl);
+	const normalizedPath = path
+		.replace(/^\/+/, '')
+		.replace(/^api\/v1\/?/, '')
+		.replace(/^v1\/?/, '');
+	return new URL(`api/v1/${normalizedPath}`, baseUrl);
 }
 
 function forwardHeaders(request: Request, token: string | null) {
@@ -64,7 +68,7 @@ export async function requestBackend(request: Request, path: string, includeSess
 		init.body = request.body ? await request.arrayBuffer() : undefined;
 	}
 
-	return fetch(backendUrl(path), init);
+	return fetch(backendApiUrl(path), init);
 }
 
 export function copyBackendResponse(request: Request, upstream: Response) {

@@ -1,13 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
+import { backendApiUrl } from '#/server/backend';
 import { appendSetCookie, clearSessionCookie, readSessionToken } from '#/server/cookies';
-
-function backendMeUrl() {
-	const apiBaseUrl = process.env.API_BASE_URL?.trim();
-	if (!apiBaseUrl) throw new Error('Missing API_BASE_URL');
-	const baseUrl = apiBaseUrl.endsWith('/') ? apiBaseUrl : `${apiBaseUrl}/`;
-	return new URL('v1/me', baseUrl);
-}
 
 export const Route = createFileRoute('/api/session')({
 	server: {
@@ -17,7 +11,7 @@ export const Route = createFileRoute('/api/session')({
 				if (!token) return Response.json({ user: null }, { headers: { 'Cache-Control': 'no-store' } });
 
 				try {
-					const upstream = await fetch(backendMeUrl(), {
+					const upstream = await fetch(backendApiUrl('me'), {
 						headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' },
 					});
 					if (upstream.ok) {

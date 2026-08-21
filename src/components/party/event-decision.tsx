@@ -16,7 +16,7 @@ export function EventDecision({
 	readOnly?: boolean;
 }) {
 	return (
-		<Card>
+		<Card variant="game" tone="arcane">
 			<CardHeader>
 				<Badge className="border-[color-mix(in_srgb,var(--amethyst)_30%,transparent)] bg-[var(--amethyst-wash)] text-[var(--amethyst)]">
 					{event.eventType} event
