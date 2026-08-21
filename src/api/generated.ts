@@ -1908,6 +1908,22 @@ export interface paths {
 						'application/json': {
 							currentChapter: number;
 							currentNodeId: string;
+							currentMap: {
+								id: string;
+								mapType: 'overworld' | 'village' | 'dungeon';
+								name: string;
+								templateKey: string;
+								parentNodeId: string | null;
+								entryNodeId: string;
+							};
+							enterableLocation: {
+								id: string;
+								mapType: 'overworld' | 'village' | 'dungeon';
+								name: string;
+								templateKey: string;
+								parentNodeId: string | null;
+								entryNodeId: string;
+							} | null;
 							nodes: {
 								id: string;
 								chapterNo: number;
@@ -1945,6 +1961,29 @@ export interface paths {
 												settlementKey: string;
 										  };
 								} | null;
+								mapMetadata: {
+									mapId: string;
+									nodeId: string;
+									floorNo: number;
+									role:
+										| 'overworld'
+										| 'entrance'
+										| 'hub'
+										| 'room'
+										| 'puzzle'
+										| 'combat'
+										| 'treasure'
+										| 'rest'
+										| 'shop'
+										| 'story'
+										| 'shortcut'
+										| 'goal'
+										| 'exit'
+										| 'boss';
+									sortOrder: number;
+									isEntry: boolean;
+									isExit: boolean;
+								};
 							}[];
 							edges: {
 								id: string;
@@ -1952,6 +1991,304 @@ export interface paths {
 								toNodeId: string;
 								optionKey: string;
 								sortOrder: number;
+							}[];
+							objectives: {
+								id: string;
+								mapId: string;
+								key: string;
+								type: 'reach-node' | 'resolve-event' | 'collect-reward' | 'defeat-boss' | 'explore';
+								targetNodeId: string | null;
+								required: boolean;
+								displayName: string;
+								description: string;
+							}[];
+							completedObjectiveIds: string[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/locations/{locationId}/enter': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+					locationId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							id: string;
+							name: string;
+							status: 'active' | 'abandoned';
+							memberCapacity: number;
+							currentNode: {
+								id: string;
+								chapterNo: number;
+								regionNo: number;
+								name: string;
+								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								templateKey: string;
+								config: {
+									movementCost: number;
+									obstacleCost: number;
+									landmark?: {
+										key: string;
+									};
+									event?:
+										| {
+												/** @enum {string} */
+												eventType: 'combat';
+										  }
+										| {
+												eventType: 'treasure' | 'narrative' | 'rest';
+												prompt: string;
+												choices: {
+													key: string;
+													displayName: string;
+													description: string;
+													requirements: {
+														movementUnits: number;
+														recoveryPoints: number;
+													};
+												}[];
+										  }
+										| {
+												/** @enum {string} */
+												eventType: 'village';
+												settlementKey: string;
+										  };
+								};
+							};
+							gateProgress: number;
+							decisionStartedAt: string | null;
+							members: {
+								userId: string;
+								role: 'leader' | 'member';
+								displayName: string | null;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/roster': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							partyId: string;
+							members: {
+								userId: string;
+								role: 'leader' | 'member';
+								displayName: string | null;
+								character: {
+									name: string;
+									classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
+									className: string;
+									backgroundKey: 'exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper';
+									backgroundName: string;
+									stats: {
+										strength: number;
+										agility: number;
+										vitality: number;
+										insight: number;
+									};
+								} | null;
+								progression: {
+									experience: number;
+									level: number;
+									nextLevelExperience: number;
+								};
+								health: {
+									currentHealth: number;
+									maxHealth: number;
+								} | null;
 							}[];
 						};
 					};
@@ -2187,6 +2524,183 @@ export interface paths {
 								status: 'provisional' | 'complete';
 							}[];
 						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/recap': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							partyId: string;
+							/** Format: date */
+							worldDate: string;
+							/** Format: date-time */
+							resolvedAt: string;
+							resolution: {
+								sourceNode: {
+									id: string;
+									name: string;
+									nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								};
+								destinationNode: {
+									id: string;
+									name: string;
+									nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								};
+								outcome: 'advanced' | 'held' | 'route-selected';
+								movement: {
+									units: number;
+									cost: number;
+									satisfied: boolean;
+								};
+								recoveryPoints: number;
+								gate: {
+									progressBefore: number;
+									contribution: number;
+									progressAfter: number;
+									cost: number;
+									unlocked: boolean;
+								};
+								route: {
+									edgeId: string;
+									optionKey: string;
+									reason: 'majority' | 'deadline';
+								} | null;
+								event: {
+									eventType: 'combat' | 'treasure' | 'narrative' | 'rest' | 'village';
+									outcome: 'succeeded' | 'failed' | 'ongoing';
+									selectedChoiceKey: string | null;
+									selectionReason: 'majority' | 'deadline' | null;
+								} | null;
+								combat: {
+									completed: boolean;
+									members: {
+										userId: string;
+										displayName: string;
+										actionKey: ('shield-wall' | 'ambush' | 'volley' | 'mend' | 'arcane-burst' | 'rally') | null;
+										actionName: string;
+										healthBefore: number;
+										recovery: number;
+										actionHealing: number;
+										damageTaken: number;
+										healthAfter: number;
+										maxHealth: number;
+									}[];
+									enemies: {
+										id: string;
+										displayName: string;
+										healthBefore: number;
+										damageTaken: number;
+										healthAfter: number;
+										maxHealth: number;
+										defeated: boolean;
+									}[];
+								} | null;
+								rewards: {
+									experience?: number;
+									unlockKey?: string;
+									milestoneKey?: string;
+									currency?: {
+										key: string;
+										amount: number;
+									};
+									item?: {
+										key: string;
+										quantity: number;
+									};
+									equipment?: {
+										key: string;
+									};
+								}[];
+							};
+						} | null;
 					};
 				};
 				/** @description Default Response */

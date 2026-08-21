@@ -31,7 +31,7 @@ export function DailyStatus({ daily }: { daily: DailyProgress }) {
 						{daily.movementUnits} / {daily.movementCost}
 					</span>
 				</div>
-				<Progress value={movementPercent} />
+				<Progress value={movementPercent} aria-label="Daily movement progress" />
 				<div className="grid grid-cols-2 gap-3 pt-2">
 					<div className="rounded-xl bg-[var(--teal)]/10 p-3">
 						<p className="font-mono text-xl text-[var(--teal-deep)]">{daily.recoveryPoints}</p>

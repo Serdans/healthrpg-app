@@ -58,11 +58,47 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 	await authenticate(page);
 	await page.goto('/parties/party-1');
 
+	const partyMenu = page.getByTestId('gameplay-section-nav');
+	await expect(partyMenu).toContainText('Field');
+	await expect(partyMenu).toContainText('Party');
+	await expect(partyMenu).toContainText('Chronicle');
+	await expect(page.getByRole('heading', { name: 'The road ahead', level: 2 })).toBeVisible();
 	await expect(page.getByTestId('world-map')).toBeVisible();
 	await expect(page.getByTestId('world-map-party-marker')).toBeVisible();
-	await page.getByRole('button', { name: /North Lantern Road, Next possible route/i }).click();
+	await expect(page.getByTestId('party-roster')).toBeVisible();
+	await expect(page.getByTestId('daily-resolution-recap')).toContainText('Daily resolution');
+	await expect(page.getByTestId('daily-resolution-recap')).toContainText('The trail held');
+	await expect(page.getByTestId('daily-resolution-recap')).toContainText('4 points');
+	await expect(page.getByTestId('party-member-sheet')).toContainText('Hero');
+	await page.locator('[data-testid="party-member"][data-member-id="user-2"]').click();
+	await expect(page.getByTestId('party-member-sheet')).toContainText('Mira');
+	await expect(page.getByTestId('party-member-sheet')).toContainText('Cleric');
+	await expect(page.getByTestId('party-member-sheet')).toContainText('Level 3');
+	await expect(page.getByTestId('party-member-sheet')).toContainText('38 / 50');
+	const fieldLink = partyMenu.getByRole('link', { name: 'Field' });
+	await fieldLink.click();
+	await expect.poll(async () => fieldLink.getAttribute('aria-current')).toBe('location');
+
+	const currentNode = page.getByRole('button', { name: /Mossway Crossing, Current location/i });
+	await currentNode.focus();
+	await page.keyboard.press('ArrowUp');
+	const nextNode = page.getByRole('button', { name: /North Lantern Road, Next possible route/i });
+	await expect(nextNode).toBeFocused();
+	await expect(nextNode).toHaveAttribute('aria-pressed', 'true');
 	await expect(page.getByTestId('world-map-inspector')).toContainText('North Lantern Road');
 	await expect(page.getByTestId('world-map-inspector')).toContainText(/Next possible route/i);
+	await nextNode.click();
+	await expect(page.getByTestId('world-map-inspector')).toBeFocused();
+});
+
+test('keeps the party shell navigable on a phone-sized viewport', async ({ page }) => {
+	await authenticate(page);
+	await page.setViewportSize({ width: 390, height: 844 });
+	await page.goto('/parties/party-1');
+
+	await expect(page.getByTestId('gameplay-section-nav')).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'The travelers beside you', level: 2 })).toBeVisible();
+	await expect.poll(async () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
 test('opens a village departure vote and casts a route vote', async ({ page, request }) => {
@@ -85,23 +121,53 @@ test('opens a village departure vote and casts a route vote', async ({ page, req
 	await expect(page.locator('button.choice-card').filter({ hasText: 'North Lantern Road' })).toHaveAttribute('data-selected', 'true');
 });
 
+test('enters a nested village map from the overworld', async ({ page, request }) => {
+	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'village' } });
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	await page.getByRole('button', { name: /Mossway Village, Current location/i }).click();
+	const locationEntry = page.getByTestId('world-map-location-entry');
+	await expect(locationEntry).toContainText("Wayfarer's Rest");
+	await locationEntry.getByRole('button', { name: /Enter Wayfarer's Rest/i }).click();
+
+	await expect(page.getByTestId('interior-map')).toBeVisible();
+	await expect(page.getByTestId('map-scene')).toHaveAttribute('data-map-type', 'village');
+	await expect(page.getByTestId('interior-map-party-marker')).toBeVisible();
+	await expect(page.getByLabel('Interior map legend')).toContainText('Party');
+	await expect(page.getByTestId('interior-map-inspector')).toContainText('Village interior');
+	await expect(page.getByTestId('location-objectives')).toContainText('Lantern Square');
+	await expect(page.getByRole('button', { name: /Lantern Square, Current location/i })).toBeVisible();
+	await expect
+		.poll(async () => lastMutation(request))
+		.toEqual({
+			path: '/api/v1/parties/party-1/locations/map-village/enter',
+			body: null,
+		});
+});
+
 test('submits a combat action and uses a field item', async ({ page, request }) => {
 	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'combat' } });
 	await authenticate(page);
 	await page.goto('/parties/party-1');
 
-	await expect(page.getByRole('heading', { name: 'Hold the line together.' })).toBeVisible();
-	await page.getByRole('button', { name: /Shield Wall/i }).click();
-	await page.getByRole('button', { name: /Choose action/i }).click();
+	await expect(page.getByTestId('combat-scene')).toBeVisible();
+	await expect(page.getByTestId('battlefield')).toBeVisible();
+	await expect(page.getByTestId('battle-enemy').first()).toContainText('Moss Wolf');
+	await expect(page.getByTestId('battle-party-member').first()).toContainText('Hero');
+	await page.getByTestId('battle-action-signature').click();
+	await page.getByTestId('battle-item-target').selectOption('user-2');
+	await page.getByTestId('battle-save-command').click();
 	await expect
 		.poll(async () => lastMutation(request))
 		.toEqual({
 			path: '/api/v1/parties/party-1/encounter/actions/me',
 			body: { actionKey: 'shield-wall', targetEnemyId: 'enemy-1', targetUserId: null },
 		});
+	await expect(page.getByTestId('battle-status')).toContainText(/command is locked in/i);
 
 	await page.getByRole('button', { name: /Use item/i }).click();
-	await expect(page.getByText(/Restored 10 health/i)).toBeVisible();
+	await expect(page.getByText(/Restored 10 health for Mira/i)).toBeVisible();
 });
 
 test('shows queued health sync feedback', async ({ page, request }) => {

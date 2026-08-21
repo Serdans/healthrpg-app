@@ -30,3 +30,44 @@ export const partyTravelerArt = {
 	src: '/game-art/party-traveler-sprite.png',
 	backgroundSize: '200% 400%',
 } as const;
+
+export type BattleClassKey = 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
+
+export const battlePartyArt = {
+	src: '/game-art/battle-party-classes.webp',
+	backgroundSize: '300% 200%',
+	positions: {
+		warrior: '0% 0%',
+		rogue: '50% 0%',
+		ranger: '100% 0%',
+		cleric: '0% 100%',
+		mage: '50% 100%',
+		bard: '100% 100%',
+	} satisfies Record<BattleClassKey, string>,
+} as const;
+
+export const battleEnemyArt = {
+	mossWolf: {
+		src: '/game-art/battle-enemy-moss-wolf.webp',
+		backgroundSize: '100% 100%',
+	},
+	default: {
+		src: '/game-art/battle-enemy-moss-wolf.webp',
+		backgroundSize: '100% 100%',
+	},
+} as const;
+
+function isBattleClassKey(value: string): value is BattleClassKey {
+	return value in battlePartyArt.positions;
+}
+
+export function battlePartyArtForClass(classKey: string) {
+	return {
+		...battlePartyArt,
+		position: isBattleClassKey(classKey) ? battlePartyArt.positions[classKey] : battlePartyArt.positions.warrior,
+	};
+}
+
+export function battleEnemyArtForArchetype(archetypeKey: string) {
+	return archetypeKey === 'moss-wolf' ? battleEnemyArt.mossWolf : battleEnemyArt.default;
+}

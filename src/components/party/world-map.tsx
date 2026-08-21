@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ComponentType, CSSProperties } from 'react';
-import { BookOpen, Castle, Gem, Home, MapPin, Moon, Route as RouteIcon, Shield, Sparkles, Swords } from 'lucide-react';
+import type { CSSProperties, KeyboardEvent } from 'react';
+import { MapPin, Sparkles } from 'lucide-react';
 
-import { Badge } from '#/components/ui/badge';
+import { WorldMapInspector } from '#/components/party/world-map-inspector';
+import type { WorldMapEntryMutation } from '#/components/party/world-map-inspector';
+import { WorldMapNode } from '#/components/party/world-map-node';
 import type { PartyMap } from '#/lib/api';
-import { landmarkArtForNode, partyTravelerArt } from '#/lib/game-art';
+import { partyTravelerArt } from '#/lib/game-art';
 import type { PartyTravelerDirection } from '#/lib/game-art';
+import { getAdjacentMapNodeId, mapDirectionForKey } from '#/lib/map-navigation';
 import { createWorldMapLayout, createWorldMapTravel } from '#/lib/world-map';
-import type { WorldMapLayout, WorldMapLayoutNode, WorldMapTravel } from '#/lib/world-map';
+import type { WorldMapLayout, WorldMapTravel } from '#/lib/world-map';
+import { InteriorMap } from './interior-map';
 
-type IconComponent = ComponentType<{ className?: string }>;
 const partyTravelDurationMs = 1000;
 
 interface ActiveWorldMapTravel extends WorldMapTravel {
@@ -18,53 +21,21 @@ interface ActiveWorldMapTravel extends WorldMapTravel {
 	supportsMotionPath: boolean;
 }
 
-function iconForNode(nodeType: PartyMap['nodes'][number]['nodeType']): IconComponent {
-	switch (nodeType) {
-		case 'dungeon':
-			return Castle;
-		case 'gate':
-			return Shield;
-		case 'combat':
-			return Swords;
-		case 'treasure':
-			return Gem;
-		case 'narrative':
-			return BookOpen;
-		case 'rest':
-			return Moon;
-		case 'village':
-			return Home;
-		case 'travel':
-		default:
-			return RouteIcon;
-	}
-}
-
-function stateLabel(state: WorldMapLayoutNode['state']) {
-	switch (state) {
-		case 'current':
-			return 'Current location';
-		case 'next':
-			return 'Next possible route';
-		case 'revealed':
-		default:
-			return 'Revealed landmark';
-	}
-}
-
-function readableType(nodeType: PartyMap['nodes'][number]['nodeType']) {
-	return nodeType.replace('-', ' ');
-}
-
-function eventLabel(eventType: NonNullable<NonNullable<PartyMap['nodes'][number]['config']>['event']>['eventType']) {
-	return `${eventType.charAt(0).toUpperCase()}${eventType.slice(1)} encounter`;
-}
-
-export function WorldMap({ map }: { map: PartyMap }) {
+function OverworldMap({
+	map,
+	enterMutation,
+	readOnly = false,
+}: {
+	map: PartyMap;
+	enterMutation?: WorldMapEntryMutation;
+	readOnly?: boolean;
+}) {
 	const layout = useMemo(() => createWorldMapLayout(map), [map]);
 	const [selectedNodeId, setSelectedNodeId] = useState(map.currentNodeId);
 	const viewportRef = useRef<HTMLDivElement>(null);
 	const currentNodeRef = useRef<HTMLButtonElement>(null);
+	const nodeRefs = useRef(new Map<string, HTMLButtonElement>());
+	const inspectorRef = useRef<HTMLDivElement>(null);
 	const previousMapRef = useRef<{ currentNodeId: string; layout: WorldMapLayout } | null>(null);
 	const travelAnimationFrameRef = useRef<number | null>(null);
 	const travelTimeoutRef = useRef<number | null>(null);
@@ -116,6 +87,15 @@ export function WorldMap({ map }: { map: PartyMap }) {
 	const selectedEdge = selectedNode
 		? map.edges.find((edge) => edge.fromNodeId === map.currentNodeId && edge.toNodeId === selectedNode.node.id)
 		: undefined;
+	const enterableLocation = map.enterableLocation;
+	const canEnterSelectedLocation = Boolean(
+		selectedNode &&
+		enterMutation &&
+		enterableLocation &&
+		map.currentMap.mapType === 'overworld' &&
+		selectedNode.state === 'current' &&
+		enterableLocation.parentNodeId === selectedNode.node.id,
+	);
 	const currentNode = layout.nodes.find((item) => item.node.id === map.currentNodeId);
 	const travelerDirection = travel?.direction ?? lastDirectionRef.current;
 	const markerStyle: CSSProperties = travel
@@ -141,6 +121,24 @@ export function WorldMap({ map }: { map: PartyMap }) {
 	]
 		.filter(Boolean)
 		.join(' ');
+	const selectNode = (nodeId: string, focusInspector = false) => {
+		setSelectedNodeId(nodeId);
+		if (focusInspector) window.requestAnimationFrame(() => inspectorRef.current?.focus());
+	};
+	const registerNode = (nodeId: string, node: HTMLButtonElement | null) => {
+		if (node) nodeRefs.current.set(nodeId, node);
+		else nodeRefs.current.delete(nodeId);
+		if (nodeId === map.currentNodeId) currentNodeRef.current = node;
+	};
+	const navigateNode = (event: KeyboardEvent<HTMLButtonElement>, nodeId: string) => {
+		const direction = mapDirectionForKey(event.key);
+		if (!direction) return;
+		const nextNodeId = getAdjacentMapNodeId(layout.nodes, nodeId, direction);
+		if (!nextNodeId) return;
+		event.preventDefault();
+		selectNode(nextNodeId);
+		nodeRefs.current.get(nextNodeId)?.focus();
+	};
 
 	if (!selectedNode) {
 		return (
@@ -157,7 +155,7 @@ export function WorldMap({ map }: { map: PartyMap }) {
 				ref={viewportRef}
 				className="world-map-viewport"
 				tabIndex={0}
-				aria-label="World map. Scroll horizontally and vertically to explore the visible trail."
+				aria-label={`${map.currentMap.name}. Scroll horizontally and vertically to explore the visible map.`}
 			>
 				<div className="world-map-canvas" style={{ width: `${layout.width + 250}px`, minHeight: `${layout.height}px` }}>
 					<div className="world-map-terrain" aria-hidden="true" />
@@ -198,34 +196,16 @@ export function WorldMap({ map }: { map: PartyMap }) {
 						</div>
 					))}
 
-					{layout.nodes.map((item) => {
-						const Icon = iconForNode(item.node.nodeType);
-						const selected = selectedNode.node.id === item.node.id;
-						return (
-							<button
-								key={item.node.id}
-								ref={item.node.id === map.currentNodeId ? currentNodeRef : undefined}
-								type="button"
-								className={`world-map-node world-map-node-${item.state}`}
-								style={{ left: `${item.x}px`, top: `${item.y}px` }}
-								aria-label={`${item.node.name}, ${stateLabel(item.state)}, ${readableType(item.node.nodeType)}`}
-								aria-pressed={selected}
-								data-node-id={item.node.id}
-								data-node-state={item.state}
-								onClick={() => setSelectedNodeId(item.node.id)}
-							>
-								<span className="world-map-node-orb">
-									<span
-										className="world-map-node-art"
-										aria-hidden="true"
-										style={{ backgroundPosition: landmarkArtForNode(item.node.nodeType).position }}
-									/>
-									<Icon className="world-map-node-fallback size-5" aria-hidden="true" />
-								</span>
-								<span className="world-map-node-name">{item.node.name}</span>
-							</button>
-						);
-					})}
+					{layout.nodes.map((item) => (
+						<WorldMapNode
+							key={item.node.id}
+							item={item}
+							selected={selectedNode.node.id === item.node.id}
+							registerNode={(node) => registerNode(item.node.id, node)}
+							onSelect={selectNode}
+							onNavigate={navigateNode}
+						/>
+					))}
 
 					{currentNode && (
 						<div
@@ -265,35 +245,37 @@ export function WorldMap({ map }: { map: PartyMap }) {
 					<span>
 						<i className="world-map-legend-dot world-map-legend-revealed" /> Revealed
 					</span>
+					<span>
+						<i className="world-map-legend-dot world-map-legend-party" /> Party
+					</span>
 				</div>
 				<span className="world-map-scroll-hint">Scroll to explore the atlas</span>
 			</div>
 
-			<div className="world-map-inspector" aria-live="polite" data-testid="world-map-inspector">
-				<div className="world-map-inspector-heading">
-					<div>
-						<p className="eyebrow">Atlas entry</p>
-						<h3>{selectedNode.node.name}</h3>
-						<p>
-							{readableType(selectedNode.node.nodeType)} · region {selectedNode.node.regionNo}
-						</p>
-					</div>
-					<Badge>{stateLabel(selectedNode.state)}</Badge>
-				</div>
-				<div className="world-map-inspector-copy">
-					{selectedNode.state === 'current' && <p>The party is here. The next choice will shape the road ahead.</p>}
-					{selectedNode.state === 'next' && (
-						<p>
-							{selectedEdge
-								? `Route option ${selectedEdge.sortOrder + 1}: ${selectedEdge.optionKey.replaceAll('-', ' ')}.`
-								: 'A route the party can reach from here.'}
-						</p>
-					)}
-					{selectedNode.state === 'revealed' && <p>This landmark has been revealed on the party atlas.</p>}
-					{selectedNode.node.config?.event && <span>{eventLabel(selectedNode.node.config.event.eventType)}</span>}
-					{selectedNode.node.config?.landmark && <span>Landmark: {selectedNode.node.config.landmark.key.replaceAll('-', ' ')}</span>}
-				</div>
-			</div>
+			<WorldMapInspector
+				map={map}
+				selectedNode={selectedNode}
+				selectedEdge={selectedEdge}
+				canEnterSelectedLocation={canEnterSelectedLocation}
+				enterableLocation={enterableLocation}
+				enterMutation={enterMutation}
+				readOnly={readOnly}
+				inspectorRef={inspectorRef}
+			/>
+		</div>
+	);
+}
+
+export function WorldMap(props: { map: PartyMap; enterMutation?: WorldMapEntryMutation; readOnly?: boolean }) {
+	return (
+		<div
+			key={props.map.currentMap.id}
+			className="map-scene-transition"
+			data-testid="map-scene"
+			data-map-id={props.map.currentMap.id}
+			data-map-type={props.map.currentMap.mapType}
+		>
+			{props.map.currentMap.mapType !== 'overworld' ? <InteriorMap map={props.map} /> : <OverworldMap {...props} />}
 		</div>
 	);
 }

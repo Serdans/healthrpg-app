@@ -1,0 +1,151 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+
+import type { PartyRecap } from '#/lib/api';
+
+import { DailyResolutionRecap } from './daily-resolution-recap';
+
+const baseResolution: PartyRecap['resolution'] = {
+	sourceNode: { id: 'node-1', name: 'Mossway Crossing', nodeType: 'travel' },
+	destinationNode: { id: 'node-2', name: 'North Lantern Road', nodeType: 'travel' },
+	outcome: 'advanced',
+	movement: { units: 12, cost: 10, satisfied: true },
+	recoveryPoints: 4,
+	gate: { progressBefore: 4, contribution: 8, progressAfter: 12, cost: 10, unlocked: true },
+	route: null,
+	event: null,
+	combat: null,
+	rewards: [],
+};
+
+const recap: PartyRecap = {
+	partyId: 'party-1',
+	worldDate: '2026-08-20',
+	resolvedAt: '2026-08-21T00:05:00.000Z',
+	resolution: baseResolution,
+};
+
+const meta = {
+	title: 'Party/DailyResolutionRecap',
+	component: DailyResolutionRecap,
+	parameters: { layout: 'padded' },
+	args: { partyId: 'party-1', recap, timeZone: 'UTC' },
+} satisfies Meta<typeof DailyResolutionRecap>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+export const Travel: Story = {};
+
+export const EventFailure: Story = {
+	args: {
+		recap: {
+			...recap,
+			resolution: {
+				...baseResolution,
+				destinationNode: baseResolution.sourceNode,
+				outcome: 'held',
+				event: {
+					eventType: 'narrative',
+					outcome: 'failed',
+					selectedChoiceKey: 'take-the-road',
+					selectionReason: 'deadline',
+				},
+			},
+		},
+	},
+};
+
+export const OngoingCombat: Story = {
+	args: {
+		recap: {
+			...recap,
+			resolution: {
+				...baseResolution,
+				destinationNode: baseResolution.sourceNode,
+				outcome: 'held',
+				event: {
+					eventType: 'combat',
+					outcome: 'ongoing',
+					selectedChoiceKey: null,
+					selectionReason: null,
+				},
+				combat: {
+					completed: false,
+					members: [
+						{
+							userId: 'user-1',
+							displayName: 'Hero',
+							actionKey: null,
+							actionName: 'Basic attack',
+							healthBefore: 20,
+							recovery: 4,
+							actionHealing: 0,
+							damageTaken: 2,
+							healthAfter: 22,
+							maxHealth: 30,
+						},
+					],
+					enemies: [
+						{
+							id: 'enemy-1',
+							displayName: 'Moss Wolf',
+							healthBefore: 30,
+							damageTaken: 8,
+							healthAfter: 22,
+							maxHealth: 30,
+							defeated: false,
+						},
+					],
+				},
+			},
+		},
+	},
+};
+
+export const CompletedCombat: Story = {
+	args: {
+		recap: {
+			...recap,
+			resolution: {
+				...baseResolution,
+				event: {
+					eventType: 'combat',
+					outcome: 'succeeded',
+					selectedChoiceKey: null,
+					selectionReason: null,
+				},
+				combat: {
+					completed: true,
+					members: [],
+					enemies: [
+						{
+							id: 'enemy-1',
+							displayName: 'Moss Wolf',
+							healthBefore: 30,
+							damageTaken: 30,
+							healthAfter: 0,
+							maxHealth: 30,
+							defeated: true,
+						},
+					],
+				},
+				rewards: [{ experience: 100 }],
+			},
+		},
+	},
+};
+
+export const NoRecap: Story = { args: { recap: null } };
+
+export const Loading: Story = {
+	args: { recap: undefined, pending: true },
+};
+
+export const ErrorState: Story = {
+	args: {
+		recap: undefined,
+		error: new globalThis.Error('The recap service is unavailable.'),
+		onRetry: () => undefined,
+		retrying: false,
+	},
+};

@@ -50,9 +50,12 @@ type CharacterCreationResponse = SuccessBody<paths['/api/v1/me/character-creatio
 type CharacterAnswerResponse = SuccessBody<paths['/api/v1/me/character-creation/answers']['post']>;
 type CharacterCommitResponse = SuccessBody<paths['/api/v1/me/character']['post']>;
 type PartyResponse = SuccessBody<paths['/api/v1/parties/{partyId}']['get']>;
+type PartyRosterResponse = SuccessBody<paths['/api/v1/parties/{partyId}/roster']['get']>;
+type PartyRecapResponse = SuccessBody<paths['/api/v1/parties/{partyId}/recap']['get']>;
 type CreatePartyResponse = SuccessBody<paths['/api/v1/parties']['post']>;
 type JoinPartyResponse = SuccessBody<paths['/api/v1/party-memberships']['post']>;
 type MapResponse = SuccessBody<paths['/api/v1/parties/{partyId}/map']['get']>;
+type EnterLocationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/locations/{locationId}/enter']['post']>;
 type AdventureResponse = SuccessBody<paths['/api/v1/parties/{partyId}/adventure']['get']>;
 type DailyProgressResponse = SuccessBody<paths['/api/v1/parties/{partyId}/progress']['get']>;
 type VotesResponse = SuccessBody<paths['/api/v1/parties/{partyId}/branch-votes/{nodeId}']['get']>;
@@ -169,7 +172,16 @@ export const joinParty = (inviteToken: string) =>
 
 export const getParty = (partyId: string) => requestJson<PartyResponse>(partyPath(partyId));
 
+export const getPartyRoster = (partyId: string) => requestJson<PartyRosterResponse>(partyPath(partyId, '/roster'));
+
+export const getPartyRecap = (partyId: string) => requestJson<PartyRecapResponse>(partyPath(partyId, '/recap'));
+
 export const getMap = (partyId: string) => requestJson<MapResponse>(partyPath(partyId, '/map'));
+
+export const enterLocation = (partyId: string, locationId: string) =>
+	requestJson<EnterLocationResponse>(partyPath(partyId, `/locations/${encodeURIComponent(locationId)}/enter`), {
+		method: 'post',
+	});
 
 export const getAdventure = (partyId: string) => requestJson<AdventureResponse>(partyPath(partyId, '/adventure'));
 
@@ -282,7 +294,10 @@ export const revokeInvite = (partyId: string, inviteId: string) =>
 
 export type User = MeResponse;
 export type Party = PartyResponse;
+export type PartyRoster = PartyRosterResponse;
+export type PartyRecap = Exclude<PartyRecapResponse, null>;
 export type PartyMap = MapResponse;
+export type EnterLocation = EnterLocationResponse;
 export type Adventure = AdventureResponse;
 export type Character = CharacterResponse;
 export type CharacterCreation = CharacterCreationResponse;

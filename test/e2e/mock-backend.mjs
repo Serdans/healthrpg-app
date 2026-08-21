@@ -45,23 +45,24 @@ async function body(request) {
 }
 
 function currentNodeType() {
-	if (state.scenario === 'village') return 'village';
+	if (state.scenario === 'village' || state.scenario === 'village-interior') return 'village';
 	if (state.scenario === 'combat') return 'combat';
 	if (state.scenario === 'event') return 'narrative';
 	return 'travel';
 }
 
 function party() {
+	const insideVillage = state.scenario === 'village-interior';
 	return {
 		id: 'party-1',
 		name: 'Lantern Walkers',
 		status: 'active',
 		memberCapacity: 6,
 		currentNode: {
-			id: 'node-1',
+			id: insideVillage ? 'village-entry' : 'node-1',
 			chapterNo: 1,
 			regionNo: 1,
-			name: state.scenario === 'village' ? 'Mossway Village' : 'Mossway Crossing',
+			name: insideVillage ? 'Lantern Square' : state.scenario === 'village' ? 'Mossway Village' : 'Mossway Crossing',
 			nodeType: currentNodeType(),
 			templateKey: `${currentNodeType()}-v1`,
 			config: {
@@ -70,7 +71,7 @@ function party() {
 				event:
 					state.scenario === 'combat'
 						? { eventType: 'combat' }
-						: state.scenario === 'village'
+						: state.scenario === 'village' || state.scenario === 'village-interior'
 							? { eventType: 'village', settlementKey: 'mossway' }
 							: state.scenario === 'event'
 								? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
@@ -86,10 +87,147 @@ function party() {
 	};
 }
 
+function partyRoster() {
+	return {
+		partyId: 'party-1',
+		members: [
+			{
+				userId: 'user-1',
+				displayName: 'Hero',
+				role: 'leader',
+				character: {
+					name: 'Hero',
+					classKey: 'warrior',
+					className: 'Warrior',
+					backgroundKey: 'wanderer',
+					backgroundName: 'Wanderer',
+					stats: { strength: 4, agility: 3, vitality: 4, insight: 2 },
+				},
+				progression: { experience: 120, level: 2, nextLevelExperience: 400 },
+				health: { currentHealth: 20, maxHealth: 20 },
+			},
+			{
+				userId: 'user-2',
+				displayName: 'Mira',
+				role: 'member',
+				character: {
+					name: 'Mira',
+					classKey: 'cleric',
+					className: 'Cleric',
+					backgroundKey: 'caretaker',
+					backgroundName: 'Caretaker',
+					stats: { strength: 3, agility: 4, vitality: 5, insight: 8 },
+				},
+				progression: { experience: 400, level: 3, nextLevelExperience: 900 },
+				health: { currentHealth: 38, maxHealth: 50 },
+			},
+		],
+	};
+}
+
 function map() {
+	if (state.scenario === 'village-interior') {
+		const villageMetadata = (nodeId, sortOrder, role, isEntry = false, isExit = false) => ({
+			mapId: 'map-village',
+			nodeId,
+			floorNo: 0,
+			role,
+			sortOrder,
+			isEntry,
+			isExit,
+		});
+		return {
+			currentChapter: 1,
+			currentNodeId: 'village-entry',
+			currentMap: {
+				id: 'map-village',
+				mapType: 'village',
+				name: "Wayfarer's Rest",
+				templateKey: 'village-v1',
+				parentNodeId: 'node-1',
+				entryNodeId: 'village-entry',
+			},
+			enterableLocation: null,
+			objectives: [],
+			completedObjectiveIds: [],
+			nodes: [
+				{
+					id: 'village-entry',
+					chapterNo: 1,
+					regionNo: 1,
+					name: 'Lantern Square',
+					nodeType: 'village',
+					templateKey: 'village-hub-v1',
+					config: { movementCost: 0, obstacleCost: 0, event: { eventType: 'village', settlementKey: 'wayfarers-rest' } },
+					discovered: true,
+					adjacent: true,
+					mapMetadata: villageMetadata('village-entry', 0, 'hub', true),
+				},
+				{
+					id: 'village-market',
+					chapterNo: 1,
+					regionNo: 1,
+					name: 'Lantern Market',
+					nodeType: 'village',
+					templateKey: 'village-market-v1',
+					config: { movementCost: 0, obstacleCost: 0, event: { eventType: 'village', settlementKey: 'wayfarers-rest' } },
+					discovered: true,
+					adjacent: true,
+					mapMetadata: villageMetadata('village-market', 1, 'shop'),
+				},
+				{
+					id: 'village-exit',
+					chapterNo: 1,
+					regionNo: 1,
+					name: 'East Road',
+					nodeType: 'travel',
+					templateKey: 'village-exit-v1',
+					config: { movementCost: 0, obstacleCost: 0 },
+					discovered: true,
+					adjacent: true,
+					mapMetadata: villageMetadata('village-exit', 2, 'exit', false, true),
+				},
+			],
+			edges: [
+				{ id: 'village-edge-market', fromNodeId: 'village-entry', toNodeId: 'village-market', optionKey: 'lantern-market', sortOrder: 0 },
+				{ id: 'village-edge-exit', fromNodeId: 'village-entry', toNodeId: 'village-exit', optionKey: 'east-road', sortOrder: 1 },
+			],
+		};
+	}
+
+	const overworldMetadata = (nodeId, sortOrder, role = 'overworld') => ({
+		mapId: 'overworld',
+		nodeId,
+		floorNo: 0,
+		role,
+		sortOrder,
+		isEntry: sortOrder === 0,
+		isExit: false,
+	});
 	return {
 		currentChapter: 1,
 		currentNodeId: 'node-1',
+		currentMap: {
+			id: 'overworld',
+			mapType: 'overworld',
+			name: 'The Atlas',
+			templateKey: 'overworld-v1',
+			parentNodeId: null,
+			entryNodeId: 'node-1',
+		},
+		enterableLocation:
+			state.scenario === 'village'
+				? {
+						id: 'map-village',
+						mapType: 'village',
+						name: "Wayfarer's Rest",
+						templateKey: 'village-v1',
+						parentNodeId: 'node-1',
+						entryNodeId: 'village-entry',
+					}
+				: null,
+		objectives: [],
+		completedObjectiveIds: [],
 		nodes: [
 			{
 				id: 'node-1',
@@ -112,9 +250,28 @@ function map() {
 				},
 				discovered: true,
 				adjacent: true,
+				mapMetadata: overworldMetadata('node-1', 0, state.scenario === 'village' ? 'entrance' : 'overworld'),
 			},
-			{ id: 'node-2', chapterNo: 1, regionNo: 1, name: 'North Lantern Road', nodeType: 'travel', discovered: true, adjacent: true },
-			{ id: 'node-3', chapterNo: 1, regionNo: 2, name: 'Old Stone Road', nodeType: 'dungeon', discovered: true, adjacent: true },
+			{
+				id: 'node-2',
+				chapterNo: 1,
+				regionNo: 1,
+				name: 'North Lantern Road',
+				nodeType: 'travel',
+				discovered: true,
+				adjacent: true,
+				mapMetadata: overworldMetadata('node-2', 1),
+			},
+			{
+				id: 'node-3',
+				chapterNo: 1,
+				regionNo: 2,
+				name: 'Old Stone Road',
+				nodeType: 'dungeon',
+				discovered: true,
+				adjacent: true,
+				mapMetadata: overworldMetadata('node-3', 2, 'entrance'),
+			},
 		],
 		edges: [
 			{ id: 'edge-1', fromNodeId: 'node-1', toNodeId: 'node-2', optionKey: 'north-lantern-road', sortOrder: 0 },
@@ -182,6 +339,57 @@ function dailyProgress() {
 			{ userId: 'user-1', movementUnits: 8, recoveryPoints: 4, status: 'provisional' },
 			{ userId: 'user-2', movementUnits: 6, recoveryPoints: 3, status: 'provisional' },
 		],
+	};
+}
+
+function dailyRecap() {
+	return {
+		partyId: 'party-1',
+		worldDate: '2026-08-20',
+		resolvedAt: '2026-08-21T00:05:00.000Z',
+		resolution: {
+			sourceNode: { id: 'node-1', name: 'Mossway Crossing', nodeType: 'travel' },
+			destinationNode: { id: 'node-1', name: 'Mossway Crossing', nodeType: 'travel' },
+			outcome: 'held',
+			movement: { units: 8, cost: 10, satisfied: false },
+			recoveryPoints: 4,
+			gate: { progressBefore: 4, contribution: 4, progressAfter: 8, cost: 10, unlocked: false },
+			route: null,
+			event:
+				state.scenario === 'combat' ? { eventType: 'combat', outcome: 'ongoing', selectedChoiceKey: null, selectionReason: null } : null,
+			combat:
+				state.scenario === 'combat'
+					? {
+							completed: false,
+							members: [
+								{
+									userId: 'user-1',
+									displayName: 'Hero',
+									actionKey: null,
+									actionName: 'Basic attack',
+									healthBefore: 20,
+									recovery: 4,
+									actionHealing: 0,
+									damageTaken: 2,
+									healthAfter: 22,
+									maxHealth: 30,
+								},
+							],
+							enemies: [
+								{
+									id: 'enemy-1',
+									displayName: 'Moss Wolf',
+									healthBefore: 30,
+									damageTaken: 8,
+									healthAfter: 22,
+									maxHealth: 30,
+									defeated: false,
+								},
+							],
+						}
+					: null,
+			rewards: [],
+		},
 	};
 }
 
@@ -272,7 +480,7 @@ async function handler(request) {
 	if (path === '/__scenario' && request.method === 'POST') {
 		const payload = await body(request);
 		state.scenario = payload.scenario ?? 'branch';
-		state.decisionStartedAt = state.scenario === 'village' ? null : '2026-08-20T00:00:00.000Z';
+		state.decisionStartedAt = state.scenario === 'village' || state.scenario === 'village-interior' ? null : '2026-08-20T00:00:00.000Z';
 		return json({ ok: true, scenario: state.scenario });
 	}
 	if (path === '/__last-mutation') return json(state.lastMutation);
@@ -321,9 +529,17 @@ async function handler(request) {
 	}
 
 	if (path === '/api/v1/parties/party-1') return json(party());
-	if (path === '/api/v1/parties/party-1/map') return json(map());
+	if (path === '/api/v1/parties/party-1/roster') return json(partyRoster());
+	if (path === '/api/v1/parties/party-1/locations/map-village/enter' && request.method === 'POST') {
+		state.scenario = 'village-interior';
+		state.decisionStartedAt = null;
+		state.lastMutation = { path, body: null };
+		return json(party());
+	}
+	if (path === '/api/v1/parties/party-1/map' && request.method === 'GET') return json(map());
 	if (path === '/api/v1/parties/party-1/adventure') return json(adventure());
 	if (path === '/api/v1/parties/party-1/progress') return json(dailyProgress());
+	if (path === '/api/v1/parties/party-1/recap') return json(dailyRecap());
 	if (path === '/api/v1/parties/party-1/village') return json(village());
 	if (path === '/api/v1/parties/party-1/encounter') return json(encounter());
 	if (path === '/api/v1/parties/party-1/progression') return json({ items: [], nextCursor: null });

@@ -1,29 +1,28 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowLeft, Clock3, Map as MapIcon } from 'lucide-react';
+import { ArrowLeft, BookOpen, Map as MapIcon, Swords, UsersRound } from 'lucide-react';
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
-import { AdventurePanel } from '#/components/party/adventure-panel';
-import { BranchDecision } from '#/components/party/branch-decision';
-import { CombatPanel } from '#/components/party/combat-panel';
-import { DailyStatus } from '#/components/party/daily-status';
-import { EventDecision } from '#/components/party/event-decision';
-import { PartyManagement } from '#/components/party/party-management';
-import { PartyHud } from '#/components/party/party-hud';
-import { ProgressionHistory } from '#/components/party/progression-history';
-import { Roster } from '#/components/party/roster';
-import { VillagePanel } from '#/components/party/village-panel';
-import { WorldMap } from '#/components/party/world-map';
-import { Badge } from '#/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import {
+	PartyActionSection,
+	PartyChronicleSection,
+	PartyFieldSection,
+	PartyRosterSection,
+} from '#/components/party/party-dashboard-sections';
+import { GameplaySectionNav } from '#/components/party/gameplay-section-nav';
+import { PartyHud } from '#/components/party/party-hud';
+import { Badge } from '#/components/ui/badge';
+import {
+	useAdventure,
 	useCastVote,
 	useChooseEvent,
 	useDailyProgress,
-	useAdventure,
 	useEncounter,
+	useEnterLocation,
 	useParty,
 	usePartyEvent,
 	usePartyMap,
+	usePartyRecap,
+	usePartyRoster,
 	usePartyVotes,
 	useVillage,
 } from '#/lib/queries';
@@ -39,8 +38,11 @@ function PartyDashboard() {
 	const { user } = Route.useRouteContext();
 	const partyQuery = useParty(partyId);
 	const mapQuery = usePartyMap(partyId);
+	const enterLocationMutation = useEnterLocation(partyId);
 	const adventureQuery = useAdventure(partyId);
 	const dailyQuery = useDailyProgress(partyId);
+	const rosterQuery = usePartyRoster(partyId);
+	const recapQuery = usePartyRecap(partyId);
 	const currentNodeId = partyQuery.data?.currentNode.id ?? '';
 	const currentEventType = partyQuery.data?.currentNode.config.event?.eventType;
 	const isCombat = currentEventType === 'combat';
@@ -61,16 +63,7 @@ function PartyDashboard() {
 	const castVoteMutation = useCastVote(partyId, currentNodeId);
 	const chooseEventMutation = useChooseEvent(partyId);
 
-	if (
-		partyQuery.isPending ||
-		mapQuery.isPending ||
-		dailyQuery.isPending ||
-		(eventEnabled && eventQuery.isPending) ||
-		(isCombat && encounterQuery.isPending) ||
-		(villageEnabled && villageQuery.isPending) ||
-		(votesEnabled && votesQuery.isPending)
-	)
-		return <LoadingState label="Mapping the party trail…" />;
+	if (partyQuery.isPending || mapQuery.isPending) return <LoadingState label="Mapping the party trail…" />;
 	if (partyQuery.isError)
 		return (
 			<ErrorNotice
@@ -91,53 +84,31 @@ function PartyDashboard() {
 				retryLabel="Retry map"
 			/>
 		);
-	if (dailyQuery.isError)
-		return (
-			<ErrorNotice
-				error={dailyQuery.error}
-				message={dailyQuery.error.message}
-				onRetry={() => void dailyQuery.refetch()}
-				retrying={dailyQuery.isFetching}
-				retryLabel="Retry daily progress"
-			/>
-		);
-	if (isCombat && encounterQuery.isError)
-		return (
-			<ErrorNotice
-				error={encounterQuery.error}
-				message={encounterQuery.error.message}
-				onRetry={() => void encounterQuery.refetch()}
-				retrying={encounterQuery.isFetching}
-				retryLabel="Retry encounter"
-			/>
-		);
-	if (villageEnabled && villageQuery.isError)
-		return (
-			<ErrorNotice
-				error={villageQuery.error}
-				message={villageQuery.error.message}
-				onRetry={() => void villageQuery.refetch()}
-				retrying={villageQuery.isFetching}
-				retryLabel="Retry village"
-			/>
-		);
 
 	const party = partyQuery.data;
 	const map = mapQuery.data;
 	const daily = dailyQuery.data;
+	const roster = rosterQuery.data;
 	const readOnly = isPartyReadOnly(party.status);
 	const currentEdges = map.edges.filter((edge) => edge.fromNodeId === map.currentNodeId);
 	const currentVotes = votesQuery.data;
 	const currentEvent = eventQuery.data;
 	const hasBranchDecision = !isCombat && !eventEnabled && currentEdges.length > 0 && (!isVillage || Boolean(party.decisionStartedAt));
+	const hasCurrentAction = isCombat || eventEnabled || hasBranchDecision;
+	const currentMapNode = map.nodes.find((node) => node.id === map.currentNodeId);
+	const mapTypeLabel = map.currentMap.mapType === 'overworld' ? 'Overworld' : map.currentMap.mapType === 'dungeon' ? 'Dungeon' : 'Village';
 
 	return (
-		<div className="gameplay-surface space-y-8">
+		<div className="gameplay-surface gameplay-shell space-y-8">
+			<a className="skip-link" href="#party-field">
+				Skip to field map
+			</a>
+
 			<Link to="/parties" className="game-back-link inline-flex items-center gap-2 text-sm font-extrabold no-underline">
 				<ArrowLeft className="size-4" /> Back to party hall
 			</Link>
 
-			<div className="game-hero flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+			<header className="game-hero flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
 				<div>
 					<p className="eyebrow">Party dashboard · chapter {party.currentNode.chapterNo}</p>
 					<div className="mt-3 flex items-center gap-3">
@@ -148,10 +119,20 @@ function PartyDashboard() {
 						The world moves at the party’s pace. Make the next decision together.
 					</p>
 				</div>
-			</div>
+				<div className="game-hero-readout" aria-label="Current expedition context">
+					<div>
+						<span className="game-pixel-label">Current chapter</span>
+						<strong>{party.currentNode.chapterNo}</strong>
+					</div>
+					<div>
+						<span className="game-pixel-label">Current node</span>
+						<strong>{party.currentNode.name}</strong>
+					</div>
+				</div>
+			</header>
 
 			{readOnly && (
-				<div role="status" className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 text-sm text-[var(--ink-soft)]">
+				<div role="status" className="game-readonly-banner">
 					<p className="font-extrabold text-[var(--indigo)]">This expedition is abandoned.</p>
 					<p className="mt-1">You can still review its trail and history, but new party actions are closed.</p>
 				</div>
@@ -159,138 +140,64 @@ function PartyDashboard() {
 
 			<PartyHud party={party} adventure={adventureQuery.data} daily={daily} />
 
-			<div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
-				<Card variant="game" tone="atlas" className="game-map-panel">
-					<CardHeader>
-						<div className="flex items-start justify-between gap-4">
-							<div>
-								<Badge>World atlas</Badge>
-								<CardTitle className="mt-4 text-3xl">The visible trail</CardTitle>
-								<CardDescription>Only discovered and adjacent nodes are revealed. The rest stays beyond the mist.</CardDescription>
-							</div>
-							<MapIcon className="size-6 text-[var(--gold)]" />
-						</div>
-					</CardHeader>
-					<CardContent>
-						<WorldMap map={map} />
-					</CardContent>
-				</Card>
+			<GameplaySectionNav
+				defaultSectionId={hasCurrentAction ? 'party-action' : 'party-field'}
+				sections={[
+					...(hasCurrentAction ? [{ id: 'party-action', label: 'Action', icon: <Swords className="size-4" aria-hidden="true" /> }] : []),
+					{ id: 'party-field', label: 'Field', icon: <MapIcon className="size-4" aria-hidden="true" /> },
+					{ id: 'party-roster', label: 'Party', icon: <UsersRound className="size-4" aria-hidden="true" /> },
+					{ id: 'party-chronicle', label: 'Chronicle', icon: <BookOpen className="size-4" aria-hidden="true" /> },
+				]}
+			/>
 
-				<div className="space-y-5">
-					<DailyStatus daily={daily} />
-					<Roster party={party} />
-				</div>
-			</div>
-
-			<section>
-				<AdventurePanel
-					adventure={adventureQuery.data}
+			{hasCurrentAction && (
+				<PartyActionSection
+					partyId={partyId}
+					userId={user.id}
 					timeZone={user.timezone}
-					pending={adventureQuery.isPending}
-					error={adventureQuery.error}
-					onRetry={() => void adventureQuery.refetch()}
-					retrying={adventureQuery.isFetching}
+					party={party}
+					map={map}
+					readOnly={readOnly}
+					isCombat={isCombat}
+					isVillage={isVillage}
+					eventEnabled={eventEnabled}
+					hasBranchDecision={hasBranchDecision}
+					currentEdges={currentEdges}
+					currentVotes={currentVotes}
+					currentEvent={currentEvent}
+					encounterQuery={encounterQuery}
+					votesQuery={votesQuery}
+					eventQuery={eventQuery}
+					castVoteMutation={castVoteMutation}
+					chooseEventMutation={chooseEventMutation}
 				/>
-			</section>
-
-			{isCombat && encounterQuery.data && (
-				<section>
-					<div className="game-section-heading mb-4 flex items-end justify-between gap-4">
-						<div>
-							<p className="eyebrow">Encounter actions</p>
-							<h2 className="display-title mt-2 text-3xl text-[var(--indigo)]">Every turn is a party decision.</h2>
-						</div>
-						<Clock3 className="size-5 text-[var(--gold-deep)]" />
-					</div>
-					<CombatPanel partyId={partyId} userId={user.id} party={party} encounter={encounterQuery.data} readOnly={readOnly} />
-				</section>
 			)}
 
-			{villageEnabled && villageQuery.data && (
-				<section>
-					<VillagePanel
-						partyId={partyId}
-						village={villageQuery.data}
-						departureOpen={Boolean(party.decisionStartedAt)}
-						timeZone={user.timezone}
-						readOnly={readOnly}
-					/>
-				</section>
-			)}
+			<PartyFieldSection
+				partyId={partyId}
+				party={party}
+				map={map}
+				mapTypeLabel={mapTypeLabel}
+				currentMapNode={currentMapNode}
+				readOnly={readOnly}
+				enterLocationMutation={enterLocationMutation}
+				adventureQuery={adventureQuery}
+				isVillage={isVillage}
+				villageEnabled={villageEnabled}
+				villageQuery={villageQuery}
+				timeZone={user.timezone}
+			/>
 
-			{isVillage && readOnly && (
-				<section>
-					<Card variant="game" tone="history">
-						<CardHeader>
-							<Badge>Village closed</Badge>
-							<CardTitle className="mt-3 text-2xl">The market is part of the trail’s history.</CardTitle>
-							<CardDescription>{party.currentNode.name} is no longer accepting purchases or departure votes.</CardDescription>
-						</CardHeader>
-					</Card>
-				</section>
-			)}
+			<PartyRosterSection daily={daily} roster={roster} dailyQuery={dailyQuery} rosterQuery={rosterQuery} userId={user.id} />
 
-			{eventEnabled && eventQuery.isError && (
-				<section>
-					<ErrorNotice
-						error={eventQuery.error}
-						message={eventQuery.error.message}
-						onRetry={() => void eventQuery.refetch()}
-						retrying={eventQuery.isFetching}
-						retryLabel="Retry event"
-					/>
-				</section>
-			)}
-
-			{hasBranchDecision && (
-				<section>
-					<div className="game-section-heading mb-4 flex items-end justify-between gap-4">
-						<div>
-							<p className="eyebrow">{isVillage ? 'Departure decision' : 'Today’s decision'}</p>
-							<h2 className="display-title mt-2 text-3xl text-[var(--indigo)]">Which way does the party lean?</h2>
-						</div>
-						<Clock3 className="size-5 text-[var(--gold-deep)]" />
-					</div>
-					{votesQuery.isError ? (
-						<ErrorNotice
-							error={votesQuery.error}
-							message={votesQuery.error.message}
-							onRetry={() => void votesQuery.refetch()}
-							retrying={votesQuery.isFetching}
-							retryLabel="Retry vote details"
-						/>
-					) : (
-						<BranchDecision
-							map={map}
-							votes={currentVotes}
-							edges={currentEdges}
-							mutation={castVoteMutation}
-							userId={user.id}
-							memberCount={party.members.length}
-							timeZone={user.timezone}
-							readOnly={readOnly}
-						/>
-					)}
-				</section>
-			)}
-
-			{!isCombat && !isVillage && eventEnabled && currentEvent && (
-				<section>
-					<div className="game-section-heading mb-4 flex items-end justify-between gap-4">
-						<div>
-							<p className="eyebrow">Today’s decision</p>
-							<h2 className="display-title mt-2 text-3xl text-[var(--indigo)]">Which way does the party lean?</h2>
-						</div>
-						<Clock3 className="size-5 text-[var(--gold-deep)]" />
-					</div>
-					<EventDecision event={currentEvent} mutation={chooseEventMutation} readOnly={readOnly} />
-				</section>
-			)}
-
-			<div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-				<ProgressionHistory partyId={partyId} timeZone={user.timezone} />
-				<PartyManagement partyId={partyId} party={party} userId={user.id} timeZone={user.timezone} readOnly={readOnly} />
-			</div>
+			<PartyChronicleSection
+				partyId={partyId}
+				party={party}
+				userId={user.id}
+				timeZone={user.timezone}
+				readOnly={readOnly}
+				recapQuery={recapQuery}
+			/>
 		</div>
 	);
 }

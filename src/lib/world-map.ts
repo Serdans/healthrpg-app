@@ -50,11 +50,14 @@ const verticalBuffer = 96;
 const minimumMapHeight = 440;
 const verticalOffsets = [0, -64, 64, -40, 40, -24, 24] as const;
 
-function layerKey(node: WorldMapNode) {
+function layerKey(map: PartyMap, node: WorldMapNode) {
+	if (map.currentMap.mapType !== 'overworld') return `${map.currentMap.id}:floor:${String(node.mapMetadata.floorNo)}`;
 	return `${node.chapterNo}:${node.regionNo}`;
 }
 
-function layerLabel(chapterNo: number, regionNo: number) {
+function layerLabel(map: PartyMap, chapterNo: number, regionNo: number, floorNo: number) {
+	if (map.currentMap.mapType === 'dungeon') return `Floor ${floorNo + 1}`;
+	if (map.currentMap.mapType === 'village') return 'Village';
 	if (regionNo < 0) return `Chapter ${chapterNo} · Frontier`;
 	return `Chapter ${chapterNo} · Region ${regionNo}`;
 }
@@ -106,8 +109,13 @@ export function createWorldMapTravel(
 export function createWorldMapLayout(map: PartyMap): WorldMapLayout {
 	const layerEntries = new Map<string, { chapterNo: number; regionNo: number }>();
 	for (const node of map.nodes) {
-		const key = layerKey(node);
-		if (!layerEntries.has(key)) layerEntries.set(key, { chapterNo: node.chapterNo, regionNo: node.regionNo });
+		const key = layerKey(map, node);
+		if (!layerEntries.has(key)) {
+			layerEntries.set(key, {
+				chapterNo: node.chapterNo,
+				regionNo: map.currentMap.mapType === 'overworld' ? node.regionNo : node.mapMetadata.floorNo,
+			});
+		}
 	}
 
 	const layers = [...layerEntries.entries()]
@@ -116,13 +124,13 @@ export function createWorldMapLayout(map: PartyMap): WorldMapLayout {
 			key,
 			chapterNo: layer.chapterNo,
 			regionNo: layer.regionNo,
-			label: layerLabel(layer.chapterNo, layer.regionNo),
+			label: layerLabel(map, layer.chapterNo, layer.regionNo, layer.regionNo),
 			x: horizontalPadding + index * horizontalSpacing,
 		}));
 
 	const nodesByLayer = new Map<string, WorldMapNode[]>();
 	for (const node of map.nodes) {
-		const key = layerKey(node);
+		const key = layerKey(map, node);
 		const nodes = nodesByLayer.get(key) ?? [];
 		nodes.push(node);
 		nodesByLayer.set(key, nodes);

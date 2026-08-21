@@ -120,6 +120,63 @@ describe('API client', () => {
 		expect(calls[3]).toMatchObject({ url: 'http://localhost:3001/api/v1/me/loadout/weapon', method: 'DELETE' });
 	});
 
+	it('loads a party roster through the generated endpoint', async () => {
+		vi.stubGlobal('location', { origin: 'http://localhost:3001' });
+		const roster = { partyId: 'party-1', members: [] };
+		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+			const request = input instanceof Request ? input : new Request(input);
+			expect(request.url).toBe('http://localhost:3001/api/v1/parties/party%2F1/roster');
+			return new Response(JSON.stringify(roster), {
+				status: 200,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const { getPartyRoster } = await import('#/lib/api');
+
+		await expect(getPartyRoster('party/1')).resolves.toEqual(roster);
+		expect(fetchMock).toHaveBeenCalledOnce();
+	});
+
+	it('loads the latest daily resolution through the generated endpoint', async () => {
+		vi.stubGlobal('location', { origin: 'http://localhost:3001' });
+		const recap = { partyId: 'party-1', worldDate: '2026-08-20', resolvedAt: '2026-08-21T00:05:00.000Z', resolution: {} };
+		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+			const request = input instanceof Request ? input : new Request(input);
+			expect(request.url).toBe('http://localhost:3001/api/v1/parties/party%2F1/recap');
+			return new Response(JSON.stringify(recap), {
+				status: 200,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const { getPartyRecap } = await import('#/lib/api');
+
+		await expect(getPartyRecap('party/1')).resolves.toEqual(recap);
+		expect(fetchMock).toHaveBeenCalledOnce();
+	});
+
+	it('enters a nested location with an encoded generated path', async () => {
+		vi.stubGlobal('location', { origin: 'http://localhost:3001' });
+		const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+			const request = input instanceof Request ? input : new Request(input);
+			expect(request.url).toBe('http://localhost:3001/api/v1/parties/party%2F1/locations/map%2Fvillage/enter');
+			expect(request.method).toBe('POST');
+			return new Response(JSON.stringify({ id: 'party-1' }), {
+				status: 200,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		});
+		vi.stubGlobal('fetch', fetchMock);
+
+		const { enterLocation } = await import('#/lib/api');
+
+		await expect(enterLocation('party/1', 'map/village')).resolves.toEqual({ id: 'party-1' });
+		expect(fetchMock).toHaveBeenCalledOnce();
+	});
+
 	it('encodes progression cursors and party management paths', async () => {
 		vi.stubGlobal('location', { origin: 'http://localhost:3001' });
 		const urls: string[] = [];

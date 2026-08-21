@@ -8,6 +8,7 @@ import {
 	createInvite,
 	createParty,
 	equipLoadout,
+	enterLocation,
 	getEncounter,
 	getCharacter,
 	getAdventure,
@@ -19,6 +20,8 @@ import {
 	getMap,
 	getMe,
 	getParty,
+	getPartyRoster,
+	getPartyRecap,
 	getPartyProgression,
 	getParties,
 	getProgress,
@@ -56,6 +59,8 @@ export const queryKeys = {
 	inventory: ['inventory'] as const,
 	loadout: ['loadout'] as const,
 	party: (partyId: string) => ['party', partyId] as const,
+	partyRoster: (partyId: string) => ['party-roster', partyId] as const,
+	partyRecap: (partyId: string) => ['party-recap', partyId] as const,
 	map: (partyId: string) => ['party-map', partyId] as const,
 	adventure: (partyId: string) => ['party-adventure', partyId] as const,
 	dailyRoot: ['party-daily'] as const,
@@ -120,12 +125,46 @@ export function useParty(partyId: string) {
 	});
 }
 
+export function usePartyRoster(partyId: string) {
+	return useQuery({
+		queryKey: queryKeys.partyRoster(partyId),
+		queryFn: () => getPartyRoster(partyId),
+		refetchInterval: partyRefreshInterval,
+		refetchIntervalInBackground: false,
+	});
+}
+
+export function usePartyRecap(partyId: string) {
+	return useQuery({
+		queryKey: queryKeys.partyRecap(partyId),
+		queryFn: () => getPartyRecap(partyId),
+		refetchInterval: partyRefreshInterval,
+		refetchIntervalInBackground: false,
+	});
+}
+
 export function usePartyMap(partyId: string) {
 	return useQuery({
 		queryKey: queryKeys.map(partyId),
 		queryFn: () => getMap(partyId),
 		refetchInterval: partyRefreshInterval,
 		refetchIntervalInBackground: false,
+	});
+}
+
+export function useEnterLocation(partyId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (locationId: string) => enterLocation(partyId, locationId),
+		onSuccess: (party) => {
+			queryClient.setQueryData(queryKeys.party(partyId), party);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.event(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.village(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.encounter(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.votes(partyId, party.currentNode.id) });
+		},
 	});
 }
 
@@ -331,6 +370,7 @@ export function useUsePartyItem(partyId: string) {
 			void queryClient.invalidateQueries({ queryKey: queryKeys.inventory });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.encounter(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.partyRoster(partyId) });
 		},
 	});
 }
@@ -373,6 +413,7 @@ export function useKickMember(partyId: string) {
 		mutationFn: (memberUserId: string) => kickMember(partyId, memberUserId),
 		onSuccess: (party) => {
 			queryClient.setQueryData(queryKeys.party(partyId), party);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.partyRoster(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.parties });
 		},
 	});
@@ -384,6 +425,7 @@ export function useTransferLeadership(partyId: string) {
 		mutationFn: (targetUserId: string) => transferLeadership(partyId, { targetUserId }),
 		onSuccess: (party) => {
 			queryClient.setQueryData(queryKeys.party(partyId), party);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.partyRoster(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.parties });
 		},
 	});

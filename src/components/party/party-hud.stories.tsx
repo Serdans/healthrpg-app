@@ -82,3 +82,7 @@ export const Expedition: Story = {};
 export const WithoutObjective: Story = {
 	args: { adventure: { ...adventure, currentObjective: null } },
 };
+
+export const DailySignalUnavailable: Story = {
+	args: { daily: undefined },
+};

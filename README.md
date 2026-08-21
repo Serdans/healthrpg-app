@@ -39,7 +39,9 @@ its initial component and party-state stories.
 - Google sign-in and callback handling
 - Eight-question character creation and origin preview
 - Party creation, invite generation, and invite joining
-- Party dashboard with current node, visible map, roster, daily movement/recovery signal
+- Party dashboard with the shared overworld, nested village/dungeon maps, authored
+  objectives, current node, visible map, roster, daily movement/recovery signal,
+  and the latest daily resolution recap
 - Branch votes and non-combat event choices
 - Health connection status, manual sync, and timezone preferences
 - Inventory, loadout, equipment, and personal progression views
