@@ -6,8 +6,9 @@ import partyClassSpritesUrl from '#/assets/game/characters/party-class-sprites.w
 import partyTravelerSpriteUrl from '#/assets/game/characters/party-traveler-sprite.png';
 import landmarkSpritesUrl from '#/assets/game/landmarks/landmark-sprites.webp';
 import mossWolfUrl from '#/assets/game/monsters/moss-wolf.webp';
+import itemSpritesUrl from '#/assets/game/items/item-sprites.webp';
 
-import type { PartyMap } from '#/lib/api';
+import type { Inventory, PartyMap } from '#/lib/api';
 
 export type GamePanelTone = 'atlas' | 'combat' | 'village' | 'arcane' | 'history';
 
@@ -39,6 +40,28 @@ export const landmarkSpriteArt = {
 	src: landmarkSpritesUrl,
 	backgroundSize: '400% 200%',
 } as const;
+
+export type InventoryItemKind = Inventory['items'][number]['kind'];
+
+export interface InventoryItemSpriteArt {
+	position: string;
+	fallbackLabel: string;
+}
+
+const inventoryItemArt = new Map<string, InventoryItemSpriteArt>([
+	['gold', { position: '0% 0%', fallbackLabel: 'Gold' }],
+	['field-herb', { position: '50% 0%', fallbackLabel: 'Field herb' }],
+	['trail-blade', { position: '100% 0%', fallbackLabel: 'Trail Blade' }],
+]);
+
+export const inventoryItemSpriteArt = {
+	src: itemSpritesUrl,
+	backgroundSize: '300% 100%',
+} as const;
+
+export function inventoryItemArtForKey(itemKey: string) {
+	return inventoryItemArt.get(itemKey);
+}
 
 export const partyTravelerArt = {
 	src: partyTravelerSpriteUrl,
