@@ -10,7 +10,7 @@ export function PartyHud({ party, adventure, daily }: { party: Party; adventure:
 		<section className="party-hud game-panel" data-game-tone="atlas" aria-label="Party status" data-testid="party-hud">
 			<div className="party-hud-location">
 				<span className="party-hud-crest" aria-hidden="true">
-					✦
+					<span>✦</span>
 				</span>
 				<div>
 					<p className="eyebrow game-pixel-label">Expedition · chapter {party.currentNode.chapterNo}</p>

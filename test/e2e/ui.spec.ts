@@ -65,11 +65,26 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'The road ahead', level: 2 })).toBeVisible();
 	await expect(page.getByTestId('world-map')).toBeVisible();
 	await expect(page.getByTestId('world-map-party-marker')).toBeVisible();
+	await expect
+		.poll(async () =>
+			page
+				.getByTestId('world-map')
+				.locator('.world-map-node')
+				.first()
+				.evaluate((node) => {
+					const orb = node.querySelector<HTMLElement>('.world-map-node-orb');
+					const art = node.querySelector<HTMLElement>('.world-map-node-art');
+					if (!orb || !art) return 0;
+					return Math.round((art.getBoundingClientRect().width / orb.clientWidth) * 100);
+				}),
+		)
+		.toBe(75);
 	await expect(page.getByTestId('party-roster')).toBeVisible();
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('Daily resolution');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('The trail held');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('4 points');
 	await expect(page.getByTestId('party-member-sheet')).toContainText('Hero');
+	await expect(page.getByTestId('party-member-sheet').locator('.roster-sheet-avatar')).toBeVisible();
 	await page.locator('[data-testid="party-member"][data-member-id="user-2"]').click();
 	await expect(page.getByTestId('party-member-sheet')).toContainText('Mira');
 	await expect(page.getByTestId('party-member-sheet')).toContainText('Cleric');
@@ -155,6 +170,20 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 	await expect(page.getByTestId('battlefield')).toBeVisible();
 	await expect(page.getByTestId('battle-enemy').first()).toContainText('Moss Wolf');
 	await expect(page.getByTestId('battle-party-member').first()).toContainText('Hero');
+	await expect
+		.poll(async () =>
+			page
+				.getByTestId('battle-party-member')
+				.first()
+				.locator('.battle-party-art')
+				.evaluate((art) => {
+					const { width, height } = art.getBoundingClientRect();
+					return Math.round((width / height) * 100) / 100;
+				}),
+		)
+		.toBe(1);
+	await expect(page.getByTestId('battle-enemy').first().locator('.battle-enemy-art')).toHaveCSS('background-size', 'contain');
+	await expect(page.getByTestId('combat-scene').locator('.battle-command-ribbon')).toContainText('Commanding');
 	await page.getByTestId('battle-action-signature').click();
 	await page.getByTestId('battle-item-target').selectOption('user-2');
 	await page.getByTestId('battle-save-command').click();

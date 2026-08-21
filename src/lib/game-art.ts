@@ -31,6 +31,13 @@ export const partyTravelerArt = {
 	backgroundSize: '200% 400%',
 } as const;
 
+export const gameplayBackgroundArt = {
+	overworld: '/game-art/atlas-terrain-v2.webp',
+	dungeon: '/game-art/interior-dungeon-v2.webp',
+	village: '/game-art/interior-village-v2.webp',
+	battlefield: '/game-art/battlefield-mossway-v2.webp',
+} as const;
+
 export type BattleClassKey = 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
 
 export const battlePartyArt = {
@@ -49,11 +56,11 @@ export const battlePartyArt = {
 export const battleEnemyArt = {
 	mossWolf: {
 		src: '/game-art/battle-enemy-moss-wolf.webp',
-		backgroundSize: '100% 100%',
+		backgroundSize: 'contain',
 	},
 	default: {
 		src: '/game-art/battle-enemy-moss-wolf.webp',
-		backgroundSize: '100% 100%',
+		backgroundSize: 'contain',
 	},
 } as const;
 

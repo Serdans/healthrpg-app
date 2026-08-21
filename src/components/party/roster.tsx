@@ -5,6 +5,7 @@ import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import { Progress } from '#/components/ui/progress';
 import type { PartyRoster } from '#/lib/api';
+import { battlePartyArtForClass } from '#/lib/game-art';
 
 const statLabels = [
 	['strength', 'Strength'],
@@ -31,6 +32,7 @@ function experiencePercent(member: PartyRoster['members'][number]) {
 export function Roster({ roster, currentUserId }: { roster: PartyRoster; currentUserId: string }) {
 	const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 	const selectedMember = roster.members.find((member) => member.userId === (selectedUserId ?? currentUserId)) ?? roster.members.at(0);
+	const selectedMemberArt = selectedMember?.character ? battlePartyArtForClass(selectedMember.character.classKey) : null;
 
 	return (
 		<Card variant="game" tone="atlas" data-testid="party-roster">
@@ -49,6 +51,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 					{roster.members.map((member) => {
 						const selected = selectedMember?.userId === member.userId;
 						const name = memberName(member);
+						const memberArt = member.character ? battlePartyArtForClass(member.character.classKey) : null;
 						return (
 							<li key={member.userId}>
 								<button
@@ -62,8 +65,20 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 									onClick={() => setSelectedUserId(member.userId)}
 								>
 									<div className="flex items-center gap-3">
-										<span className="health-orb grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--teal)] text-xs font-black text-white">
-											{name.slice(0, 1).toUpperCase()}
+										<span
+											className={`roster-member-avatar ${memberArt ? '' : 'roster-member-avatar-fallback'}`}
+											aria-hidden="true"
+											style={
+												memberArt
+													? {
+															backgroundImage: `url('${memberArt.src}')`,
+															backgroundPosition: memberArt.position,
+															backgroundSize: memberArt.backgroundSize,
+														}
+													: undefined
+											}
+										>
+											{!memberArt && name.slice(0, 1).toUpperCase()}
 										</span>
 										<span className="min-w-0 flex-1">
 											<strong className="block truncate text-sm font-extrabold text-[var(--indigo)]">{name}</strong>
@@ -100,15 +115,32 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 						aria-labelledby="party-member-sheet-heading"
 					>
 						<div className="flex flex-wrap items-start justify-between gap-3">
-							<div>
-								<p className="eyebrow game-pixel-label">Character sheet</p>
-								<h3 id="party-member-sheet-heading" className="display-title mt-2 text-3xl text-[var(--indigo)]">
-									{memberName(selectedMember)}
-								</h3>
-								<p className="mt-1 text-sm font-bold text-[var(--ink-soft)]">
-									{selectedMember.character?.className ?? 'Traveler'}
-									{selectedMember.character?.backgroundName ? ` · ${selectedMember.character.backgroundName}` : ''}
-								</p>
+							<div className="flex min-w-0 items-start gap-3">
+								<span
+									className={`roster-sheet-avatar ${selectedMemberArt ? '' : 'roster-member-avatar-fallback'}`}
+									aria-hidden="true"
+									style={
+										selectedMemberArt
+											? {
+													backgroundImage: `url('${selectedMemberArt.src}')`,
+													backgroundPosition: selectedMemberArt.position,
+													backgroundSize: selectedMemberArt.backgroundSize,
+												}
+											: undefined
+									}
+								>
+									{!selectedMemberArt && memberName(selectedMember).slice(0, 1).toUpperCase()}
+								</span>
+								<div className="min-w-0">
+									<p className="eyebrow game-pixel-label">Character sheet</p>
+									<h3 id="party-member-sheet-heading" className="display-title mt-2 text-3xl text-[var(--indigo)]">
+										{memberName(selectedMember)}
+									</h3>
+									<p className="mt-1 text-sm font-bold text-[var(--ink-soft)]">
+										{selectedMember.character?.className ?? 'Traveler'}
+										{selectedMember.character?.backgroundName ? ` · ${selectedMember.character.backgroundName}` : ''}
+									</p>
+								</div>
 							</div>
 							<div className="flex flex-wrap gap-2">
 								{selectedMember.userId === currentUserId && <Badge>You</Badge>}

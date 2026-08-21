@@ -40,6 +40,43 @@ const roster: PartyRoster = {
 	],
 };
 
+const fullPartyRoster: PartyRoster = {
+	...roster,
+	members: [
+		...roster.members,
+		{
+			userId: 'user-3',
+			displayName: 'Rook',
+			role: 'member',
+			character: {
+				name: 'Rook',
+				classKey: 'rogue',
+				className: 'Rogue',
+				backgroundKey: 'artisan',
+				backgroundName: 'Artisan',
+				stats: { strength: 5, agility: 8, vitality: 4, insight: 5 },
+			},
+			progression: { experience: 280, level: 3, nextLevelExperience: 900 },
+			health: { currentHealth: 26, maxHealth: 60 },
+		},
+		{
+			userId: 'user-4',
+			displayName: 'Sol',
+			role: 'member',
+			character: {
+				name: 'Sol',
+				classKey: 'mage',
+				className: 'Mage',
+				backgroundKey: 'scholar',
+				backgroundName: 'Scholar',
+				stats: { strength: 2, agility: 5, vitality: 3, insight: 9 },
+			},
+			progression: { experience: 560, level: 3, nextLevelExperience: 900 },
+			health: { currentHealth: 42, maxHealth: 55 },
+		},
+	],
+};
+
 const meta = {
 	title: 'Party/Roster',
 	component: Roster,
@@ -51,6 +88,10 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const CharacterSheet: Story = {};
+
+export const FullParty: Story = {
+	args: { roster: fullPartyRoster },
+};
 
 export const MissingCharacter: Story = {
 	args: {

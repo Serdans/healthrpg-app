@@ -6,7 +6,7 @@ import { WorldMapInspector } from '#/components/party/world-map-inspector';
 import type { WorldMapEntryMutation } from '#/components/party/world-map-inspector';
 import { WorldMapNode } from '#/components/party/world-map-node';
 import type { PartyMap } from '#/lib/api';
-import { partyTravelerArt } from '#/lib/game-art';
+import { gameplayBackgroundArt, partyTravelerArt } from '#/lib/game-art';
 import type { PartyTravelerDirection } from '#/lib/game-art';
 import { getAdjacentMapNodeId, mapDirectionForKey } from '#/lib/map-navigation';
 import { createWorldMapLayout, createWorldMapTravel } from '#/lib/world-map';
@@ -150,7 +150,11 @@ function OverworldMap({
 	}
 
 	return (
-		<div className="world-map" data-testid="world-map">
+		<div
+			className="world-map"
+			data-testid="world-map"
+			style={{ '--world-map-terrain': `url('${gameplayBackgroundArt.overworld}')` } as CSSProperties}
+		>
 			<div
 				ref={viewportRef}
 				className="world-map-viewport"

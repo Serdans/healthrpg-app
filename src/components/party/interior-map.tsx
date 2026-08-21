@@ -4,7 +4,7 @@ import { BookOpen, Castle, Gem, Home, MapPin, Moon, Route as RouteIcon, Shield, 
 
 import { Badge } from '#/components/ui/badge';
 import type { PartyMap } from '#/lib/api';
-import { partyTravelerArt } from '#/lib/game-art';
+import { gameplayBackgroundArt, partyTravelerArt } from '#/lib/game-art';
 import type { PartyTravelerDirection } from '#/lib/game-art';
 import { createInteriorMapLayout, createInteriorMapTravel } from '#/lib/interior-map';
 import type { InteriorMapLayout, InteriorMapLayoutNode, InteriorMapTravel } from '#/lib/interior-map';
@@ -171,8 +171,14 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 		);
 	}
 
+	const interiorBackground = map.currentMap.mapType === 'village' ? gameplayBackgroundArt.village : gameplayBackgroundArt.dungeon;
+
 	return (
-		<div className={`interior-map interior-map-${map.currentMap.mapType}`} data-testid="interior-map">
+		<div
+			className={`interior-map interior-map-${map.currentMap.mapType}`}
+			data-testid="interior-map"
+			style={{ '--interior-map-backdrop': `url('${interiorBackground}')` } as CSSProperties}
+		>
 			<div
 				className="interior-map-viewport"
 				tabIndex={0}

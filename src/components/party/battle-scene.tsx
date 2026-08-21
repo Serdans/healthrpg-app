@@ -4,7 +4,8 @@ import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Progress } from '#/components/ui/progress';
 import type { Encounter, Inventory, PartyItemUse } from '#/lib/api';
-import { battleEnemyArtForArchetype, battlePartyArtForClass } from '#/lib/game-art';
+import { battleEnemyArtForArchetype, battlePartyArtForClass, gameplayBackgroundArt } from '#/lib/game-art';
+import type { CSSProperties } from 'react';
 
 type EncounterMember = Encounter['members'][number];
 type ActionKey = EncounterMember['signatureAction']['key'];
@@ -429,7 +430,12 @@ export function BattleScene({
 					: 'active';
 
 	return (
-		<section className="battle-scene" data-testid="combat-scene" aria-labelledby="battle-scene-heading">
+		<section
+			className="battle-scene"
+			data-testid="combat-scene"
+			aria-labelledby="battle-scene-heading"
+			style={{ '--battlefield-art': `url('${gameplayBackgroundArt.battlefield}')` } as CSSProperties}
+		>
 			<div className="battle-scene-header">
 				<div>
 					<div className="flex flex-wrap items-center gap-2">
@@ -471,6 +477,14 @@ export function BattleScene({
 						{encounter.members.filter((member) => member.selectedActionKey).length}/{encounter.members.length} signature commands chosen
 					</>
 				)}
+			</div>
+
+			<div className={`battle-command-ribbon battle-command-ribbon-${statusState}`} aria-label="Current battle command">
+				<span className="game-pixel-label">Commanding</span>
+				<strong>{partyMemberName(currentMember.userId)}</strong>
+				<span>
+					{actionKey ? currentMember.signatureAction.displayName : 'Basic attack'} · {targetLabel(targetMode)}
+				</span>
 			</div>
 
 			<Battlefield

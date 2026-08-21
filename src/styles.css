@@ -321,7 +321,7 @@ a {
 .game-panel {
 	position: relative;
 	border: 1px solid color-mix(in srgb, var(--game-tone, var(--gold)) 52%, transparent);
-	border-radius: 0.75rem;
+	border-radius: 0.46rem;
 	background: linear-gradient(145deg, rgba(255, 247, 216, 0.98), rgba(230, 207, 157, 0.96)), var(--game-parchment-light);
 	box-shadow:
 		0 1px 0 rgba(255, 255, 255, 0.9) inset,
@@ -336,12 +336,26 @@ a {
 	position: absolute;
 	inset: 0.36rem;
 	border: 1px solid color-mix(in srgb, var(--game-tone, var(--gold)) 30%, transparent);
-	border-radius: 0.48rem;
+	border-radius: 0.3rem;
 	content: '';
 	pointer-events: none;
 }
 
 .game-panel::after {
+	position: absolute;
+	right: 0.7rem;
+	bottom: 0.58rem;
+	width: 0.38rem;
+	height: 0.38rem;
+	border-right: 1px solid color-mix(in srgb, var(--game-tone, var(--gold)) 62%, transparent);
+	border-bottom: 1px solid color-mix(in srgb, var(--game-tone, var(--gold)) 62%, transparent);
+	content: '';
+	opacity: 0.75;
+	pointer-events: none;
+	transform: rotate(45deg);
+}
+
+.gameplay-surface .parchment-card::after {
 	position: absolute;
 	right: 0.7rem;
 	bottom: 0.58rem;
@@ -625,6 +639,39 @@ a {
 	background: linear-gradient(90deg, var(--game-copper), var(--teal));
 }
 
+.roster-member-avatar,
+.roster-sheet-avatar {
+	display: grid;
+	flex: 0 0 auto;
+	place-items: center;
+	border: 1px solid rgba(23, 20, 60, 0.28);
+	border-radius: 0.28rem;
+	background-repeat: no-repeat;
+	background-color: var(--game-night);
+	box-shadow:
+		0 0 0 2px rgba(226, 171, 69, 0.12),
+		0 3px 0 rgba(23, 20, 60, 0.14);
+	image-rendering: pixelated;
+}
+
+.roster-member-avatar {
+	width: 2.5rem;
+	height: 2.5rem;
+}
+
+.roster-sheet-avatar {
+	width: 4.2rem;
+	height: 4.2rem;
+	margin-top: 0.15rem;
+}
+
+.roster-member-avatar-fallback {
+	background: linear-gradient(145deg, var(--game-verdigris), var(--game-indigo));
+	color: var(--game-parchment-light);
+	font-family: var(--font-pixel);
+	font-size: 0.72rem;
+}
+
 .gameplay-shell [data-selected='true'] {
 	border-color: var(--game-gold) !important;
 	box-shadow:
@@ -701,6 +748,7 @@ a {
 }
 
 .party-hud-crest {
+	position: relative;
 	display: grid;
 	width: 3.45rem;
 	height: 3.45rem;
@@ -715,6 +763,20 @@ a {
 		0 8px 18px rgba(0, 0, 0, 0.2);
 	color: var(--gold);
 	font-size: 1.55rem;
+}
+
+.party-hud-crest::before {
+	position: absolute;
+	inset: 0.42rem;
+	border: 1px solid rgba(255, 243, 210, 0.28);
+	border-radius: 0.28rem;
+	content: '';
+	transform: rotate(45deg);
+}
+
+.party-hud-crest span {
+	position: relative;
+	text-shadow: 0 0 10px rgba(226, 171, 69, 0.8);
 }
 
 .party-hud-stats {
@@ -920,6 +982,48 @@ a {
 	color: rgba(255, 243, 210, 0.72);
 }
 
+.battle-command-ribbon {
+	display: grid;
+	grid-template-columns: auto auto minmax(0, 1fr);
+	align-items: center;
+	gap: 0.55rem;
+	min-height: 2.1rem;
+	padding: 0.42rem 1.3rem;
+	border-bottom: 1px solid rgba(226, 171, 69, 0.26);
+	background: linear-gradient(90deg, rgba(93, 66, 31, 0.84), rgba(23, 20, 60, 0.88) 68%);
+	color: rgba(255, 243, 210, 0.7);
+	font-family: var(--font-mono);
+	font-size: 0.62rem;
+}
+
+.battle-command-ribbon .game-pixel-label {
+	color: var(--game-gold);
+	font-size: 0.5rem;
+}
+
+.battle-command-ribbon strong {
+	color: var(--game-parchment-light);
+	font-family: var(--font-pixel);
+	font-size: 0.56rem;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+}
+
+.battle-command-ribbon > span:last-child {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.battle-command-ribbon-saved {
+	background: linear-gradient(90deg, rgba(31, 77, 76, 0.88), rgba(23, 20, 60, 0.88));
+}
+
+.battle-command-ribbon-resolved,
+.battle-command-ribbon-readonly {
+	background: linear-gradient(90deg, rgba(58, 54, 91, 0.88), rgba(23, 20, 60, 0.88));
+}
+
 .battlefield {
 	position: relative;
 	min-height: min(55vw, 34rem);
@@ -927,7 +1031,7 @@ a {
 	overflow: hidden;
 	background:
 		linear-gradient(180deg, rgba(23, 20, 60, 0.08), rgba(23, 20, 60, 0.18)),
-		url('/game-art/battlefield-mossway.webp') center / cover no-repeat;
+		var(--battlefield-art, url('/game-art/battlefield-mossway-v2.webp')) center / cover no-repeat;
 	isolation: isolate;
 }
 
@@ -1037,8 +1141,10 @@ a {
 
 .battle-party-art {
 	display: block;
-	width: 100%;
-	height: clamp(4.4rem, 8vw, 7rem);
+	width: min(100%, clamp(4.4rem, 8vw, 7rem));
+	height: auto;
+	aspect-ratio: 1;
+	margin-inline: auto;
 	background-repeat: no-repeat;
 	background-size: 300% 200%;
 	filter: drop-shadow(0 0.55rem 0.25rem rgba(23, 20, 60, 0.52));
@@ -1520,14 +1626,10 @@ a {
 }
 
 .world-map-terrain {
-	background: linear-gradient(145deg, rgba(255, 238, 186, 0.2), rgba(23, 20, 60, 0.18)), url('/game-art/atlas-terrain.webp');
-	background-position:
-		center,
-		0 0;
-	background-size:
-		cover,
-		560px 560px;
-	background-blend-mode: soft-light, normal;
+	background:
+		linear-gradient(145deg, rgba(255, 238, 186, 0.2), rgba(23, 20, 60, 0.18)),
+		var(--world-map-terrain, url('/game-art/atlas-terrain-v2.webp')) center / cover no-repeat;
+	background-blend-mode: soft-light;
 	filter: saturate(0.86) contrast(1.04);
 	opacity: 0.78;
 }
@@ -1638,7 +1740,7 @@ a {
 
 .world-map-node-art {
 	position: absolute;
-	inset: 0;
+	inset: 0 12.5%;
 	display: block;
 	border-radius: inherit;
 	background-image: url('/game-art/landmark-sprites.webp');
@@ -1970,14 +2072,19 @@ a {
 	position: absolute;
 	inset: 0;
 	z-index: 0;
-	background-image: linear-gradient(145deg, rgba(23, 20, 60, 0.15), rgba(23, 20, 60, 0.48)), url('/game-art/interior-dungeon.webp');
+	background-image:
+		linear-gradient(145deg, rgba(23, 20, 60, 0.15), rgba(23, 20, 60, 0.48)),
+		var(--interior-map-backdrop, url('/game-art/interior-dungeon-v2.webp'));
 	background-position: center;
 	background-size: cover;
+	background-repeat: no-repeat;
 	filter: saturate(0.92) contrast(1.06);
 }
 
 .interior-map-village .interior-map-backdrop {
-	background-image: linear-gradient(145deg, rgba(23, 20, 60, 0.08), rgba(23, 20, 60, 0.36)), url('/game-art/interior-village.webp');
+	background-image:
+		linear-gradient(145deg, rgba(23, 20, 60, 0.08), rgba(23, 20, 60, 0.36)),
+		var(--interior-map-backdrop, url('/game-art/interior-village-v2.webp'));
 	filter: saturate(0.98) contrast(1.03);
 }
 
@@ -2637,7 +2744,8 @@ a {
 	}
 
 	.battle-party-art {
-		height: 4.6rem;
+		width: min(100%, 4.6rem);
+		height: auto;
 	}
 
 	.battle-enemy-nameplate,
