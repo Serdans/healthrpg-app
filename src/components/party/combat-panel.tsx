@@ -2,7 +2,8 @@ import { useState } from 'react';
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { BattleScene } from '#/components/party/battle-scene';
-import type { Encounter, Party } from '#/lib/api';
+import type { DailyProgress, Encounter, Party } from '#/lib/api';
+import { combatCommandState } from '#/lib/combat-command-state';
 import { useInventory, useSetEncounterAction, useUsePartyItem } from '#/lib/queries';
 
 type ActionKey = Encounter['members'][number]['signatureAction']['key'];
@@ -11,12 +12,14 @@ export function CombatPanel({
 	partyId,
 	userId,
 	party,
+	daily,
 	encounter,
 	readOnly = false,
 }: {
 	partyId: string;
 	userId: string;
 	party: Party;
+	daily?: DailyProgress;
 	encounter: Encounter;
 	readOnly?: boolean;
 }) {
@@ -29,6 +32,7 @@ export function CombatPanel({
 	const [actionTargetUserOverride, setActionTargetUserOverride] = useState<string | undefined>(undefined);
 	const [itemTargetUserOverride, setItemTargetUserOverride] = useState<string | undefined>(undefined);
 	const [itemKey, setItemKey] = useState('');
+	const [commandDirty, setCommandDirty] = useState(false);
 
 	if (!currentMember) return <ErrorNotice message="Your traveler is not present in this encounter." />;
 	if (inventoryQuery.isPending) return <LoadingState label="Checking your field kit…" />;
@@ -62,17 +66,31 @@ export function CombatPanel({
 		party.members.find((member) => member.userId === memberUserId)?.displayName ?? 'Traveler';
 
 	const submitAction = () => {
-		actionMutation.mutate({
-			actionKey,
-			targetEnemyId: targetMode === 'enemy' ? targetEnemyId || null : null,
-			targetUserId: targetMode === 'ally' ? selectedActionTargetUserId : null,
-		});
+		actionMutation.mutate(
+			{
+				actionKey,
+				targetEnemyId: targetMode === 'enemy' ? targetEnemyId || null : null,
+				targetUserId: targetMode === 'ally' ? selectedActionTargetUserId : null,
+			},
+			{
+				onError: () => setCommandDirty(true),
+				onSuccess: () => setCommandDirty(false),
+			},
+		);
 	};
+	const commandState = combatCommandState({
+		readOnly,
+		encounterCompleted: encounter.status === 'completed',
+		actionPending: actionMutation.isPending,
+		actionSuccess: actionMutation.isSuccess,
+		commandDirty,
+	});
 
 	return (
 		<BattleScene
 			encounter={encounter}
 			currentMember={currentMember}
+			daily={daily}
 			userId={userId}
 			readOnly={readOnly}
 			actionKey={actionKey}
@@ -86,12 +104,21 @@ export function CombatPanel({
 			itemPending={itemMutation.isPending}
 			actionBusy={combatBusy}
 			actionError={actionError}
-			actionSuccess={actionMutation.isSuccess}
+			commandState={commandState}
 			itemResult={itemMutation.data}
 			partyMemberName={partyMemberName}
-			onActionKeyChange={(nextActionKey) => setActionKeyOverride(nextActionKey)}
-			onEnemySelect={(enemyId) => setTargetEnemyOverride(enemyId)}
-			onAllySelect={(memberUserId) => setActionTargetUserOverride(memberUserId)}
+			onActionKeyChange={(nextActionKey) => {
+				setActionKeyOverride(nextActionKey);
+				setCommandDirty(true);
+			}}
+			onEnemySelect={(enemyId) => {
+				setTargetEnemyOverride(enemyId);
+				setCommandDirty(true);
+			}}
+			onAllySelect={(memberUserId) => {
+				setActionTargetUserOverride(memberUserId);
+				setCommandDirty(true);
+			}}
 			onItemKeyChange={setItemKey}
 			onItemTargetChange={(memberUserId) => setItemTargetUserOverride(memberUserId)}
 			onSubmitAction={submitAction}

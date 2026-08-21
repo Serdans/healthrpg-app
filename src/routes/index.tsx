@@ -67,8 +67,8 @@ function LandingPage() {
 						Make the next step part of the story.
 					</h1>
 					<p className="mt-7 max-w-xl text-lg leading-8 text-[var(--ink-soft)]">
-						A gentle party adventure that turns real movement and rest into shared progress, branching choices, and a trail worth returning
-						to tomorrow.
+						A gentle party adventure that turns real-world movement and rest into shared Momentum, branching choices, and a trail worth
+						returning to tomorrow.
 					</p>
 					<div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
 						<Link
@@ -113,7 +113,7 @@ function LandingPage() {
 									<div>
 										<p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--gold-deep)]">Current node</p>
 										<p className="display-title mt-1 text-2xl text-[var(--indigo)]">Mossway Crossing</p>
-										<p className="mt-1 text-sm text-[var(--ink-soft)]">A quiet gate waits for the party.</p>
+										<p className="mt-1 text-sm text-[var(--ink-soft)]">A quiet Challenge waits for the party.</p>
 									</div>
 									<div>
 										<p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--amethyst)]">Next decision</p>

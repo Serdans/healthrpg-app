@@ -67,7 +67,7 @@ function party() {
 			templateKey: `${currentNodeType()}-v1`,
 			config: {
 				movementCost: 10,
-				obstacleCost: 0,
+				challengeCost: 0,
 				event:
 					state.scenario === 'combat'
 						? { eventType: 'combat' }
@@ -78,7 +78,7 @@ function party() {
 								: undefined,
 			},
 		},
-		gateProgress: 4,
+		challengeProgress: 0,
 		decisionStartedAt: state.decisionStartedAt,
 		members: [
 			{ userId: 'user-1', role: 'leader', displayName: 'Hero' },
@@ -158,7 +158,7 @@ function map() {
 					name: 'Lantern Square',
 					nodeType: 'village',
 					templateKey: 'village-hub-v1',
-					config: { movementCost: 0, obstacleCost: 0, event: { eventType: 'village', settlementKey: 'wayfarers-rest' } },
+					config: { movementCost: 0, challengeCost: 0, event: { eventType: 'village', settlementKey: 'wayfarers-rest' } },
 					discovered: true,
 					adjacent: true,
 					mapMetadata: villageMetadata('village-entry', 0, 'hub', true),
@@ -170,7 +170,7 @@ function map() {
 					name: 'Lantern Market',
 					nodeType: 'village',
 					templateKey: 'village-market-v1',
-					config: { movementCost: 0, obstacleCost: 0, event: { eventType: 'village', settlementKey: 'wayfarers-rest' } },
+					config: { movementCost: 0, challengeCost: 0, event: { eventType: 'village', settlementKey: 'wayfarers-rest' } },
 					discovered: true,
 					adjacent: true,
 					mapMetadata: villageMetadata('village-market', 1, 'shop'),
@@ -182,7 +182,7 @@ function map() {
 					name: 'East Road',
 					nodeType: 'travel',
 					templateKey: 'village-exit-v1',
-					config: { movementCost: 0, obstacleCost: 0 },
+					config: { movementCost: 0, challengeCost: 0 },
 					discovered: true,
 					adjacent: true,
 					mapMetadata: villageMetadata('village-exit', 2, 'exit', false, true),
@@ -238,7 +238,7 @@ function map() {
 				templateKey: `${currentNodeType()}-v1`,
 				config: {
 					movementCost: 10,
-					obstacleCost: 0,
+					challengeCost: 0,
 					event:
 						state.scenario === 'combat'
 							? { eventType: 'combat' }
@@ -330,10 +330,10 @@ function dailyProgress() {
 		movementCost: 10,
 		movementSatisfied: false,
 		recoveryPoints: 4,
-		gateContribution: 4,
-		gateProgress: 4,
-		gateCost: 10,
-		gateUnlocked: false,
+		challengeContribution: 0,
+		challengeProgress: 0,
+		challengeCost: 0,
+		challengeCleared: true,
 		status: 'provisional',
 		members: [
 			{ userId: 'user-1', movementUnits: 8, recoveryPoints: 4, status: 'provisional' },
@@ -353,7 +353,7 @@ function dailyRecap() {
 			outcome: 'held',
 			movement: { units: 8, cost: 10, satisfied: false },
 			recoveryPoints: 4,
-			gate: { progressBefore: 4, contribution: 4, progressAfter: 8, cost: 10, unlocked: false },
+			challenge: { progressBefore: 0, contribution: 0, progressAfter: 0, cost: 0, cleared: true },
 			route: null,
 			event:
 				state.scenario === 'combat' ? { eventType: 'combat', outcome: 'ongoing', selectedChoiceKey: null, selectionReason: null } : null,

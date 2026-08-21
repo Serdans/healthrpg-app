@@ -57,7 +57,7 @@ export function ProgressionHistory({ partyId, timeZone }: { partyId: string; tim
 						<Badge>Party chronicle</Badge>
 						<CardTitle className="mt-3 text-2xl">What the party has earned</CardTitle>
 					</div>
-					<BookOpen className="size-5 text-[var(--gold-deep)]" />
+					<BookOpen className="size-5 text-[var(--gold-deep)]" aria-hidden="true" />
 				</div>
 			</CardHeader>
 			<CardContent>
@@ -66,14 +66,14 @@ export function ProgressionHistory({ partyId, timeZone }: { partyId: string; tim
 				) : (
 					<div className="space-y-3">
 						{items.map((item) => (
-							<div key={item.id} className="flex items-start gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+							<div key={item.id} className="game-inset game-inset-muted flex items-start gap-3 p-4">
 								<span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--gold-wash)] text-[var(--gold-deep)]">
 									{item.reward.currency ? (
-										<Coins className="size-4" />
+										<Coins className="size-4" aria-hidden="true" />
 									) : item.reward.equipment ? (
-										<Shield className="size-4" />
+										<Shield className="size-4" aria-hidden="true" />
 									) : (
-										<Sparkles className="size-4" />
+										<Sparkles className="size-4" aria-hidden="true" />
 									)}
 								</span>
 								<div className="min-w-0 flex-1">

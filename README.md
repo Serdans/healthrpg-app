@@ -96,3 +96,11 @@ be added with:
 ```bash
 pnpm dlx shadcn@latest add button
 ```
+
+## Game assets
+
+Runtime game artwork lives under `src/assets/game` in role-based folders such
+as `backgrounds`, `characters`, `items`, `landmarks`, and `monsters`. Import artwork
+through `src/lib/game-art.ts` rather than referencing asset paths directly from
+components or stylesheets. Keep filenames semantic and version-free; Vite
+fingerprints imported assets during the production build.

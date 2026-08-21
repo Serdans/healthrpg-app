@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 
 import type { PartyRecap } from '#/lib/api';
 
@@ -10,7 +11,7 @@ const baseResolution: PartyRecap['resolution'] = {
 	outcome: 'advanced',
 	movement: { units: 12, cost: 10, satisfied: true },
 	recoveryPoints: 4,
-	gate: { progressBefore: 4, contribution: 8, progressAfter: 12, cost: 10, unlocked: true },
+	challenge: { progressBefore: 4, contribution: 8, progressAfter: 12, cost: 10, cleared: true },
 	route: null,
 	event: null,
 	combat: null,
@@ -35,6 +36,32 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Travel: Story = {};
+
+export const Rewards: Story = {
+	args: {
+		recap: {
+			...recap,
+			resolution: {
+				...baseResolution,
+				rewards: [
+					{
+						experience: 100,
+						currency: { key: 'gold', amount: 40 },
+						item: { key: 'field-herb', quantity: 2 },
+						equipment: { key: 'trail-blade' },
+					},
+					{ item: { key: 'moon-seed', quantity: 1 } },
+				],
+			},
+		},
+	},
+	play: async ({ canvas }) => {
+		await expect(canvas.getByTestId('inventory-item-sprite-gold')).toBeInTheDocument();
+		await expect(canvas.getByTestId('inventory-item-sprite-field-herb')).toBeInTheDocument();
+		await expect(canvas.getByTestId('inventory-item-sprite-trail-blade')).toBeInTheDocument();
+		await expect(canvas.getByTestId('inventory-item-sprite-moon-seed')).toHaveAttribute('data-fallback', 'true');
+	},
+};
 
 export const EventFailure: Story = {
 	args: {
@@ -136,6 +163,18 @@ export const CompletedCombat: Story = {
 };
 
 export const NoRecap: Story = { args: { recap: null } };
+
+export const WithoutChallenge: Story = {
+	args: {
+		recap: {
+			...recap,
+			resolution: {
+				...baseResolution,
+				challenge: { progressBefore: 0, contribution: 0, progressAfter: 0, cost: 0, cleared: true },
+			},
+		},
+	},
+};
 
 export const Loading: Story = {
 	args: { recap: undefined, pending: true },

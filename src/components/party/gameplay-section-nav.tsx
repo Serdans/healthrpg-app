@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
+import { focusGameplaySection, isModifiedNavigation } from '#/lib/gameplay-navigation';
+
 export interface GameplaySectionNavItem {
 	id: string;
 	label: string;
@@ -58,7 +60,15 @@ export function GameplaySectionNav({
 			{sections.map((section) => {
 				const active = activeSectionId === section.id;
 				return (
-					<a key={section.id} href={`#${section.id}`} aria-current={active ? 'location' : undefined} data-active={active}>
+					<a
+						key={section.id}
+						href={`#${section.id}`}
+						aria-current={active ? 'location' : undefined}
+						data-active={active}
+						onClick={(event) => {
+							if (!isModifiedNavigation(event)) focusGameplaySection(section.id);
+						}}
+					>
 						{section.icon} {section.label}
 					</a>
 				);

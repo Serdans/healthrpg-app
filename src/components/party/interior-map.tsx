@@ -4,8 +4,9 @@ import { BookOpen, Castle, Gem, Home, MapPin, Moon, Route as RouteIcon, Shield, 
 
 import { Badge } from '#/components/ui/badge';
 import type { PartyMap } from '#/lib/api';
-import { partyTravelerArt } from '#/lib/game-art';
+import { gameplayBackgroundArt, partyTravelerArt } from '#/lib/game-art';
 import type { PartyTravelerDirection } from '#/lib/game-art';
+import { gameplayScrollBehavior, prefersReducedMotion } from '#/lib/gameplay-navigation';
 import { createInteriorMapLayout, createInteriorMapTravel } from '#/lib/interior-map';
 import type { InteriorMapLayout, InteriorMapLayoutNode, InteriorMapTravel } from '#/lib/interior-map';
 import { getAdjacentMapNodeId, mapDirectionForKey } from '#/lib/map-navigation';
@@ -91,7 +92,7 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 		const previousMap = previousMapRef.current;
 		previousMapRef.current = { currentNodeId: map.currentNodeId, layout };
 		setSelectedNodeId(map.currentNodeId);
-		currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+		currentNodeRef.current?.scrollIntoView({ behavior: gameplayScrollBehavior(), block: 'center', inline: 'center' });
 
 		if (!previousMap || previousMap.currentNodeId === map.currentNodeId) return;
 
@@ -99,7 +100,7 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 		if (travelTimeoutRef.current !== null) window.clearTimeout(travelTimeoutRef.current);
 
 		const nextTravel = createInteriorMapTravel(previousMap.layout, layout, previousMap.currentNodeId, map.currentNodeId);
-		if (!nextTravel) {
+		if (!nextTravel || prefersReducedMotion()) {
 			setTravel(undefined);
 			return;
 		}
@@ -165,14 +166,20 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 	if (!selectedNode) {
 		return (
 			<div className="world-map-empty" role="status">
-				<MapPin className="size-5" />
+				<MapPin className="size-5" aria-hidden="true" />
 				<span>The interior map has not revealed a room yet.</span>
 			</div>
 		);
 	}
 
+	const interiorBackground = map.currentMap.mapType === 'village' ? gameplayBackgroundArt.village : gameplayBackgroundArt.dungeon;
+
 	return (
-		<div className={`interior-map interior-map-${map.currentMap.mapType}`} data-testid="interior-map">
+		<div
+			className={`interior-map interior-map-${map.currentMap.mapType}`}
+			data-testid="interior-map"
+			style={{ '--interior-map-backdrop': `url('${interiorBackground}')` } as CSSProperties}
+		>
 			<div
 				className="interior-map-viewport"
 				tabIndex={0}
@@ -237,8 +244,9 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 								type="button"
 								className={`interior-map-room interior-map-room-${item.state}`}
 								style={{ left: `${item.x}px`, top: `${item.y}px` }}
-								aria-label={`${item.node.name}, ${stateLabel(item.state)}, ${readableRole(item.node.mapMetadata.role)}, ${floorLabel(map.currentMap.mapType, item.floorNo)}`}
+								aria-label={`${item.node.name}, ${stateLabel(item.state)}, ${readableRole(item.node.mapMetadata.role)}, ${floorLabel(map.currentMap.mapType, item.floorNo)}${item.state === 'current' ? '' : ', inspect only until the route resolves'}`}
 								aria-pressed={selected}
+								aria-current={item.state === 'current' ? 'location' : undefined}
 								data-node-id={item.node.id}
 								data-node-state={item.state}
 								onClick={(event) => selectNode(item.node.id, event.detail > 0)}
@@ -286,19 +294,19 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 			<div className="interior-map-meta">
 				<div className="interior-map-legend" aria-label="Interior map legend">
 					<span>
-						<i className="interior-map-legend-dot interior-map-legend-current" /> Current
+						<i className="interior-map-legend-dot interior-map-legend-current" aria-hidden="true" /> Current
 					</span>
 					<span>
-						<i className="interior-map-legend-dot interior-map-legend-next" /> Next room
+						<i className="interior-map-legend-dot interior-map-legend-next" aria-hidden="true" /> Next room
 					</span>
 					<span>
-						<i className="interior-map-legend-dot interior-map-legend-revealed" /> Revealed
+						<i className="interior-map-legend-dot interior-map-legend-revealed" aria-hidden="true" /> Revealed
 					</span>
 					<span>
-						<i className="interior-map-legend-dot interior-map-legend-party" /> Party
+						<i className="interior-map-legend-dot interior-map-legend-party" aria-hidden="true" /> Party
 					</span>
 				</div>
-				<span className="interior-map-scroll-hint">Choose a room when the daily route resolves</span>
+				<span className="interior-map-scroll-hint">Inspect rooms · route resolution opens the next room</span>
 			</div>
 
 			<div

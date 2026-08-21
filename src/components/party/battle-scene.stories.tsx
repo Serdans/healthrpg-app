@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 
-import type { Encounter, Inventory, Party, PartyItemUse } from '#/lib/api';
+import type { DailyProgress, Encounter, Inventory, Party, PartyItemUse } from '#/lib/api';
+import { combatCommandState } from '#/lib/combat-command-state';
 
 import { BattleScene } from './battle-scene';
 
@@ -17,9 +19,9 @@ const party: Party = {
 		name: 'Mossway Crossing',
 		nodeType: 'combat',
 		templateKey: 'combat-v1',
-		config: { movementCost: 10, obstacleCost: 0, event: { eventType: 'combat' } },
+		config: { movementCost: 10, challengeCost: 0, event: { eventType: 'combat' } },
 	},
-	gateProgress: 12,
+	challengeProgress: 12,
 	decisionStartedAt: '2026-08-20T00:00:00.000Z',
 	members: [
 		{ userId: 'user-1', role: 'leader', displayName: 'Hero' },
@@ -87,6 +89,26 @@ const activeEncounter: Encounter = {
 	],
 };
 
+const daily: DailyProgress = {
+	partyId: 'party-1',
+	nodeId: 'node-1',
+	worldDate: '2026-08-21',
+	movementUnits: 8,
+	movementCost: 10,
+	movementSatisfied: false,
+	recoveryPoints: 4,
+	challengeContribution: 0,
+	challengeProgress: 0,
+	challengeCost: 0,
+	challengeCleared: true,
+	status: 'provisional',
+	members: [
+		{ userId: 'user-1', movementUnits: 8, recoveryPoints: 4, status: 'provisional' },
+		{ userId: 'user-2', movementUnits: 6, recoveryPoints: 3, status: 'provisional' },
+		{ userId: 'user-3', movementUnits: 0, recoveryPoints: 2, status: 'provisional' },
+	],
+};
+
 const completedEncounter: Encounter = {
 	...activeEncounter,
 	status: 'completed',
@@ -104,6 +126,8 @@ const inventory: Inventory = {
 	equipment: [{ key: 'trail-blade', kind: 'equipment', displayName: 'Trail Blade', quantity: 1 }],
 };
 
+const extendedFieldKit = [...inventory.items, { key: 'moon-seed', kind: 'item' as const, displayName: 'Moon Seed', quantity: 1 }];
+
 type ActionKey = Encounter['members'][number]['signatureAction']['key'];
 
 interface BattlePreviewProps {
@@ -113,6 +137,7 @@ interface BattlePreviewProps {
 	initialActionTargetUserId?: string;
 	initialItemTargetUserId?: string;
 	initialActionSaved?: boolean;
+	initialCommandDirty?: boolean;
 	readOnly?: boolean;
 	usableItems?: Inventory['items'];
 	actionErrorMessage?: string;
@@ -125,6 +150,7 @@ function BattlePreview({
 	initialActionTargetUserId,
 	initialItemTargetUserId,
 	initialActionSaved = false,
+	initialCommandDirty = false,
 	readOnly = false,
 	usableItems = inventory.items,
 	actionErrorMessage,
@@ -136,6 +162,7 @@ function BattlePreview({
 	const [itemTargetUserId, setItemTargetUserId] = useState(initialItemTargetUserId ?? userId);
 	const [itemKey, setItemKey] = useState('');
 	const [actionSaved, setActionSaved] = useState(initialActionSaved);
+	const [commandDirty, setCommandDirty] = useState(initialCommandDirty);
 	const [itemResult, setItemResult] = useState<PartyItemUse>();
 	const selectedAction = actionKey ? currentMember.signatureAction : null;
 	const targetMode = selectedAction?.targetMode ?? 'enemy';
@@ -147,6 +174,7 @@ function BattlePreview({
 			<BattleScene
 				encounter={encounter}
 				currentMember={currentMember}
+				daily={daily}
 				userId={userId}
 				readOnly={readOnly}
 				actionKey={actionKey}
@@ -160,18 +188,34 @@ function BattlePreview({
 				itemPending={false}
 				actionBusy={false}
 				actionError={actionErrorMessage ? new Error(actionErrorMessage) : null}
-				actionSuccess={actionSaved}
+				commandState={combatCommandState({
+					readOnly,
+					encounterCompleted: encounter.status === 'completed',
+					actionPending: false,
+					actionSuccess: actionSaved,
+					commandDirty,
+				})}
 				itemResult={itemResult}
 				partyMemberName={(memberUserId) => party.members.find((member) => member.userId === memberUserId)?.displayName ?? 'Traveler'}
 				onActionKeyChange={(nextActionKey) => {
 					setActionKey(nextActionKey);
 					setActionSaved(false);
+					setCommandDirty(true);
 				}}
-				onEnemySelect={setTargetEnemyId}
-				onAllySelect={setActionTargetUserId}
+				onEnemySelect={(enemyId) => {
+					setTargetEnemyId(enemyId);
+					setCommandDirty(true);
+				}}
+				onAllySelect={(memberUserId) => {
+					setActionTargetUserId(memberUserId);
+					setCommandDirty(true);
+				}}
 				onItemKeyChange={setItemKey}
 				onItemTargetChange={setItemTargetUserId}
-				onSubmitAction={() => setActionSaved(true)}
+				onSubmitAction={() => {
+					setActionSaved(true);
+					setCommandDirty(false);
+				}}
 				onUseItem={() =>
 					setItemResult({
 						itemKey: itemKey || usableItems[0]?.key || inventory.items[0].key,
@@ -197,6 +241,22 @@ type Story = StoryObj<typeof meta>;
 
 export const ActiveEncounter: Story = {
 	render: () => <BattlePreview />,
+	play: async ({ canvas, userEvent }) => {
+		await expect(canvas.getByTestId('battle-selected-item')).toHaveTextContent('Field Herb');
+		await expect(canvas.getByTestId('inventory-item-sprite-field-herb')).toBeInTheDocument();
+		await userEvent.click(canvas.getByTestId('battle-action-signature'));
+		await userEvent.click(canvas.getByTestId('battle-save-command'));
+		await expect(canvas.getByTestId('battle-status')).toHaveTextContent('locked in');
+	},
+};
+
+export const FieldKitSelection: Story = {
+	render: () => <BattlePreview usableItems={extendedFieldKit} />,
+	play: async ({ canvas, userEvent }) => {
+		await userEvent.selectOptions(canvas.getByTestId('battle-item-select'), 'moon-seed');
+		await expect(canvas.getByTestId('battle-selected-item')).toHaveTextContent('Moon Seed');
+		await expect(canvas.getByTestId('inventory-item-sprite-moon-seed')).toHaveAttribute('data-fallback', 'true');
+	},
 };
 
 export const ResolvedEncounter: Story = {
@@ -219,6 +279,10 @@ export const WithoutFieldKit: Story = {
 
 export const SavedCommand: Story = {
 	render: () => <BattlePreview initialActionKey="shield-wall" initialActionSaved />,
+};
+
+export const EditedCommand: Story = {
+	render: () => <BattlePreview initialActionKey="shield-wall" initialActionSaved initialCommandDirty />,
 };
 
 export const CommandError: Story = {

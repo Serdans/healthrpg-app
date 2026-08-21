@@ -8,6 +8,8 @@ import {
 	PartyFieldSection,
 	PartyRosterSection,
 } from '#/components/party/party-dashboard-sections';
+import { DailyActionStrip, DailyCommandCenter } from '#/components/party/daily-command-center';
+import type { DailySignalStatus } from '#/components/party/daily-command-center';
 import { GameplaySectionNav } from '#/components/party/gameplay-section-nav';
 import { PartyHud } from '#/components/party/party-hud';
 import { Badge } from '#/components/ui/badge';
@@ -27,6 +29,9 @@ import {
 	useVillage,
 } from '#/lib/queries';
 import { isPartyReadOnly } from '#/lib/party-state';
+import type { DailyLoopAction } from '#/lib/daily-loop';
+import { deriveDailyLoopState } from '#/lib/daily-loop';
+import { focusGameplaySection, isModifiedNavigation } from '#/lib/gameplay-navigation';
 
 export const Route = createFileRoute('/_app/parties/$partyId')({
 	head: () => ({ meta: [{ title: 'Party dashboard · HealthRPG' }] }),
@@ -97,10 +102,48 @@ function PartyDashboard() {
 	const hasCurrentAction = isCombat || eventEnabled || hasBranchDecision;
 	const currentMapNode = map.nodes.find((node) => node.id === map.currentNodeId);
 	const mapTypeLabel = map.currentMap.mapType === 'overworld' ? 'Overworld' : map.currentMap.mapType === 'dungeon' ? 'Dungeon' : 'Village';
+	const dailyAction: DailyLoopAction = isCombat
+		? {
+				kind: 'combat',
+				data: encounterQuery.data,
+				isLoading: encounterQuery.isPending,
+				hasError: encounterQuery.isError,
+			}
+		: hasBranchDecision
+			? {
+					kind: 'route',
+					data: currentVotes,
+					isLoading: votesQuery.isPending,
+					hasError: votesQuery.isError,
+				}
+			: eventEnabled
+				? {
+						kind: 'event',
+						data: currentEvent,
+						isLoading: eventQuery.isPending,
+						hasError: eventQuery.isError,
+					}
+				: isVillage
+					? { kind: 'village' }
+					: { kind: 'field' };
+	const dailyLoopState = deriveDailyLoopState({ daily, readOnly, userId: user.id, action: dailyAction });
+	const dailySignal: DailySignalStatus = {
+		isPending: dailyQuery.isPending,
+		isError: dailyQuery.isError,
+		message: dailyQuery.error?.message,
+		retrying: dailyQuery.isFetching,
+		onRetry: () => void dailyQuery.refetch(),
+	};
 
 	return (
 		<div className="gameplay-surface gameplay-shell space-y-8">
-			<a className="skip-link" href="#party-field">
+			<a
+				className="skip-link"
+				href="#party-field"
+				onClick={(event) => {
+					if (!isModifiedNavigation(event)) focusGameplaySection('party-field');
+				}}
+			>
 				Skip to field map
 			</a>
 
@@ -140,6 +183,8 @@ function PartyDashboard() {
 
 			<PartyHud party={party} adventure={adventureQuery.data} daily={daily} />
 
+			<DailyCommandCenter daily={daily} state={dailyLoopState} signal={dailySignal} />
+
 			<GameplaySectionNav
 				defaultSectionId={hasCurrentAction ? 'party-action' : 'party-field'}
 				sections={[
@@ -150,12 +195,15 @@ function PartyDashboard() {
 				]}
 			/>
 
+			<DailyActionStrip daily={daily} state={dailyLoopState} signal={dailySignal} />
+
 			{hasCurrentAction && (
 				<PartyActionSection
 					partyId={partyId}
 					userId={user.id}
 					timeZone={user.timezone}
 					party={party}
+					daily={daily}
 					map={map}
 					readOnly={readOnly}
 					isCombat={isCombat}
@@ -186,6 +234,7 @@ function PartyDashboard() {
 				villageEnabled={villageEnabled}
 				villageQuery={villageQuery}
 				timeZone={user.timezone}
+				actionHref={hasBranchDecision ? '#party-action' : undefined}
 			/>
 
 			<PartyRosterSection daily={daily} roster={roster} dailyQuery={dailyQuery} rosterQuery={rosterQuery} userId={user.id} />

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 
 import { LocationPanel } from './location-panel';
 import { WorldMap } from './world-map';
@@ -61,7 +62,7 @@ const map: PartyMap = withMapDefaults({
 			templateKey: 'travel-v1',
 			config: {
 				movementCost: 10,
-				obstacleCost: 0,
+				challengeCost: 0,
 				event: { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] },
 			},
 		},
@@ -84,12 +85,12 @@ const map: PartyMap = withMapDefaults({
 			config: null,
 		},
 		{
-			id: 'gate',
+			id: 'challenge',
 			chapterNo: 1,
 			regionNo: 3,
 			name: 'The Lantern Gate',
-			nodeType: 'gate',
-			templateKey: 'gate-v1',
+			nodeType: 'challenge',
+			templateKey: 'challenge-v1',
 			config: null,
 		},
 	],
@@ -97,8 +98,8 @@ const map: PartyMap = withMapDefaults({
 		{ id: 'edge-frontier', fromNodeId: 'frontier', toNodeId: 'crossing', optionKey: 'trailhead', sortOrder: 0 },
 		{ id: 'edge-village', fromNodeId: 'crossing', toNodeId: 'village', optionKey: 'mossway-village', sortOrder: 1 },
 		{ id: 'edge-ruins', fromNodeId: 'crossing', toNodeId: 'ruins', optionKey: 'old-ruins', sortOrder: 2 },
-		{ id: 'edge-gate', fromNodeId: 'village', toNodeId: 'gate', optionKey: 'lantern-gate', sortOrder: 3 },
-		{ id: 'edge-gate-ruins', fromNodeId: 'ruins', toNodeId: 'gate', optionKey: 'ruins-gate', sortOrder: 4 },
+		{ id: 'edge-challenge', fromNodeId: 'village', toNodeId: 'challenge', optionKey: 'lantern-gate', sortOrder: 3 },
+		{ id: 'edge-challenge-ruins', fromNodeId: 'ruins', toNodeId: 'challenge', optionKey: 'ruins-gate', sortOrder: 4 },
 	],
 });
 
@@ -165,8 +166,8 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			chapterNo: 1,
 			regionNo: 5,
 			name: 'Lantern Gate',
-			nodeType: 'gate',
-			templateKey: 'gate-v1',
+			nodeType: 'challenge',
+			templateKey: 'challenge-v1',
 			config: null,
 		},
 		{
@@ -186,9 +187,9 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 		{ id: 'edge-cavern-high', fromNodeId: 'high-road', toNodeId: 'mirror-cavern', optionKey: 'mirror-cavern', sortOrder: 1 },
 		{ id: 'edge-cavern-low', fromNodeId: 'low-road', toNodeId: 'mirror-cavern', optionKey: 'mirror-cavern', sortOrder: 0 },
 		{ id: 'edge-mist-steps', fromNodeId: 'low-road', toNodeId: 'mist-steps', optionKey: 'mist-steps', sortOrder: 1 },
-		{ id: 'edge-gate-grove', fromNodeId: 'sunlit-grove', toNodeId: 'lantern-gate', optionKey: 'lantern-gate', sortOrder: 2 },
-		{ id: 'edge-gate-cavern', fromNodeId: 'mirror-cavern', toNodeId: 'lantern-gate', optionKey: 'lantern-gate', sortOrder: 3 },
-		{ id: 'edge-gate-mist', fromNodeId: 'mist-steps', toNodeId: 'lantern-gate', optionKey: 'lantern-gate', sortOrder: 4 },
+		{ id: 'edge-challenge-grove', fromNodeId: 'sunlit-grove', toNodeId: 'lantern-gate', optionKey: 'lantern-gate', sortOrder: 2 },
+		{ id: 'edge-challenge-cavern', fromNodeId: 'mirror-cavern', toNodeId: 'lantern-gate', optionKey: 'lantern-gate', sortOrder: 3 },
+		{ id: 'edge-challenge-mist', fromNodeId: 'mist-steps', toNodeId: 'lantern-gate', optionKey: 'lantern-gate', sortOrder: 4 },
 		{ id: 'edge-starfall', fromNodeId: 'lantern-gate', toNodeId: 'starfall-cache', optionKey: 'starfall-cache', sortOrder: 0 },
 	],
 });
@@ -413,6 +414,10 @@ type Story = StoryObj<typeof meta>;
 
 export const BranchedAtlas: Story = {
 	args: { map },
+	play: async ({ canvas, userEvent }) => {
+		await userEvent.click(canvas.getByRole('button', { name: /Mossway Village/ }));
+		await expect(canvas.getByTestId('world-map-inspector')).toHaveTextContent('Mossway Village');
+	},
 };
 
 export const NarrowFrontier: Story = {
@@ -478,7 +483,7 @@ export const LandmarkGallery: Story = {
 			currentChapter: 1,
 			currentNodeId: 'landmark-village',
 			nodes: [
-				...(['travel', 'dungeon', 'gate', 'rest', 'combat', 'treasure', 'narrative', 'village'] as const).map((nodeType, index) => ({
+				...(['travel', 'dungeon', 'challenge', 'rest', 'combat', 'treasure', 'narrative', 'village'] as const).map((nodeType, index) => ({
 					id: `landmark-${nodeType}`,
 					chapterNo: 1,
 					regionNo: index + 1,

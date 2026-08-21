@@ -1533,11 +1533,11 @@ export interface paths {
 								chapterNo: number;
 								regionNo: number;
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								templateKey: string;
 								config: {
 									movementCost: number;
-									obstacleCost: number;
+									challengeCost: number;
 									landmark?: {
 										key: string;
 									};
@@ -1566,7 +1566,7 @@ export interface paths {
 										  };
 								};
 							};
-							gateProgress: number;
+							challengeProgress: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -1629,11 +1629,11 @@ export interface paths {
 								chapterNo: number;
 								regionNo: number;
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								templateKey: string;
 								config: {
 									movementCost: number;
-									obstacleCost: number;
+									challengeCost: number;
 									landmark?: {
 										key: string;
 									};
@@ -1662,7 +1662,7 @@ export interface paths {
 										  };
 								};
 							};
-							gateProgress: number;
+							challengeProgress: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -1771,11 +1771,11 @@ export interface paths {
 								chapterNo: number;
 								regionNo: number;
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								templateKey: string;
 								config: {
 									movementCost: number;
-									obstacleCost: number;
+									challengeCost: number;
 									landmark?: {
 										key: string;
 									};
@@ -1804,7 +1804,7 @@ export interface paths {
 										  };
 								};
 							};
-							gateProgress: number;
+							challengeProgress: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -1929,11 +1929,11 @@ export interface paths {
 								chapterNo: number;
 								regionNo: number;
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								templateKey: string;
 								config: {
 									movementCost: number;
-									obstacleCost: number;
+									challengeCost: number;
 									landmark?: {
 										key: string;
 									};
@@ -2110,11 +2110,11 @@ export interface paths {
 								chapterNo: number;
 								regionNo: number;
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								templateKey: string;
 								config: {
 									movementCost: number;
-									obstacleCost: number;
+									challengeCost: number;
 									landmark?: {
 										key: string;
 									};
@@ -2143,7 +2143,7 @@ export interface paths {
 										  };
 								};
 							};
-							gateProgress: number;
+							challengeProgress: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -2512,10 +2512,10 @@ export interface paths {
 							movementCost: number;
 							movementSatisfied: boolean;
 							recoveryPoints: number;
-							gateContribution: number;
-							gateProgress: number;
-							gateCost: number;
-							gateUnlocked: boolean;
+							challengeContribution: number;
+							challengeProgress: number;
+							challengeCost: number;
+							challengeCleared: boolean;
 							status: 'provisional' | 'complete';
 							members: {
 								userId: string;
@@ -2627,12 +2627,12 @@ export interface paths {
 								sourceNode: {
 									id: string;
 									name: string;
-									nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+									nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								};
 								destinationNode: {
 									id: string;
 									name: string;
-									nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+									nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								};
 								outcome: 'advanced' | 'held' | 'route-selected';
 								movement: {
@@ -2641,12 +2641,12 @@ export interface paths {
 									satisfied: boolean;
 								};
 								recoveryPoints: number;
-								gate: {
+								challenge: {
 									progressBefore: number;
 									contribution: number;
 									progressAfter: number;
 									cost: number;
-									unlocked: boolean;
+									cleared: boolean;
 								};
 								route: {
 									edgeId: string;
@@ -3175,11 +3175,11 @@ export interface paths {
 								chapterNo: number;
 								regionNo: number;
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								templateKey: string;
 								config: {
 									movementCost: number;
-									obstacleCost: number;
+									challengeCost: number;
 									landmark?: {
 										key: string;
 									};
@@ -3208,7 +3208,7 @@ export interface paths {
 										  };
 								};
 							};
-							gateProgress: number;
+							challengeProgress: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -3234,11 +3234,11 @@ export interface paths {
 								chapterNo: number;
 								regionNo: number;
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								templateKey: string;
 								config: {
 									movementCost: number;
-									obstacleCost: number;
+									challengeCost: number;
 									landmark?: {
 										key: string;
 									};
@@ -3267,7 +3267,7 @@ export interface paths {
 										  };
 								};
 							};
-							gateProgress: number;
+							challengeProgress: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -3769,11 +3769,11 @@ export interface paths {
 								chapterNo: number;
 								regionNo: number;
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								templateKey: string;
 								config: {
 									movementCost: number;
-									obstacleCost: number;
+									challengeCost: number;
 									landmark?: {
 										key: string;
 									};
@@ -3802,7 +3802,7 @@ export interface paths {
 										  };
 								};
 							};
-							gateProgress: number;
+							challengeProgress: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -3955,11 +3955,11 @@ export interface paths {
 								chapterNo: number;
 								regionNo: number;
 								name: string;
-								nodeType: 'travel' | 'dungeon' | 'gate' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
+								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								templateKey: string;
 								config: {
 									movementCost: number;
-									obstacleCost: number;
+									challengeCost: number;
 									landmark?: {
 										key: string;
 									};
@@ -3988,7 +3988,7 @@ export interface paths {
 										  };
 								};
 							};
-							gateProgress: number;
+							challengeProgress: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;

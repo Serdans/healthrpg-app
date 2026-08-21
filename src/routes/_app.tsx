@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, redirect } from '@tanstack/react-router';
-import { Backpack, Compass, LogOut, Settings2, Sparkles, UsersRound } from 'lucide-react';
+import { Backpack, Compass, LogOut, Settings2, Sparkles, UserRound, UsersRound } from 'lucide-react';
 
 import { NavigationStatus, OfflineNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
@@ -15,12 +15,12 @@ export const Route = createFileRoute('/_app')({
 });
 
 const mobileLinks = [
-	{ to: '/app', label: 'Trail' },
-	{ to: '/character', label: 'Character' },
-	{ to: '/parties', label: 'Parties' },
-	{ to: '/inventory', label: 'Kit' },
-	{ to: '/progression', label: 'Progress' },
-	{ to: '/settings', label: 'Settings' },
+	{ to: '/app', label: 'Trail', icon: Compass },
+	{ to: '/character', label: 'Character', icon: UserRound },
+	{ to: '/parties', label: 'Parties', icon: UsersRound },
+	{ to: '/inventory', label: 'Kit', icon: Backpack },
+	{ to: '/progression', label: 'Progress', icon: Sparkles },
+	{ to: '/settings', label: 'Settings', icon: Settings2 },
 ] as const;
 
 function initials(name: string | null, email: string) {
@@ -40,6 +40,9 @@ function AppLayout() {
 
 	return (
 		<div className="route-shell">
+			<a className="skip-link" href="#main-content">
+				Skip to main content
+			</a>
 			<NavigationStatus />
 			<header className="game-shell-header border-b border-[var(--line)] bg-[rgba(255,250,240,0.68)] backdrop-blur-md">
 				<OfflineNotice />
@@ -124,19 +127,21 @@ function AppLayout() {
 					className="game-mobile-nav page-wrap flex gap-1 overflow-x-auto border-t border-[var(--line)] py-2 sm:hidden"
 					aria-label="Mobile navigation"
 				>
-					{mobileLinks.map(({ to, label }) => (
+					{mobileLinks.map(({ to, label, icon: Icon }) => (
 						<Link
 							key={to}
 							to={to}
-							activeProps={{ className: 'bg-[var(--indigo)] text-[var(--parchment-bright)]' }}
-							className="game-nav-link shrink-0 rounded-lg px-3 py-2 text-xs font-bold text-[var(--ink-soft)] no-underline hover:bg-[var(--surface)] hover:text-[var(--indigo)]"
+							activeOptions={{ exact: to === '/app' }}
+							activeProps={{ className: 'bg-[var(--indigo)] text-[var(--parchment-bright)]', 'aria-current': 'page' }}
+							className="game-nav-link flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-[var(--ink-soft)] no-underline hover:bg-[var(--surface)] hover:text-[var(--indigo)]"
 						>
-							{label}
+							<Icon className="size-3.5" aria-hidden="true" />
+							<span>{label}</span>
 						</Link>
 					))}
 				</nav>
 			</header>
-			<main className="page-wrap pt-8 sm:pt-12">
+			<main id="main-content" tabIndex={-1} className="page-wrap pt-8 outline-none sm:pt-12">
 				<Outlet />
 			</main>
 		</div>

@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react';
 
-import { SuccessNotice } from '#/components/app-state';
+import { ErrorNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
 import type { PartyMap, PartyVotes } from '#/lib/api';
@@ -62,19 +62,48 @@ export function BranchDecision({
 						This expedition is no longer active. The route history is available to view, but new votes are closed.
 					</p>
 				)}
-				{mutation.data && <SuccessNotice>Your route vote is saved.</SuccessNotice>}
+				{mutation.isPending && (
+					<p className="game-action-status" role="status" aria-live="polite">
+						Saving your route vote…
+					</p>
+				)}
+				{mutation.isSuccess && (
+					<p className="game-action-status game-action-status-success" role="status" aria-live="polite">
+						Your route vote is saved. The party can still change it before the decision closes.
+					</p>
+				)}
+				{mutation.isError && (
+					<div className="game-action-error">
+						<ErrorNotice error={mutation.error} message={mutation.error.message} />
+					</div>
+				)}
 			</CardHeader>
 			<CardContent className="grid gap-3 pt-1 sm:grid-cols-2">
 				{edges.map((edge) => {
 					const count = votes?.votes.filter((vote) => vote.edgeId === edge.id).length ?? 0;
 					const selected = userVote === edge.id;
+					const resolvedSelection = votes?.resolvedEdgeId === edge.id;
 					return (
 						<button
 							key={edge.id}
 							type="button"
-							className="choice-card rounded-2xl p-5 text-left"
+							className="choice-card game-choice-card p-5 text-left"
 							data-selected={selected}
+							data-choice-state={
+								mutation.isPending
+									? 'pending'
+									: mutation.isError
+										? 'error'
+										: resolvedSelection
+											? 'resolved'
+											: resolved
+												? 'closed'
+												: selected
+													? 'selected'
+													: 'available'
+							}
 							aria-pressed={selected}
+							aria-busy={mutation.isPending}
 							disabled={readOnly || mutation.isPending || resolved}
 							onClick={() => mutation.mutate(edge.id)}
 						>
@@ -82,7 +111,12 @@ export function BranchDecision({
 								<span className="grid size-9 place-items-center rounded-xl bg-[var(--indigo)] font-mono text-sm text-[var(--gold)]">
 									{edge.sortOrder + 1}
 								</span>
-								{selected && <Check className="size-5 text-[var(--amethyst)]" />}
+								{(selected || resolvedSelection) && (
+									<span className={`game-choice-marker ${resolvedSelection ? 'game-choice-marker-resolved' : ''}`}>
+										<Check className="size-3" aria-hidden="true" />
+										{resolvedSelection ? 'Chosen route' : 'Your vote'}
+									</span>
+								)}
 							</div>
 							<p className="mt-5 text-xs font-extrabold uppercase tracking-[0.13em] text-[var(--gold-deep)]">{edge.optionKey}</p>
 							<p className="mt-1 text-lg font-extrabold text-[var(--indigo)]">

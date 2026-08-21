@@ -2,7 +2,7 @@ import type { ComponentType, KeyboardEvent, RefCallback } from 'react';
 import { BookOpen, Castle, Gem, Home, Moon, Route as RouteIcon, Shield, Swords } from 'lucide-react';
 
 import type { PartyMap } from '#/lib/api';
-import { landmarkArtForNode } from '#/lib/game-art';
+import { landmarkArtForNode, landmarkSpriteArt } from '#/lib/game-art';
 import type { WorldMapLayoutNode } from '#/lib/world-map';
 
 type IconComponent = ComponentType<{ className?: string }>;
@@ -11,7 +11,7 @@ function iconForNode(nodeType: PartyMap['nodes'][number]['nodeType']): IconCompo
 	switch (nodeType) {
 		case 'dungeon':
 			return Castle;
-		case 'gate':
+		case 'challenge':
 			return Shield;
 		case 'combat':
 			return Swords;
@@ -68,6 +68,7 @@ export function WorldMapNode({
 			style={{ left: `${item.x}px`, top: `${item.y}px` }}
 			aria-label={`${item.node.name}, ${stateLabel(item.state)}, ${readableType(item.node.nodeType)}`}
 			aria-pressed={selected}
+			aria-current={item.state === 'current' ? 'location' : undefined}
 			data-node-id={item.node.id}
 			data-node-state={item.state}
 			onClick={(event) => onSelect(item.node.id, event.detail > 0)}
@@ -77,7 +78,11 @@ export function WorldMapNode({
 				<span
 					className="world-map-node-art"
 					aria-hidden="true"
-					style={{ backgroundPosition: landmarkArtForNode(item.node.nodeType).position }}
+					style={{
+						backgroundImage: `url('${landmarkSpriteArt.src}')`,
+						backgroundPosition: landmarkArtForNode(item.node.nodeType).position,
+						backgroundSize: landmarkSpriteArt.backgroundSize,
+					}}
 				/>
 				<Icon className="world-map-node-fallback size-5" aria-hidden="true" />
 			</span>

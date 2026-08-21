@@ -3,10 +3,12 @@ import type { ReactNode } from 'react';
 import { ArrowRight, HeartPulse, MapPinned, Shield, Sparkles, Swords } from 'lucide-react';
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
+import { InventoryItemSprite } from '#/components/inventory/inventory-item-sprite';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import type { PartyRecap } from '#/lib/api';
 import { formatDateTime } from '#/lib/dates';
+import type { InventoryItemKind } from '#/lib/game-art';
 
 function label(value: string) {
 	return value
@@ -21,6 +23,17 @@ function outcomeLabel(outcome: PartyRecap['resolution']['outcome']) {
 	return 'The trail held';
 }
 
+function resolutionExplanation(resolution: PartyRecap['resolution']) {
+	if (!resolution.movement.satisfied) {
+		return `Needs ${Math.max(0, resolution.movement.cost - resolution.movement.units)} more Momentum for the Journey.`;
+	}
+	if (resolution.challenge.cost > 0 && !resolution.challenge.cleared) {
+		return `The Challenge needs ${Math.max(0, resolution.challenge.cost - resolution.challenge.progressAfter)} more progress.`;
+	}
+	if (resolution.event?.outcome === 'failed') return 'The event choice did not succeed.';
+	return resolution.outcome === 'held' ? 'The party is ready for the next resolution.' : 'The Journey requirement was met.';
+}
+
 function rewardSummary(reward: PartyRecap['resolution']['rewards'][number]) {
 	const rewards = [
 		reward.experience ? `${reward.experience} XP` : null,
@@ -31,6 +44,25 @@ function rewardSummary(reward: PartyRecap['resolution']['rewards'][number]) {
 		reward.milestoneKey ? `Milestone: ${label(reward.milestoneKey)}` : null,
 	].filter((value): value is string => Boolean(value));
 	return rewards.length > 0 ? rewards.join(' · ') : 'Progress recorded';
+}
+
+function rewardVisuals(reward: PartyRecap['resolution']['rewards'][number]) {
+	const visuals: { itemKey: string; kind: InventoryItemKind }[] = [];
+	if (reward.currency) visuals.push({ itemKey: reward.currency.key, kind: 'currency' });
+	if (reward.item) visuals.push({ itemKey: reward.item.key, kind: 'item' });
+	if (reward.equipment) visuals.push({ itemKey: reward.equipment.key, kind: 'equipment' });
+	return visuals;
+}
+
+function rewardKey(reward: PartyRecap['resolution']['rewards'][number]) {
+	return [
+		reward.experience ?? '',
+		reward.currency ? `${reward.currency.key}:${reward.currency.amount}` : '',
+		reward.item ? `${reward.item.key}:${reward.item.quantity}` : '',
+		reward.equipment?.key ?? '',
+		reward.unlockKey ?? '',
+		reward.milestoneKey ?? '',
+	].join('|');
 }
 
 function signedHealth(value: number) {
@@ -89,6 +121,7 @@ export function DailyResolutionRecap({
 
 	const resolution = recap.resolution;
 	const combat = resolution.combat;
+	const journeyValue = resolution.movement.cost > 0 ? `${resolution.movement.units} / ${resolution.movement.cost} Momentum` : 'Ready';
 
 	return (
 		<Card variant="game" tone="history" data-testid="daily-resolution-recap">
@@ -108,37 +141,38 @@ export function DailyResolutionRecap({
 				</div>
 			</CardHeader>
 			<CardContent>
-				<div className="rounded-2xl border border-[var(--gold-line)] bg-[var(--gold-wash)] p-4">
+				<div className="game-inset game-inset-gold p-4">
 					<div className="flex flex-wrap items-center gap-2 text-sm font-extrabold text-[var(--indigo)]">
 						<span>{resolution.sourceNode.name}</span>
 						<ArrowRight className="size-4 text-[var(--gold-deep)]" aria-hidden="true" />
 						<span>{resolution.destinationNode.name}</span>
 					</div>
 					<p className="mt-2 text-sm font-bold text-[var(--gold-deep)]">{outcomeLabel(resolution.outcome)}</p>
+					<p className="mt-1 text-sm text-[var(--ink-soft)]">{resolutionExplanation(resolution)}</p>
 				</div>
 
 				<div className="grid gap-3 sm:grid-cols-3">
-					<SummaryStat
-						label="Movement"
-						value={`${resolution.movement.units} / ${resolution.movement.cost}`}
-						icon={<MapPinned className="size-4" />}
-					/>
+					<SummaryStat label="Journey" value={journeyValue} icon={<MapPinned className="size-4" />} />
 					<SummaryStat label="Recovery" value={`${resolution.recoveryPoints} points`} icon={<HeartPulse className="size-4" />} />
-					<SummaryStat
-						label="Gate"
-						value={`${resolution.gate.progressAfter} / ${resolution.gate.cost}`}
-						icon={<Shield className="size-4" />}
-					/>
+					{resolution.challenge.cost > 0 && (
+						<SummaryStat
+							label="Challenge"
+							value={`${resolution.challenge.progressAfter} / ${resolution.challenge.cost}`}
+							icon={<Shield className="size-4" />}
+						/>
+					)}
 				</div>
 
 				{resolution.route && (
 					<DetailRow label="Route selected" value={`${label(resolution.route.optionKey)} · ${resolution.route.reason}`} />
 				)}
 
-				<DetailRow
-					label="Gate contribution"
-					value={`${resolution.gate.contribution} · ${resolution.gate.unlocked ? 'unlocked' : 'still sealed'}`}
-				/>
+				{resolution.challenge.cost > 0 && (
+					<DetailRow
+						label="Challenge contribution"
+						value={`${resolution.challenge.contribution} today · ${resolution.challenge.cleared ? 'cleared' : 'in progress'}`}
+					/>
+				)}
 
 				{resolution.event && (
 					<DetailRow
@@ -148,7 +182,7 @@ export function DailyResolutionRecap({
 				)}
 
 				{combat && (
-					<div className="space-y-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+					<div className="game-inset game-inset-muted space-y-3 p-4">
 						<div className="flex items-center gap-2">
 							<Swords className="size-4 text-[var(--danger)]" aria-hidden="true" />
 							<p className="game-pixel-label text-[var(--ink-soft)]">Encounter recap</p>
@@ -180,12 +214,32 @@ export function DailyResolutionRecap({
 				)}
 
 				{resolution.rewards.length > 0 && (
-					<div className="rounded-2xl border border-[color-mix(in_srgb,var(--teal)_30%,transparent)] bg-[color-mix(in_srgb,var(--teal)_8%,transparent)] p-4">
+					<div className="game-inset game-inset-teal p-4">
 						<p className="game-pixel-label text-[var(--teal-deep)]">Rewards</p>
 						<ul className="mt-2 space-y-1 text-sm font-bold text-[var(--teal-deep)]">
-							{resolution.rewards.map((reward) => (
-								<li key={rewardSummary(reward)}>{rewardSummary(reward)}</li>
-							))}
+							{resolution.rewards.map((reward) => {
+								const summary = rewardSummary(reward);
+								const visuals = rewardVisuals(reward);
+
+								return (
+									<li key={rewardKey(reward)} className="flex items-center gap-3">
+										{visuals.length > 0 && (
+											<span className="flex shrink-0 gap-1" aria-hidden="true">
+												{visuals.map((visual) => (
+													<InventoryItemSprite
+														key={`${visual.kind}-${visual.itemKey}`}
+														itemKey={visual.itemKey}
+														kind={visual.kind}
+														size="sm"
+														className="bg-[var(--surface)]"
+													/>
+												))}
+											</span>
+										)}
+										<span>{summary}</span>
+									</li>
+								);
+							})}
 						</ul>
 					</div>
 				)}
@@ -224,10 +278,10 @@ function NewResolutionMarker({ partyId, worldDate }: { partyId: string; worldDat
 
 function SummaryStat({ label: statLabel, value, icon }: { label: string; value: string; icon: ReactNode }) {
 	return (
-		<div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
+		<div className="game-inset game-inset-muted p-3">
 			<div className="flex items-center justify-between gap-2 text-[var(--ink-soft)]">
 				<span className="game-pixel-label">{statLabel}</span>
-				{icon}
+				<span aria-hidden="true">{icon}</span>
 			</div>
 			<p className="mt-2 font-mono text-lg font-bold text-[var(--indigo)]">{value}</p>
 		</div>
@@ -236,7 +290,7 @@ function SummaryStat({ label: statLabel, value, icon }: { label: string; value: 
 
 function DetailRow({ label: detailLabel, value }: { label: string; value: string }) {
 	return (
-		<div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-sm">
+		<div className="game-inset game-inset-muted flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm">
 			<span className="font-extrabold text-[var(--indigo)]">{detailLabel}</span>
 			<span className="text-[var(--ink-soft)]">{value}</span>
 		</div>

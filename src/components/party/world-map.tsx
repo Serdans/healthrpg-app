@@ -6,9 +6,10 @@ import { WorldMapInspector } from '#/components/party/world-map-inspector';
 import type { WorldMapEntryMutation } from '#/components/party/world-map-inspector';
 import { WorldMapNode } from '#/components/party/world-map-node';
 import type { PartyMap } from '#/lib/api';
-import { partyTravelerArt } from '#/lib/game-art';
+import { gameplayBackgroundArt, partyTravelerArt } from '#/lib/game-art';
 import type { PartyTravelerDirection } from '#/lib/game-art';
 import { getAdjacentMapNodeId, mapDirectionForKey } from '#/lib/map-navigation';
+import { gameplayScrollBehavior, prefersReducedMotion } from '#/lib/gameplay-navigation';
 import { createWorldMapLayout, createWorldMapTravel } from '#/lib/world-map';
 import type { WorldMapLayout, WorldMapTravel } from '#/lib/world-map';
 import { InteriorMap } from './interior-map';
@@ -25,10 +26,12 @@ function OverworldMap({
 	map,
 	enterMutation,
 	readOnly = false,
+	actionHref,
 }: {
 	map: PartyMap;
 	enterMutation?: WorldMapEntryMutation;
 	readOnly?: boolean;
+	actionHref?: '#party-action';
 }) {
 	const layout = useMemo(() => createWorldMapLayout(map), [map]);
 	const [selectedNodeId, setSelectedNodeId] = useState(map.currentNodeId);
@@ -47,7 +50,7 @@ function OverworldMap({
 		const previousMap = previousMapRef.current;
 		previousMapRef.current = { currentNodeId: map.currentNodeId, layout };
 		setSelectedNodeId(map.currentNodeId);
-		currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+		currentNodeRef.current?.scrollIntoView({ behavior: gameplayScrollBehavior(), block: 'center', inline: 'center' });
 
 		if (!previousMap || previousMap.currentNodeId === map.currentNodeId) return;
 
@@ -55,12 +58,13 @@ function OverworldMap({
 		if (travelTimeoutRef.current !== null) window.clearTimeout(travelTimeoutRef.current);
 
 		const nextTravel = createWorldMapTravel(previousMap.layout, layout, previousMap.currentNodeId, map.currentNodeId);
-		if (!nextTravel) {
+		if (!nextTravel || prefersReducedMotion()) {
 			setTravel(undefined);
 			return;
 		}
 
-		const supportsMotionPath = typeof window !== 'undefined' && window.CSS.supports('offset-path', 'path("M 0 0 L 1 1")');
+		const supportsMotionPath =
+			typeof window !== 'undefined' && typeof window.CSS !== 'undefined' && window.CSS.supports('offset-path', 'path("M 0 0 L 1 1")');
 		const key = ++travelSequenceRef.current;
 		lastDirectionRef.current = nextTravel.direction;
 		setTravel({ ...nextTravel, key, started: false, supportsMotionPath });
@@ -143,14 +147,18 @@ function OverworldMap({
 	if (!selectedNode) {
 		return (
 			<div className="world-map-empty" role="status">
-				<MapPin className="size-5" />
+				<MapPin className="size-5" aria-hidden="true" />
 				<span>The atlas has not revealed a trail yet.</span>
 			</div>
 		);
 	}
 
 	return (
-		<div className="world-map" data-testid="world-map">
+		<div
+			className="world-map"
+			data-testid="world-map"
+			style={{ '--world-map-terrain': `url('${gameplayBackgroundArt.overworld}')` } as CSSProperties}
+		>
 			<div
 				ref={viewportRef}
 				className="world-map-viewport"
@@ -228,7 +236,7 @@ function OverworldMap({
 					)}
 
 					<div className="world-map-mist" aria-hidden="true">
-						<Sparkles className="size-5" />
+						<Sparkles className="size-5" aria-hidden="true" />
 						<span>Beyond the mist</span>
 					</div>
 				</div>
@@ -237,16 +245,16 @@ function OverworldMap({
 			<div className="world-map-meta">
 				<div className="world-map-legend" aria-label="Map legend">
 					<span>
-						<i className="world-map-legend-dot world-map-legend-current" /> Current
+						<i className="world-map-legend-dot world-map-legend-current" aria-hidden="true" /> Current
 					</span>
 					<span>
-						<i className="world-map-legend-dot world-map-legend-next" /> Next route
+						<i className="world-map-legend-dot world-map-legend-next" aria-hidden="true" /> Next route
 					</span>
 					<span>
-						<i className="world-map-legend-dot world-map-legend-revealed" /> Revealed
+						<i className="world-map-legend-dot world-map-legend-revealed" aria-hidden="true" /> Revealed
 					</span>
 					<span>
-						<i className="world-map-legend-dot world-map-legend-party" /> Party
+						<i className="world-map-legend-dot world-map-legend-party" aria-hidden="true" /> Party
 					</span>
 				</div>
 				<span className="world-map-scroll-hint">Scroll to explore the atlas</span>
@@ -260,13 +268,19 @@ function OverworldMap({
 				enterableLocation={enterableLocation}
 				enterMutation={enterMutation}
 				readOnly={readOnly}
+				actionHref={actionHref}
 				inspectorRef={inspectorRef}
 			/>
 		</div>
 	);
 }
 
-export function WorldMap(props: { map: PartyMap; enterMutation?: WorldMapEntryMutation; readOnly?: boolean }) {
+export function WorldMap(props: {
+	map: PartyMap;
+	enterMutation?: WorldMapEntryMutation;
+	readOnly?: boolean;
+	actionHref?: '#party-action';
+}) {
 	return (
 		<div
 			key={props.map.currentMap.id}

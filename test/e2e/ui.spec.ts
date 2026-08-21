@@ -65,11 +65,35 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'The road ahead', level: 2 })).toBeVisible();
 	await expect(page.getByTestId('world-map')).toBeVisible();
 	await expect(page.getByTestId('world-map-party-marker')).toBeVisible();
+	await expect(page.getByTestId('daily-command-center')).toContainText('Your vote is needed');
+	await expect
+		.poll(async () =>
+			page
+				.getByTestId('world-map')
+				.locator('.world-map-node')
+				.first()
+				.evaluate((node) => {
+					const orb = node.querySelector<HTMLElement>('.world-map-node-orb');
+					const art = node.querySelector<HTMLElement>('.world-map-node-art');
+					if (!orb || !art) return 0;
+					return Math.round((art.getBoundingClientRect().width / orb.clientWidth) * 100);
+				}),
+		)
+		.toBe(75);
 	await expect(page.getByTestId('party-roster')).toBeVisible();
+	await expect(page.getByTestId('gameplay-mechanics').first()).toContainText('Momentum');
+	await expect(page.getByTestId('gameplay-mechanics').first()).toContainText('Journey');
+	await expect(page.getByTestId('gameplay-mechanics').first()).not.toContainText('Challenge');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('Daily resolution');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('The trail held');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('4 points');
+	await page.locator('#party-chronicle').scrollIntoViewIfNeeded();
+	const actionStrip = page.getByTestId('daily-action-strip');
+	await expect(actionStrip).toBeVisible();
+	await actionStrip.getByRole('link', { name: 'Choose a route' }).click();
+	await expect(page.getByTestId('party-action')).toBeFocused();
 	await expect(page.getByTestId('party-member-sheet')).toContainText('Hero');
+	await expect(page.getByTestId('party-member-sheet').locator('.roster-sheet-avatar')).toBeVisible();
 	await page.locator('[data-testid="party-member"][data-member-id="user-2"]').click();
 	await expect(page.getByTestId('party-member-sheet')).toContainText('Mira');
 	await expect(page.getByTestId('party-member-sheet')).toContainText('Cleric');
@@ -89,15 +113,21 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 	await expect(page.getByTestId('world-map-inspector')).toContainText(/Next possible route/i);
 	await nextNode.click();
 	await expect(page.getByTestId('world-map-inspector')).toBeFocused();
+	const routeBridge = page.getByTestId('world-map-route-bridge');
+	await expect(routeBridge).toContainText('Review route vote');
+	await routeBridge.getByRole('link', { name: 'Review route vote' }).click();
+	await expect(page.getByTestId('party-action')).toBeFocused();
 });
 
 test('keeps the party shell navigable on a phone-sized viewport', async ({ page }) => {
 	await authenticate(page);
 	await page.setViewportSize({ width: 390, height: 844 });
+	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await page.goto('/parties/party-1');
 
 	await expect(page.getByTestId('gameplay-section-nav')).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'The travelers beside you', level: 2 })).toBeVisible();
+	await expect(page.getByTestId('map-scene')).toHaveCSS('animation-name', 'none');
 	await expect.poll(async () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
@@ -109,7 +139,7 @@ test('opens a village departure vote and casts a route vote', async ({ page, req
 	await expect(page.getByRole('heading', { name: 'Mossway Village', level: 2 })).toBeVisible();
 	await page.getByRole('button', { name: /Start departure vote/i }).click();
 	await expect(page.getByRole('button', { name: /Departure vote open/i })).toBeVisible();
-	await expect(page.getByRole('heading', { name: 'Choose the next trail' })).toBeVisible();
+	await expect(page.getByTestId('party-action').getByRole('heading', { name: 'Choose the next trail' })).toBeVisible();
 
 	await page.locator('button.choice-card').filter({ hasText: 'North Lantern Road' }).click();
 	await expect
@@ -155,6 +185,22 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 	await expect(page.getByTestId('battlefield')).toBeVisible();
 	await expect(page.getByTestId('battle-enemy').first()).toContainText('Moss Wolf');
 	await expect(page.getByTestId('battle-party-member').first()).toContainText('Hero');
+	await expect
+		.poll(async () =>
+			page
+				.getByTestId('battle-party-member')
+				.first()
+				.locator('.battle-party-art')
+				.evaluate((art) => {
+					const { width, height } = art.getBoundingClientRect();
+					return Math.round((width / height) * 100) / 100;
+				}),
+		)
+		.toBe(1);
+	await expect(page.getByTestId('battle-enemy').first().locator('.battle-enemy-art')).toHaveCSS('background-size', 'contain');
+	await expect(page.getByTestId('combat-scene').locator('.battle-command-ribbon')).toContainText('Commanding');
+	await expect(page.getByTestId('daily-command-center')).toContainText('Your command is needed');
+	await expect(page.getByTestId('combat-scene').getByTestId('gameplay-mechanics')).toContainText('Momentum');
 	await page.getByTestId('battle-action-signature').click();
 	await page.getByTestId('battle-item-target').selectOption('user-2');
 	await page.getByTestId('battle-save-command').click();
@@ -165,6 +211,9 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 			body: { actionKey: 'shield-wall', targetEnemyId: 'enemy-1', targetUserId: null },
 		});
 	await expect(page.getByTestId('battle-status')).toContainText(/command is locked in/i);
+
+	await page.getByTestId('battle-action-basic').click();
+	await expect(page.getByTestId('battle-status')).toContainText(/review your changes and save/i);
 
 	await page.getByRole('button', { name: /Use item/i }).click();
 	await expect(page.getByText(/Restored 10 health for Mira/i)).toBeVisible();
