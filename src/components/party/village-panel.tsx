@@ -39,7 +39,7 @@ export function VillagePanel({
 	return (
 		<div className="space-y-5">
 			{readOnly && (
-				<p role="status" className="rounded-xl bg-[var(--surface)] p-3 text-sm font-bold text-[var(--ink-soft)]">
+				<p role="status" className="game-inset game-inset-muted p-3 text-sm font-bold text-[var(--ink-soft)]">
 					This expedition is no longer active. Village details are available to view, but purchases and departure are closed.
 				</p>
 			)}
@@ -55,14 +55,14 @@ export function VillagePanel({
 							<CardDescription>{village.settlement.description}</CardDescription>
 						</div>
 						<span className="grid size-12 place-items-center rounded-2xl bg-[var(--gold-wash)] text-[var(--gold-deep)]">
-							<ShoppingBag className="size-6" />
+							<ShoppingBag className="size-6" aria-hidden="true" />
 						</span>
 					</div>
 				</CardHeader>
 				<CardContent>
-					<div className="flex items-center justify-between gap-3 rounded-2xl bg-[var(--gold-wash)] p-4">
+					<div className="game-inset game-inset-gold flex items-center justify-between gap-3 p-4">
 						<div className="flex items-center gap-3">
-							<Coins className="size-5 text-[var(--gold-deep)]" />
+							<Coins className="size-5 text-[var(--gold-deep)]" aria-hidden="true" />
 							<div>
 								<p className="eyebrow">Your balance</p>
 								<p className="mt-1 font-extrabold text-[var(--indigo)]">{village.currency.displayName}</p>
@@ -71,7 +71,7 @@ export function VillagePanel({
 						<span className="font-mono text-2xl text-[var(--gold-deep)]">{village.currency.balance}</span>
 					</div>
 					{purchaseMutation.data && (
-						<p role="status" className="rounded-xl bg-[var(--teal)]/10 p-3 text-sm font-bold text-[var(--teal-deep)]">
+						<p role="status" className="game-inset game-inset-teal p-3 text-sm font-bold text-[var(--teal-deep)]">
 							Bought {purchaseMutation.data.quantity} × {purchaseMutation.data.displayName} for {purchaseMutation.data.totalPrice}{' '}
 							{purchaseMutation.data.currency.key}. Remaining balance: {purchaseMutation.data.currency.remainingBalance}.
 						</p>
@@ -85,20 +85,20 @@ export function VillagePanel({
 							const quantityError = quantityErrors[offer.key];
 							const quantityErrorId = `${offer.key}-quantity-error`;
 							return (
-								<div key={offer.key} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+								<div key={offer.key} className="game-inset game-inset-muted p-4">
 									<div className="flex items-start justify-between gap-3">
 										<div>
 											<p className="eyebrow">{offer.kind}</p>
 											<p className="mt-2 font-extrabold text-[var(--indigo)]">{offer.displayName}</p>
 											<p className="mt-1 text-xs text-[var(--ink-soft)]">Owned: {offer.ownedQuantity}</p>
 										</div>
-										<Sparkles className="size-5 text-[var(--amethyst)]" />
+										<Sparkles className="size-5 text-[var(--amethyst)]" aria-hidden="true" />
 									</div>
 									<div className="mt-4 flex items-end gap-3">
 										<label className="block flex-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--ink-soft)]">
 											Quantity
 											<input
-												className="mt-2 h-11 w-full rounded-xl border border-[var(--line-strong)] bg-[var(--surface-strong)] px-3 font-mono text-[var(--indigo)] outline-none focus:border-[var(--gold)]"
+												className="game-input mt-2 h-11 w-full px-3 font-mono text-[var(--indigo)] outline-none focus:border-[var(--gold)]"
 												type="number"
 												min={1}
 												max={offer.kind === 'equipment' ? 1 : 99}
@@ -155,7 +155,7 @@ export function VillagePanel({
 						{departureMutation.isPending ? 'Opening the route…' : departureOpen ? 'Departure vote open' : 'Start departure vote'}
 					</Button>
 					{departureMutation.data && (
-						<div role="status" className="mt-3 rounded-xl bg-[var(--teal)]/10 p-3 text-sm text-[var(--teal-deep)]">
+						<div role="status" className="game-inset game-inset-teal mt-3 p-3 text-sm text-[var(--teal-deep)]">
 							<p className="font-bold">Departure vote opened. The party can now choose its next branch.</p>
 							<p className="mt-1 text-xs">
 								{departureMutation.data.votes.length} vote{departureMutation.data.votes.length === 1 ? '' : 's'} ·{' '}

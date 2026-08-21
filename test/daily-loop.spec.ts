@@ -121,9 +121,22 @@ describe('daily loop state', () => {
 				hasError: false,
 			}),
 		).toMatchObject({ kind: 'waiting-for-party' });
-		expect(derive({ kind: 'event', data: { ...event, selectedChoiceKey: 'north' }, isLoading: false, hasError: false })).toMatchObject({
-			kind: 'resolved',
-		});
+		expect(
+			derive({
+				kind: 'event',
+				data: { ...event, selectedChoiceKey: 'north', votes: [{ userId: 'user-1', choiceKey: 'north' }] },
+				isLoading: false,
+				hasError: false,
+			}),
+		).toMatchObject({ kind: 'waiting-for-party' });
+		expect(
+			derive({
+				kind: 'event',
+				data: { ...event, selectedChoiceKey: 'north', votes: [{ userId: 'user-2', choiceKey: 'north' }] },
+				isLoading: false,
+				hasError: false,
+			}),
+		).toMatchObject({ kind: 'choice-required' });
 	});
 
 	it('uses field and village states when there is no decision', () => {

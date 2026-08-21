@@ -21,7 +21,7 @@ export function PartyHud({ party, adventure, daily }: { party: Party; adventure:
 			<div className="party-hud-stats">
 				<div className="party-hud-stat">
 					<div className="party-hud-stat-label game-pixel-label">
-						<UsersRound className="size-4" /> Party
+						<UsersRound className="size-4" aria-hidden="true" /> Party
 					</div>
 					<strong>
 						{party.members.length} / {party.memberCapacity}
@@ -30,7 +30,7 @@ export function PartyHud({ party, adventure, daily }: { party: Party; adventure:
 				</div>
 				<div className="party-hud-stat">
 					<div className="party-hud-stat-label game-pixel-label">
-						<CalendarDays className="size-4" /> Today
+						<CalendarDays className="size-4" aria-hidden="true" /> Today
 					</div>
 					<strong>{daily ? (daily.status === 'complete' ? 'Complete' : 'In progress') : '—'}</strong>
 					<span>{daily?.worldDate ?? 'Daily signal unavailable'}</span>

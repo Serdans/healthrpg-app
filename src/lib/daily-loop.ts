@@ -171,17 +171,6 @@ function eventState(action: EventAction, userId: string): DailyLoopState {
 			...actionLink(action, 'Open the scene'),
 		};
 	}
-	if (action.data.selectedChoiceKey) {
-		return {
-			kind: 'resolved',
-			tone: 'history',
-			badge: 'Choice resolved',
-			title: 'The party’s response has been recorded.',
-			description: 'Review the field and wait for the next daily resolution.',
-			actionHref: '#party-field',
-			actionLabel: 'Review the field',
-		};
-	}
 	if (action.data.votes.some((vote) => vote.userId === userId)) {
 		return {
 			kind: 'waiting-for-party',

@@ -25,10 +25,12 @@ function OverworldMap({
 	map,
 	enterMutation,
 	readOnly = false,
+	actionHref,
 }: {
 	map: PartyMap;
 	enterMutation?: WorldMapEntryMutation;
 	readOnly?: boolean;
+	actionHref?: '#party-action';
 }) {
 	const layout = useMemo(() => createWorldMapLayout(map), [map]);
 	const [selectedNodeId, setSelectedNodeId] = useState(map.currentNodeId);
@@ -143,7 +145,7 @@ function OverworldMap({
 	if (!selectedNode) {
 		return (
 			<div className="world-map-empty" role="status">
-				<MapPin className="size-5" />
+				<MapPin className="size-5" aria-hidden="true" />
 				<span>The atlas has not revealed a trail yet.</span>
 			</div>
 		);
@@ -232,7 +234,7 @@ function OverworldMap({
 					)}
 
 					<div className="world-map-mist" aria-hidden="true">
-						<Sparkles className="size-5" />
+						<Sparkles className="size-5" aria-hidden="true" />
 						<span>Beyond the mist</span>
 					</div>
 				</div>
@@ -241,16 +243,16 @@ function OverworldMap({
 			<div className="world-map-meta">
 				<div className="world-map-legend" aria-label="Map legend">
 					<span>
-						<i className="world-map-legend-dot world-map-legend-current" /> Current
+						<i className="world-map-legend-dot world-map-legend-current" aria-hidden="true" /> Current
 					</span>
 					<span>
-						<i className="world-map-legend-dot world-map-legend-next" /> Next route
+						<i className="world-map-legend-dot world-map-legend-next" aria-hidden="true" /> Next route
 					</span>
 					<span>
-						<i className="world-map-legend-dot world-map-legend-revealed" /> Revealed
+						<i className="world-map-legend-dot world-map-legend-revealed" aria-hidden="true" /> Revealed
 					</span>
 					<span>
-						<i className="world-map-legend-dot world-map-legend-party" /> Party
+						<i className="world-map-legend-dot world-map-legend-party" aria-hidden="true" /> Party
 					</span>
 				</div>
 				<span className="world-map-scroll-hint">Scroll to explore the atlas</span>
@@ -264,13 +266,19 @@ function OverworldMap({
 				enterableLocation={enterableLocation}
 				enterMutation={enterMutation}
 				readOnly={readOnly}
+				actionHref={actionHref}
 				inspectorRef={inspectorRef}
 			/>
 		</div>
 	);
 }
 
-export function WorldMap(props: { map: PartyMap; enterMutation?: WorldMapEntryMutation; readOnly?: boolean }) {
+export function WorldMap(props: {
+	map: PartyMap;
+	enterMutation?: WorldMapEntryMutation;
+	readOnly?: boolean;
+	actionHref?: '#party-action';
+}) {
 	return (
 		<div
 			key={props.map.currentMap.id}

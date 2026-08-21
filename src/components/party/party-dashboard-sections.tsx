@@ -126,7 +126,7 @@ export function PartyActionSection({
 			: 'Read the scene and choose the response that carries the party forward.';
 
 	return (
-		<section id="party-action" className="gameplay-section" aria-labelledby="party-action-title" data-testid="party-action">
+		<section id="party-action" className="gameplay-section" aria-labelledby="party-action-title" data-testid="party-action" tabIndex={-1}>
 			<SectionHeading
 				eyebrow="Current action"
 				title={currentActionTitle}
@@ -227,6 +227,7 @@ export function PartyFieldSection({
 	villageEnabled,
 	villageQuery,
 	timeZone,
+	actionHref,
 }: {
 	partyId: string;
 	party: Party;
@@ -240,9 +241,10 @@ export function PartyFieldSection({
 	villageEnabled: boolean;
 	villageQuery: VillageQuery;
 	timeZone: string;
+	actionHref?: '#party-action';
 }) {
 	return (
-		<section id="party-field" className="gameplay-section" aria-labelledby="party-field-title">
+		<section id="party-field" className="gameplay-section" aria-labelledby="party-field-title" tabIndex={-1}>
 			<SectionHeading
 				eyebrow="Field journal"
 				title="The road ahead"
@@ -271,7 +273,7 @@ export function PartyFieldSection({
 					</div>
 				</CardHeader>
 				<CardContent>
-					<WorldMap map={map} enterMutation={enterLocationMutation} readOnly={readOnly} />
+					<WorldMap map={map} enterMutation={enterLocationMutation} readOnly={readOnly} actionHref={actionHref} />
 				</CardContent>
 			</Card>
 
@@ -338,7 +340,7 @@ export function PartyRosterSection({
 	userId: string;
 }) {
 	return (
-		<section id="party-roster" className="gameplay-section" aria-labelledby="party-roster-title">
+		<section id="party-roster" className="gameplay-section" aria-labelledby="party-roster-title" tabIndex={-1}>
 			<SectionHeading
 				eyebrow="Party manifest"
 				title="The travelers beside you"
@@ -419,7 +421,7 @@ export function PartyChronicleSection({
 	recapQuery: RecapQuery;
 }) {
 	return (
-		<section id="party-chronicle" className="gameplay-section space-y-5" aria-labelledby="party-chronicle-title">
+		<section id="party-chronicle" className="gameplay-section space-y-5" aria-labelledby="party-chronicle-title" tabIndex={-1}>
 			<SectionHeading
 				eyebrow="Chronicle"
 				title="What the trail remembers"

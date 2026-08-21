@@ -4,6 +4,7 @@ import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Progress } from '#/components/ui/progress';
 import type { DailyProgress, Encounter, Inventory, PartyItemUse } from '#/lib/api';
+import type { CombatCommandState } from '#/lib/combat-command-state';
 import { battleEnemyArtForArchetype, battlePartyArtForClass, gameplayBackgroundArt } from '#/lib/game-art';
 import type { CSSProperties } from 'react';
 import { GameplayMechanics } from './gameplay-mechanics';
@@ -30,7 +31,7 @@ export interface BattleSceneProps {
 	itemPending: boolean;
 	actionBusy: boolean;
 	actionError: Error | null;
-	actionSuccess: boolean;
+	commandState: CombatCommandState;
 	itemResult: PartyItemUse | undefined;
 	partyMemberName: (memberUserId: string) => string;
 	onActionKeyChange: (actionKey: ActionKey | null) => void;
@@ -69,6 +70,7 @@ interface BattleCommandTrayProps {
 	actionPending: boolean;
 	itemPending: boolean;
 	actionBusy: boolean;
+	commandState: CombatCommandState;
 	partyMemberName: (memberUserId: string) => string;
 	onActionKeyChange: (actionKey: ActionKey | null) => void;
 	onItemKeyChange: (itemKey: string) => void;
@@ -238,6 +240,7 @@ function BattleCommandTray({
 	actionPending,
 	itemPending,
 	actionBusy,
+	commandState,
 	partyMemberName,
 	onActionKeyChange,
 	onItemKeyChange,
@@ -268,9 +271,23 @@ function BattleCommandTray({
 			: targetMode === 'ally'
 				? 'Select an ally on the battlefield.'
 				: 'This ability needs no target.';
+	const commandStepState = 'complete';
+	const targetStepState = hasRequiredTarget ? 'complete' : 'current';
+	const saveStepState = commandState === 'saved' ? 'complete' : 'current';
 
 	return (
 		<div className="battle-command-tray" data-testid="battle-command-tray">
+			<ol className="battle-command-steps" aria-label="Battle command steps">
+				<li className={`battle-command-step-${commandStepState}`}>
+					<span>1</span> Choose command
+				</li>
+				<li className={`battle-command-step-${targetStepState}`}>
+					<span>2</span> Choose target
+				</li>
+				<li className={`battle-command-step-${saveStepState}`}>
+					<span>3</span> Save command
+				</li>
+			</ol>
 			<div className="battle-command-summary">
 				<div className="battle-command-heading">
 					<div>
@@ -411,7 +428,7 @@ export function BattleScene({
 	itemPending,
 	actionBusy,
 	actionError,
-	actionSuccess,
+	commandState,
 	itemResult,
 	partyMemberName,
 	onActionKeyChange,
@@ -422,16 +439,6 @@ export function BattleScene({
 	onSubmitAction,
 	onUseItem,
 }: BattleSceneProps) {
-	const statusState = readOnly
-		? 'readonly'
-		: encounter.status === 'completed'
-			? 'resolved'
-			: actionPending
-				? 'saving'
-				: actionSuccess
-					? 'saved'
-					: 'active';
-
 	return (
 		<section
 			className="battle-scene"
@@ -457,20 +464,24 @@ export function BattleScene({
 				</div>
 			</div>
 
-			<div className={`battle-status battle-status-${statusState}`} data-state={statusState} data-testid="battle-status" role="status">
-				{readOnly ? (
+			<div className={`battle-status battle-status-${commandState}`} data-state={commandState} data-testid="battle-status" role="status">
+				{commandState === 'readonly' ? (
 					<>
 						<Shield className="size-4" aria-hidden="true" /> This encounter is read-only because the expedition is closed.
 					</>
-				) : encounter.status === 'completed' ? (
+				) : commandState === 'resolved' ? (
 					<>
 						<Check className="size-4" aria-hidden="true" /> This encounter has resolved. Review the daily chronicle for the outcome.
 					</>
-				) : actionPending ? (
+				) : commandState === 'saving' ? (
 					<>
 						<Sparkles className="size-4" aria-hidden="true" /> Saving your command for today’s resolution…
 					</>
-				) : actionSuccess ? (
+				) : commandState === 'edited' ? (
+					<>
+						<Sparkles className="size-4" aria-hidden="true" /> Review your changes and save this command for today’s resolution.
+					</>
+				) : commandState === 'saved' ? (
 					<>
 						<Check className="size-4" aria-hidden="true" /> Your command is locked in for today’s resolution.
 					</>
@@ -484,7 +495,7 @@ export function BattleScene({
 
 			<GameplayMechanics daily={daily} currentMemberUserId={currentMember.userId} compact />
 
-			<div className={`battle-command-ribbon battle-command-ribbon-${statusState}`} aria-label="Current battle command">
+			<div className={`battle-command-ribbon battle-command-ribbon-${commandState}`} aria-label="Current battle command">
 				<span className="game-pixel-label">Commanding</span>
 				<strong>{partyMemberName(currentMember.userId)}</strong>
 				<span>
@@ -519,6 +530,7 @@ export function BattleScene({
 				actionPending={actionPending}
 				itemPending={itemPending}
 				actionBusy={actionBusy}
+				commandState={commandState}
 				partyMemberName={partyMemberName}
 				onActionKeyChange={onActionKeyChange}
 				onItemKeyChange={onItemKeyChange}

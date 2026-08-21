@@ -87,6 +87,11 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('Daily resolution');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('The trail held');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('4 points');
+	await page.locator('#party-chronicle').scrollIntoViewIfNeeded();
+	const actionStrip = page.getByTestId('daily-action-strip');
+	await expect(actionStrip).toBeVisible();
+	await actionStrip.getByRole('link', { name: 'Choose a route' }).click();
+	await expect(page.getByTestId('party-action')).toBeFocused();
 	await expect(page.getByTestId('party-member-sheet')).toContainText('Hero');
 	await expect(page.getByTestId('party-member-sheet').locator('.roster-sheet-avatar')).toBeVisible();
 	await page.locator('[data-testid="party-member"][data-member-id="user-2"]').click();
@@ -108,6 +113,10 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 	await expect(page.getByTestId('world-map-inspector')).toContainText(/Next possible route/i);
 	await nextNode.click();
 	await expect(page.getByTestId('world-map-inspector')).toBeFocused();
+	const routeBridge = page.getByTestId('world-map-route-bridge');
+	await expect(routeBridge).toContainText('Review route vote');
+	await routeBridge.getByRole('link', { name: 'Review route vote' }).click();
+	await expect(page.getByTestId('party-action')).toBeFocused();
 });
 
 test('keeps the party shell navigable on a phone-sized viewport', async ({ page }) => {
@@ -200,6 +209,9 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 			body: { actionKey: 'shield-wall', targetEnemyId: 'enemy-1', targetUserId: null },
 		});
 	await expect(page.getByTestId('battle-status')).toContainText(/command is locked in/i);
+
+	await page.getByTestId('battle-action-basic').click();
+	await expect(page.getByTestId('battle-status')).toContainText(/review your changes and save/i);
 
 	await page.getByRole('button', { name: /Use item/i }).click();
 	await expect(page.getByText(/Restored 10 health for Mira/i)).toBeVisible();

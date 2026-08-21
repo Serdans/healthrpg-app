@@ -1,6 +1,6 @@
 import { Check, Sparkles } from 'lucide-react';
 
-import { ErrorNotice, SuccessNotice } from '#/components/app-state';
+import { ErrorNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
 import type { PartyEvent } from '#/lib/api';
@@ -27,7 +27,16 @@ export function EventDecision({
 						This expedition is no longer active. The event history is available to view, but new choices are closed.
 					</p>
 				)}
-				{mutation.data && <SuccessNotice>Your event choice is saved.</SuccessNotice>}
+				{mutation.isPending && (
+					<p className="game-action-status" role="status" aria-live="polite">
+						Saving your event choice…
+					</p>
+				)}
+				{mutation.isSuccess && (
+					<p className="game-action-status game-action-status-success" role="status" aria-live="polite">
+						Your event choice is saved. The scene will resolve with the party’s daily outcome.
+					</p>
+				)}
 			</CardHeader>
 			<CardContent className="grid gap-3 sm:grid-cols-2">
 				{event.choices.map((choice) => {
@@ -37,15 +46,17 @@ export function EventDecision({
 						<button
 							key={choice.key}
 							type="button"
-							className="choice-card rounded-2xl p-5 text-left"
+							className="choice-card game-choice-card p-5 text-left"
 							data-selected={selected}
+							data-choice-state={mutation.isPending ? 'pending' : selected ? 'selected' : 'available'}
 							aria-pressed={selected}
+							aria-busy={mutation.isPending}
 							disabled={readOnly || mutation.isPending}
 							onClick={() => mutation.mutate(choice.key)}
 						>
 							<div className="flex items-start justify-between gap-3">
-								<Sparkles className="size-5 text-[var(--gold)]" />
-								{selected && <Check className="size-5 text-[var(--amethyst)]" />}
+								<Sparkles className="size-5 text-[var(--gold)]" aria-hidden="true" />
+								{selected && <Check className="size-5 text-[var(--amethyst)]" aria-hidden="true" />}
 							</div>
 							<p className="mt-5 text-lg font-extrabold text-[var(--indigo)]">{choice.displayName}</p>
 							<p className="mt-2 text-sm leading-6 text-[var(--ink-soft)]">{choice.description}</p>
@@ -60,7 +71,7 @@ export function EventDecision({
 				})}
 			</CardContent>
 			{mutation.isError && (
-				<div className="px-7 pb-7">
+				<div className="game-action-error px-7 pb-7">
 					<ErrorNotice error={mutation.error} message={mutation.error.message} />
 				</div>
 			)}

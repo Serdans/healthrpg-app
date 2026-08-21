@@ -1,9 +1,10 @@
 import type { RefObject } from 'react';
-import { DoorOpen } from 'lucide-react';
+import { ArrowRight, DoorOpen } from 'lucide-react';
 
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import type { PartyMap } from '#/lib/api';
+import { focusGameplaySection, isModifiedNavigation } from '#/lib/gameplay-navigation';
 import type { WorldMapLayoutNode } from '#/lib/world-map';
 
 export interface WorldMapEntryMutation {
@@ -40,6 +41,7 @@ export function WorldMapInspector({
 	enterableLocation,
 	enterMutation,
 	readOnly,
+	actionHref,
 	inspectorRef,
 }: {
 	map: PartyMap;
@@ -49,6 +51,7 @@ export function WorldMapInspector({
 	enterableLocation: NonNullable<PartyMap['enterableLocation']> | null;
 	enterMutation?: WorldMapEntryMutation;
 	readOnly: boolean;
+	actionHref?: '#party-action';
 	inspectorRef: RefObject<HTMLDivElement | null>;
 }) {
 	return (
@@ -85,16 +88,32 @@ export function WorldMapInspector({
 				<span>
 					{map.currentMap.name} · {readableRole(selectedNode.node.mapMetadata.role)}
 				</span>
+				{actionHref && selectedNode.state === 'next' && selectedEdge && (
+					<div className="world-map-route-bridge" data-testid="world-map-route-bridge">
+						<div>
+							<span className="game-pixel-label">Next decision</span>
+							<strong>Review this route with the party</strong>
+						</div>
+						<a
+							href={actionHref}
+							onClick={(event) => {
+								if (!isModifiedNavigation(event)) focusGameplaySection(actionHref.slice(1));
+							}}
+						>
+							Review route vote <ArrowRight className="size-4" aria-hidden="true" />
+						</a>
+					</div>
+				)}
 				{canEnterSelectedLocation && enterableLocation && enterMutation && (
 					<div
-						className="mt-2 w-full rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] p-3"
+						className="game-inset game-inset-gold mt-2 w-full p-3"
 						data-testid="world-map-location-entry"
 						data-entry-state={enterMutation.isPending ? 'opening' : enterMutation.error ? 'error' : 'ready'}
 						aria-live="polite"
 						aria-busy={enterMutation.isPending}
 					>
 						<div className="flex items-start gap-3">
-							<DoorOpen className="mt-0.5 size-5 shrink-0 text-[var(--gold-deep)]" />
+							<DoorOpen className="mt-0.5 size-5 shrink-0 text-[var(--gold-deep)]" aria-hidden="true" />
 							<div>
 								<p className="font-extrabold text-[var(--indigo)]">{enterableLocation.name}</p>
 								<p className="mt-1 text-xs leading-5 text-[var(--ink-soft)]">
@@ -108,7 +127,7 @@ export function WorldMapInspector({
 							disabled={readOnly || enterMutation.isPending}
 							onClick={() => enterMutation.mutate(enterableLocation.id)}
 						>
-							<DoorOpen className="size-4" />
+							<DoorOpen className="size-4" aria-hidden="true" />
 							{enterMutation.isPending ? 'Opening the map…' : `Enter ${enterableLocation.name}`}
 						</Button>
 						{enterMutation.error && (

@@ -44,14 +44,14 @@ export function AdventurePanel({
 						<CardTitle className="mt-3 text-3xl">{adventure.land.displayName}</CardTitle>
 						<CardDescription>{adventure.land.description}</CardDescription>
 					</div>
-					<Compass className="size-6 shrink-0 text-[var(--gold)]" />
+					<Compass className="size-6 shrink-0 text-[var(--gold)]" aria-hidden="true" />
 				</div>
 			</CardHeader>
 			<CardContent>
 				{adventure.currentObjective ? (
-					<div className="rounded-2xl border border-[var(--gold-line)] bg-[var(--gold-wash)] p-4">
+					<div className="game-inset game-inset-gold p-4">
 						<div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.13em] text-[var(--gold-deep)]">
-							<Sparkles className="size-4" /> Current objective
+							<Sparkles className="size-4" aria-hidden="true" /> Current objective
 						</div>
 						<h3 className="mt-2 text-lg font-extrabold text-[var(--indigo)]">{adventure.currentObjective.displayName}</h3>
 						<p className="mt-1 text-sm leading-6 text-[var(--ink-soft)]">{adventure.currentObjective.description}</p>
@@ -68,7 +68,7 @@ export function AdventurePanel({
 						</div>
 						<div className="space-y-2">
 							{adventure.history.slice(0, 4).map((item) => (
-								<div key={item.nodeId} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-3">
+								<div key={item.nodeId} className="game-inset game-inset-muted p-3">
 									<div className="flex flex-wrap items-center justify-between gap-2">
 										<p className="font-extrabold text-[var(--indigo)]">{item.displayName}</p>
 										<time className="text-xs text-[var(--ink-faint)]">{formatDateTime(item.completedAt, timeZone)}</time>

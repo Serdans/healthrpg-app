@@ -68,6 +68,7 @@ export function WorldMapNode({
 			style={{ left: `${item.x}px`, top: `${item.y}px` }}
 			aria-label={`${item.node.name}, ${stateLabel(item.state)}, ${readableType(item.node.nodeType)}`}
 			aria-pressed={selected}
+			aria-current={item.state === 'current' ? 'location' : undefined}
 			data-node-id={item.node.id}
 			data-node-state={item.state}
 			onClick={(event) => onSelect(item.node.id, event.detail > 0)}

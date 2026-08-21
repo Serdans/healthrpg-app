@@ -2,16 +2,11 @@ import { Clock3, Sparkles } from 'lucide-react';
 
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
-import { Progress } from '#/components/ui/progress';
 import type { DailyProgress, PartyRoster } from '#/lib/api';
 
 function memberName(member: DailyProgress['members'][number], roster?: PartyRoster) {
 	const rosterMember = roster?.members.find((candidate) => candidate.userId === member.userId);
 	return rosterMember?.character?.name ?? rosterMember?.displayName ?? 'Traveler';
-}
-
-function readinessPercent(value: number, cost: number) {
-	return cost > 0 ? Math.min(100, (value / cost) * 100) : 100;
 }
 
 export function DailyStatus({ daily, roster }: { daily: DailyProgress; roster?: PartyRoster }) {
@@ -50,7 +45,7 @@ export function DailyStatus({ daily, roster }: { daily: DailyProgress; roster?: 
 					<div className="daily-readiness-heading">
 						<div>
 							<p className="game-pixel-label">Traveler readiness</p>
-							<p>Momentum is shown per traveler so the party can see who is ready to act.</p>
+							<p>Momentum is shown per traveler; the Journey requirement is calculated for the party as a whole.</p>
 						</div>
 						<Sparkles className="size-4" aria-hidden="true" />
 					</div>
@@ -58,13 +53,13 @@ export function DailyStatus({ daily, roster }: { daily: DailyProgress; roster?: 
 						<ul className="daily-readiness-list" aria-label="Daily traveler readiness">
 							{daily.members.map((member) => {
 								const name = memberName(member, roster);
-								const ready = daily.movementCost === 0 || member.movementUnits >= daily.movementCost;
+								const contributes = member.movementUnits > 0;
 								return (
 									<li className="daily-readiness-row" key={member.userId} data-testid="daily-readiness-member">
 										<div className="daily-readiness-row-header">
 											<div>
 												<strong>{name}</strong>
-												<span>{ready ? 'Ready for today’s Journey' : 'Gathering Momentum'}</span>
+												<span>{contributes ? 'Contributing Momentum' : 'No Momentum recorded'}</span>
 											</div>
 											<Badge className={member.status === 'complete' ? 'daily-readiness-badge-complete' : ''}>{member.status}</Badge>
 										</div>
@@ -78,10 +73,6 @@ export function DailyStatus({ daily, roster }: { daily: DailyProgress; roster?: 
 												<strong>{member.recoveryPoints}</strong> Recovery
 											</span>
 										</div>
-										<Progress
-											value={readinessPercent(member.movementUnits, daily.movementCost)}
-											aria-label={`${name} Momentum readiness`}
-										/>
 									</li>
 								);
 							})}

@@ -57,7 +57,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 								<button
 									type="button"
 									data-testid="party-member"
-									className="w-full rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--gold-line)] hover:bg-[var(--gold-wash)]"
+									className="game-inset game-inset-muted w-full p-3 text-left transition hover:-translate-y-0.5 hover:border-[var(--gold-line)] hover:bg-[var(--gold-wash)]"
 									data-selected={selected}
 									data-member-id={member.userId}
 									aria-pressed={selected}
@@ -89,7 +89,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 										{member.role === 'leader' ? (
 											<Badge>Leader</Badge>
 										) : (
-											<Shield className="size-4 text-[var(--teal-deep)]" aria-label="Party member" />
+											<Shield className="size-4 text-[var(--teal-deep)]" aria-hidden="true" />
 										)}
 									</div>
 									<div className="mt-3 flex items-center justify-between gap-2 text-[0.65rem] font-bold text-[var(--ink-soft)]">
@@ -109,7 +109,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 
 				{selectedMember ? (
 					<article
-						className="rounded-2xl border border-[var(--gold-line)] bg-[var(--gold-wash)] p-4 sm:p-5"
+						className="game-inset game-inset-gold p-4 sm:p-5"
 						data-testid="party-member-sheet"
 						id="party-member-sheet"
 						aria-labelledby="party-member-sheet-heading"
@@ -151,7 +151,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 						{selectedMember.character ? (
 							<>
 								<div className="mt-5 grid gap-3 sm:grid-cols-2">
-									<div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
+									<div className="game-inset game-inset-muted p-3">
 										<div className="flex items-center justify-between gap-3">
 											<span className="game-pixel-label text-[var(--ink-soft)]">Health</span>
 											<HeartPulse className="size-4 text-[var(--teal-deep)]" aria-hidden="true" />
@@ -169,7 +169,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 											<p className="mt-2 text-xs text-[var(--ink-soft)]">No combat health recorded yet.</p>
 										)}
 									</div>
-									<div className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
+									<div className="game-inset game-inset-muted p-3">
 										<div className="flex items-center justify-between gap-3">
 											<span className="game-pixel-label text-[var(--ink-soft)]">Progression</span>
 											<Sparkles className="size-4 text-[var(--gold-deep)]" aria-hidden="true" />
@@ -188,7 +188,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 
 								<div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
 									{statLabels.map(([key, label]) => (
-										<div key={key} className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3 text-center">
+										<div key={key} className="game-inset game-inset-muted p-3 text-center">
 											<p className="game-pixel-label text-[var(--ink-soft)]">{label}</p>
 											<p className="display-title mt-2 text-2xl text-[var(--indigo)]">{selectedMember.character?.stats[key]}</p>
 										</div>
@@ -196,15 +196,13 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 								</div>
 							</>
 						) : (
-							<p className="mt-6 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 text-sm leading-6 text-[var(--ink-soft)]">
+							<p className="game-inset game-inset-muted mt-6 p-4 text-sm leading-6 text-[var(--ink-soft)]">
 								This traveler has joined the party, but their character sheet is not available yet.
 							</p>
 						)}
 					</article>
 				) : (
-					<p className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 text-sm text-[var(--ink-soft)]">
-						No travelers are currently on this trail.
-					</p>
+					<p className="game-inset game-inset-muted p-4 text-sm text-[var(--ink-soft)]">No travelers are currently on this trail.</p>
 				)}
 			</CardContent>
 		</Card>

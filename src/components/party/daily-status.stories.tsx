@@ -96,6 +96,16 @@ export const WithoutChallenge: Story = {
 	},
 };
 
+export const NoMomentum: Story = {
+	args: {
+		daily: {
+			...provisional,
+			movementUnits: 0,
+			members: provisional.members.map((member) => ({ ...member, movementUnits: 0 })),
+		},
+	},
+};
+
 export const WithoutRoster: Story = {
 	args: { roster: undefined },
 };

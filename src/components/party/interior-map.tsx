@@ -165,7 +165,7 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 	if (!selectedNode) {
 		return (
 			<div className="world-map-empty" role="status">
-				<MapPin className="size-5" />
+				<MapPin className="size-5" aria-hidden="true" />
 				<span>The interior map has not revealed a room yet.</span>
 			</div>
 		);
@@ -245,6 +245,7 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 								style={{ left: `${item.x}px`, top: `${item.y}px` }}
 								aria-label={`${item.node.name}, ${stateLabel(item.state)}, ${readableRole(item.node.mapMetadata.role)}, ${floorLabel(map.currentMap.mapType, item.floorNo)}`}
 								aria-pressed={selected}
+								aria-current={item.state === 'current' ? 'location' : undefined}
 								data-node-id={item.node.id}
 								data-node-state={item.state}
 								onClick={(event) => selectNode(item.node.id, event.detail > 0)}
@@ -292,16 +293,16 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 			<div className="interior-map-meta">
 				<div className="interior-map-legend" aria-label="Interior map legend">
 					<span>
-						<i className="interior-map-legend-dot interior-map-legend-current" /> Current
+						<i className="interior-map-legend-dot interior-map-legend-current" aria-hidden="true" /> Current
 					</span>
 					<span>
-						<i className="interior-map-legend-dot interior-map-legend-next" /> Next room
+						<i className="interior-map-legend-dot interior-map-legend-next" aria-hidden="true" /> Next room
 					</span>
 					<span>
-						<i className="interior-map-legend-dot interior-map-legend-revealed" /> Revealed
+						<i className="interior-map-legend-dot interior-map-legend-revealed" aria-hidden="true" /> Revealed
 					</span>
 					<span>
-						<i className="interior-map-legend-dot interior-map-legend-party" /> Party
+						<i className="interior-map-legend-dot interior-map-legend-party" aria-hidden="true" /> Party
 					</span>
 				</div>
 				<span className="interior-map-scroll-hint">Choose a room when the daily route resolves</span>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
 import type { DailyProgress, Encounter, Inventory, Party, PartyItemUse } from '#/lib/api';
+import { combatCommandState } from '#/lib/combat-command-state';
 
 import { BattleScene } from './battle-scene';
 
@@ -133,6 +134,7 @@ interface BattlePreviewProps {
 	initialActionTargetUserId?: string;
 	initialItemTargetUserId?: string;
 	initialActionSaved?: boolean;
+	initialCommandDirty?: boolean;
 	readOnly?: boolean;
 	usableItems?: Inventory['items'];
 	actionErrorMessage?: string;
@@ -145,6 +147,7 @@ function BattlePreview({
 	initialActionTargetUserId,
 	initialItemTargetUserId,
 	initialActionSaved = false,
+	initialCommandDirty = false,
 	readOnly = false,
 	usableItems = inventory.items,
 	actionErrorMessage,
@@ -156,6 +159,7 @@ function BattlePreview({
 	const [itemTargetUserId, setItemTargetUserId] = useState(initialItemTargetUserId ?? userId);
 	const [itemKey, setItemKey] = useState('');
 	const [actionSaved, setActionSaved] = useState(initialActionSaved);
+	const [commandDirty, setCommandDirty] = useState(initialCommandDirty);
 	const [itemResult, setItemResult] = useState<PartyItemUse>();
 	const selectedAction = actionKey ? currentMember.signatureAction : null;
 	const targetMode = selectedAction?.targetMode ?? 'enemy';
@@ -181,18 +185,34 @@ function BattlePreview({
 				itemPending={false}
 				actionBusy={false}
 				actionError={actionErrorMessage ? new Error(actionErrorMessage) : null}
-				actionSuccess={actionSaved}
+				commandState={combatCommandState({
+					readOnly,
+					encounterCompleted: encounter.status === 'completed',
+					actionPending: false,
+					actionSuccess: actionSaved,
+					commandDirty,
+				})}
 				itemResult={itemResult}
 				partyMemberName={(memberUserId) => party.members.find((member) => member.userId === memberUserId)?.displayName ?? 'Traveler'}
 				onActionKeyChange={(nextActionKey) => {
 					setActionKey(nextActionKey);
 					setActionSaved(false);
+					setCommandDirty(true);
 				}}
-				onEnemySelect={setTargetEnemyId}
-				onAllySelect={setActionTargetUserId}
+				onEnemySelect={(enemyId) => {
+					setTargetEnemyId(enemyId);
+					setCommandDirty(true);
+				}}
+				onAllySelect={(memberUserId) => {
+					setActionTargetUserId(memberUserId);
+					setCommandDirty(true);
+				}}
 				onItemKeyChange={setItemKey}
 				onItemTargetChange={setItemTargetUserId}
-				onSubmitAction={() => setActionSaved(true)}
+				onSubmitAction={() => {
+					setActionSaved(true);
+					setCommandDirty(false);
+				}}
 				onUseItem={() =>
 					setItemResult({
 						itemKey: itemKey || usableItems[0]?.key || inventory.items[0].key,
@@ -240,6 +260,10 @@ export const WithoutFieldKit: Story = {
 
 export const SavedCommand: Story = {
 	render: () => <BattlePreview initialActionKey="shield-wall" initialActionSaved />,
+};
+
+export const EditedCommand: Story = {
+	render: () => <BattlePreview initialActionKey="shield-wall" initialActionSaved initialCommandDirty />,
 };
 
 export const CommandError: Story = {

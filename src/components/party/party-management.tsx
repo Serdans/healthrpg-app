@@ -133,13 +133,13 @@ export function PartyManagement({
 						<Badge>Party management</Badge>
 						<CardTitle className="mt-3 text-2xl">Keep the expedition together</CardTitle>
 					</div>
-					<UsersRound className="size-5 text-[var(--amethyst)]" />
+					<UsersRound className="size-5 text-[var(--amethyst)]" aria-hidden="true" />
 				</div>
 				<CardDescription>Invite trusted travelers, choose a leader, or leave the trail when your run is complete.</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-5">
 				{readOnly && (
-					<p role="status" className="rounded-xl bg-[var(--surface)] p-3 text-sm font-bold text-[var(--ink-soft)]">
+					<p role="status" className="game-inset game-inset-muted p-3 text-sm font-bold text-[var(--ink-soft)]">
 						This expedition is abandoned. Party management is read-only.
 					</p>
 				)}
@@ -147,14 +147,14 @@ export function PartyManagement({
 				{copyError && <ErrorNotice message="Could not copy the invite token. Select the token and copy it manually." />}
 				{status && <SuccessNotice>{status}</SuccessNotice>}
 
-				<div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--gold-line)] bg-[var(--gold-wash)] p-4">
+				<div className="game-inset game-inset-gold flex flex-wrap items-center justify-between gap-3 p-4">
 					<div>
 						<p className="font-extrabold text-[var(--indigo)]">Invite a traveler</p>
 						<p className="mt-1 text-sm text-[var(--ink-soft)]">The token is visible once and expires on the server’s schedule.</p>
 					</div>
 					{isLeader ? (
 						<Button game variant="secondary" disabled={managementBusy} onClick={createInvite}>
-							<Send className="size-4" /> {createInviteMutation.isPending ? 'Creating…' : 'Create invite'}
+							<Send className="size-4" aria-hidden="true" /> {createInviteMutation.isPending ? 'Creating…' : 'Create invite'}
 						</Button>
 					) : (
 						<Badge>Leader only</Badge>
@@ -162,7 +162,7 @@ export function PartyManagement({
 				</div>
 
 				{currentInvite && (
-					<div className="rounded-2xl border border-[var(--gold-line)] bg-[var(--surface)] p-4">
+					<div className="game-inset game-inset-muted p-4">
 						<div className="flex flex-wrap items-center justify-between gap-2">
 							<div>
 								<p className="eyebrow">Fresh invite token</p>
@@ -180,12 +180,12 @@ export function PartyManagement({
 						</div>
 						<button
 							type="button"
-							className="mt-3 flex w-full items-center justify-between gap-3 rounded-xl border border-[var(--gold-line)] bg-[var(--gold-wash)] p-3 text-left hover:brightness-[0.98]"
+							className="game-inset game-inset-gold mt-3 flex w-full items-center justify-between gap-3 p-3 text-left hover:brightness-[0.98]"
 							onClick={copyInvite}
 						>
 							<span className="min-w-0 truncate font-mono text-xs text-[var(--gold-deep)]">{currentInvite.token}</span>
 							<span className="flex shrink-0 items-center gap-1 text-xs font-extrabold text-[var(--gold-deep)]">
-								{copied ? 'Copied' : 'Copy'} <Copy className="size-3.5" />
+								{copied ? 'Copied' : 'Copy'} <Copy className="size-3.5" aria-hidden="true" />
 							</span>
 						</button>
 					</div>
@@ -199,13 +199,14 @@ export function PartyManagement({
 					{party.members.map((member) => {
 						const isCurrentUser = member.userId === userId;
 						return (
-							<div
-								key={member.userId}
-								className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4"
-							>
+							<div key={member.userId} className="game-inset game-inset-muted flex flex-wrap items-center justify-between gap-3 p-4">
 								<div className="flex items-center gap-3">
 									<span className="grid size-9 place-items-center rounded-xl bg-[var(--indigo)] text-[var(--gold)]">
-										{member.role === 'leader' ? <Crown className="size-4" /> : <UsersRound className="size-4" />}
+										{member.role === 'leader' ? (
+											<Crown className="size-4" aria-hidden="true" />
+										) : (
+											<UsersRound className="size-4" aria-hidden="true" />
+										)}
 									</span>
 									<div>
 										<p className="font-extrabold text-[var(--indigo)]">
@@ -224,7 +225,7 @@ export function PartyManagement({
 											disabled={managementBusy}
 											onClick={() => setConfirmation({ action: 'kick', memberUserId: member.userId, displayName: member.displayName })}
 										>
-											<UserMinus className="size-4" /> Remove
+											<UserMinus className="size-4" aria-hidden="true" /> Remove
 										</Button>
 										<Button
 											game
@@ -233,7 +234,7 @@ export function PartyManagement({
 											disabled={managementBusy}
 											onClick={() => setConfirmation({ action: 'transfer', memberUserId: member.userId, displayName: member.displayName })}
 										>
-											<Crown className="size-4" /> Make leader
+											<Crown className="size-4" aria-hidden="true" /> Make leader
 										</Button>
 									</div>
 								)}
@@ -247,7 +248,7 @@ export function PartyManagement({
 						Leaving removes you from this expedition. The rest of the party keeps its trail.
 					</p>
 					<Button game variant="danger" disabled={readOnly || managementBusy} onClick={() => setConfirmation({ action: 'leave' })}>
-						<LogOut className="size-4" /> {leaveMutation.isPending ? 'Leaving…' : 'Leave party'}
+						<LogOut className="size-4" aria-hidden="true" /> {leaveMutation.isPending ? 'Leaving…' : 'Leave party'}
 					</Button>
 				</div>
 				<ConfirmActionDialog
