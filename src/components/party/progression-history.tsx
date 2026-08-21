@@ -21,7 +21,7 @@ function rewardSummary(reward: PartyProgression['items'][number]['reward']) {
 	return rewards.length > 0 ? rewards.join(' · ') : 'Progress recorded';
 }
 
-export function ProgressionHistory({ partyId }: { partyId: string }) {
+export function ProgressionHistory({ partyId, timeZone }: { partyId: string; timeZone: string }) {
 	const [cursor, setCursor] = useState<string>();
 	const [items, setItems] = useState<PartyProgression['items']>([]);
 	const progressionQuery = usePartyProgression(partyId, cursor);
@@ -79,7 +79,7 @@ export function ProgressionHistory({ partyId }: { partyId: string }) {
 								<div className="min-w-0 flex-1">
 									<div className="flex flex-wrap items-center justify-between gap-2">
 										<p className="font-extrabold text-[var(--indigo)]">{item.nodeName}</p>
-										<time className="text-xs text-[var(--ink-faint)]">{formatDateTime(item.createdAt)}</time>
+										<time className="text-xs text-[var(--ink-faint)]">{formatDateTime(item.createdAt, timeZone)}</time>
 									</div>
 									<p className="mt-1 text-sm text-[var(--ink-soft)]">{rewardSummary(item.reward)}</p>
 								</div>

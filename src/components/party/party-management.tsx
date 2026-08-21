@@ -23,11 +23,13 @@ export function PartyManagement({
 	partyId,
 	party,
 	userId,
+	timeZone,
 	readOnly = false,
 }: {
 	partyId: string;
 	party: Party;
 	userId: string;
+	timeZone: string;
 	readOnly?: boolean;
 }) {
 	const navigate = useNavigate();
@@ -164,7 +166,7 @@ export function PartyManagement({
 						<div className="flex flex-wrap items-center justify-between gap-2">
 							<div>
 								<p className="eyebrow">Fresh invite token</p>
-								<p className="mt-1 text-xs text-[var(--ink-soft)]">Expires {formatDateTime(currentInvite.expiresAt)}</p>
+								<p className="mt-1 text-xs text-[var(--ink-soft)]">Expires {formatDateTime(currentInvite.expiresAt, timeZone)}</p>
 							</div>
 							<Button
 								variant="ghost"

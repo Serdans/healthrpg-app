@@ -14,6 +14,7 @@ export function BranchDecision({
 	mutation,
 	userId,
 	memberCount,
+	timeZone,
 	readOnly = false,
 }: {
 	map: PartyMap;
@@ -22,6 +23,7 @@ export function BranchDecision({
 	mutation: ReturnType<typeof useCastVote>;
 	userId: string;
 	memberCount: number;
+	timeZone: string;
 	readOnly?: boolean;
 }) {
 	const targetName = new Map(map.nodes.map((node) => [node.id, node.name]));
@@ -45,7 +47,7 @@ export function BranchDecision({
 						</p>
 						{votes && (
 							<p className="mt-1">
-								{resolved ? 'Resolved' : `${formatTimeRemaining(votes.deadlineAt)} · closes ${formatDateTime(votes.deadlineAt)}`}
+								{resolved ? 'Resolved' : `${formatTimeRemaining(votes.deadlineAt)} · closes ${formatDateTime(votes.deadlineAt, timeZone)}`}
 							</p>
 						)}
 					</div>

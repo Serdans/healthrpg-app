@@ -220,6 +220,7 @@ function PartyDashboard() {
 						partyId={partyId}
 						village={villageQuery.data}
 						departureOpen={Boolean(party.decisionStartedAt)}
+						timeZone={user.timezone}
 						readOnly={readOnly}
 					/>
 				</section>
@@ -274,6 +275,7 @@ function PartyDashboard() {
 							mutation={castVoteMutation}
 							userId={user.id}
 							memberCount={party.members.length}
+							timeZone={user.timezone}
 							readOnly={readOnly}
 						/>
 					)}
@@ -294,8 +296,8 @@ function PartyDashboard() {
 			)}
 
 			<div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-				<ProgressionHistory partyId={partyId} />
-				<PartyManagement partyId={partyId} party={party} userId={user.id} readOnly={readOnly} />
+				<ProgressionHistory partyId={partyId} timeZone={user.timezone} />
+				<PartyManagement partyId={partyId} party={party} userId={user.id} timeZone={user.timezone} readOnly={readOnly} />
 			</div>
 		</div>
 	);

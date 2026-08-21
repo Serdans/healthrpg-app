@@ -1,9 +1,14 @@
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ArrowRight, HeartPulse, Map, Sparkles, UsersRound } from 'lucide-react';
+import { z } from 'zod';
 
+import { ErrorNotice } from '#/components/app-state';
 import { getSession } from '#/lib/session';
 
+const landingSearchSchema = z.object({ error: z.literal('oauth_failed').optional() });
+
 export const Route = createFileRoute('/')({
+	validateSearch: landingSearchSchema,
 	beforeLoad: async () => {
 		const session = await getSession();
 		if (session.user) throw redirect({ to: '/app' });
@@ -13,6 +18,8 @@ export const Route = createFileRoute('/')({
 });
 
 function LandingPage() {
+	const { error } = Route.useSearch();
+
 	return (
 		<main className="min-h-screen pb-16">
 			<header className="page-wrap flex items-center justify-between py-7">
@@ -29,6 +36,29 @@ function LandingPage() {
 					Early expedition build
 				</span>
 			</header>
+
+			{error === 'oauth_failed' && (
+				<div className="page-wrap pt-2">
+					<ErrorNotice
+						message="Google sign-in did not complete. Please try again."
+						action={
+							<div className="flex flex-wrap items-center gap-3">
+								<Link
+									to="/auth/google/start"
+									reloadDocument
+									preload={false}
+									className="font-extrabold text-[var(--danger)] underline underline-offset-2"
+								>
+									Try Google sign-in again
+								</Link>
+								<Link to="/" reloadDocument preload={false} className="font-extrabold text-[var(--danger)] underline underline-offset-2">
+									Dismiss notification
+								</Link>
+							</div>
+						}
+					/>
+				</div>
+			)}
 
 			<section className="page-wrap grid items-center gap-12 pb-12 pt-9 lg:grid-cols-[1.05fr_0.95fr] lg:pt-20">
 				<div>

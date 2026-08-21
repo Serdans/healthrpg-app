@@ -58,18 +58,21 @@ pnpm api:generate
 ```
 
 The generated client is `src/api/generated.ts`; it should not be edited by hand.
+Regenerate it only after the backend contract is stable; while backend endpoint
+changes are in flight, the UI intentionally remains on the last compatible
+generated contract.
 
 ## Checks and production build
 
 ```bash
-pnpm typecheck
-pnpm lint
-pnpm doctor
-pnpm check
-pnpm test
-pnpm build
+pnpm verify
+pnpm test:e2e
 pnpm start
 ```
+
+`pnpm verify` runs formatting, ESLint, TypeScript, React Doctor, unit tests,
+and the production build. Playwright uses the local mock backend and remains a
+separate check.
 
 Nitro emits the production server to `.output/server/index.mjs`. Set
 `API_BASE_URL` and `APP_ORIGIN` in the hosting environment rather than

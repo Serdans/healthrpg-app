@@ -28,6 +28,18 @@ test('renders the public landing page', async ({ page }) => {
 	await expect(page.getByRole('link', { name: /Continue with Google/i })).toBeVisible();
 });
 
+test('explains a failed Google sign-in and can dismiss the notice', async ({ page }) => {
+	await page.goto('/?error=oauth_failed');
+
+	const alert = page.getByRole('alert');
+	await expect(alert).toContainText(/Google sign-in did not complete/i);
+	await expect(alert.getByRole('link', { name: /Try Google sign-in again/i })).toBeVisible();
+
+	await alert.getByRole('link', { name: 'Dismiss notification' }).click();
+	await expect(page).toHaveURL(/\/$/);
+	await expect(page.getByRole('alert')).not.toBeVisible();
+});
+
 test('uses an accessible confirmation dialog for consequential party actions', async ({ page, request }) => {
 	await authenticate(page);
 	await page.goto('/parties/party-1');

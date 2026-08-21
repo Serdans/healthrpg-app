@@ -1,6 +1,15 @@
+export function isIanaTimezone(value: string) {
+	try {
+		Intl.DateTimeFormat('en-US', { timeZone: value }).format();
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 export function localDateForTimezone(timezone: string, date = new Date()) {
 	try {
-		const parts = new Intl.DateTimeFormat('en-CA', {
+		const parts = Intl.DateTimeFormat('en-CA', {
 			timeZone: timezone,
 			year: 'numeric',
 			month: '2-digit',
@@ -13,10 +22,44 @@ export function localDateForTimezone(timezone: string, date = new Date()) {
 	}
 }
 
-export function formatDateTime(value: string | null) {
+export function formatDateTime(value: string | null, timezone = 'UTC') {
 	if (!value) return 'Not yet';
 	const date = new Date(value);
-	return Number.isNaN(date.valueOf()) ? 'Unknown' : date.toLocaleString();
+	if (Number.isNaN(date.valueOf())) return 'Unknown';
+
+	const effectiveTimezone = isIanaTimezone(timezone) ? timezone : 'UTC';
+	return date.toLocaleString(undefined, {
+		year: 'numeric',
+		month: 'short',
+		day: 'numeric',
+		hour: 'numeric',
+		minute: '2-digit',
+		timeZone: effectiveTimezone,
+		timeZoneName: 'short',
+	});
+}
+
+let cachedBrowserTimezone: string | null = null;
+
+export function getBrowserTimezone() {
+	if (cachedBrowserTimezone) return cachedBrowserTimezone;
+
+	try {
+		const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+		cachedBrowserTimezone = timezone && isIanaTimezone(timezone) ? timezone : 'UTC';
+	} catch {
+		cachedBrowserTimezone = 'UTC';
+	}
+	return cachedBrowserTimezone;
+}
+
+export function getTimezoneSuggestions(currentTimezone?: string, browserTimezone?: string) {
+	const supportedTimezones = typeof Intl.supportedValuesOf === 'function' ? Intl.supportedValuesOf('timeZone') : [];
+	const requestedTimezones = [currentTimezone, browserTimezone, 'UTC'].filter((value): value is string => {
+		if (!value) return false;
+		return isIanaTimezone(value);
+	});
+	return [...new Set([...requestedTimezones, ...supportedTimezones])].sort((left, right) => left.localeCompare(right));
 }
 
 export function formatTimeRemaining(value: string | null, now = new Date()) {

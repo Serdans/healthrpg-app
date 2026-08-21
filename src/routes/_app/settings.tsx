@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { Check, Cloud, RefreshCw, Settings2 } from 'lucide-react';
@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/com
 import { FieldError } from '#/components/ui/field-error';
 import { Input } from '#/components/ui/input';
 import { Label } from '#/components/ui/label';
-import { formatDateTime } from '#/lib/dates';
+import { formatDateTime, getBrowserTimezone, getTimezoneSuggestions } from '#/lib/dates';
 import { useHealthStatus, useMe, useSyncHealth, useUpdatePreferences } from '#/lib/queries';
 import { timezoneFormSchema, timezoneSchema } from '#/lib/validation';
 
@@ -18,6 +18,9 @@ export const Route = createFileRoute('/_app/settings')({
 	head: () => ({ meta: [{ title: 'Settings · HealthRPG' }] }),
 	component: SettingsPage,
 });
+
+const subscribeToBrowserTimezone = () => () => {};
+const getServerTimezone = () => 'UTC';
 
 function SettingsPage() {
 	const meQuery = useMe();
@@ -27,6 +30,11 @@ function SettingsPage() {
 	const syncMutation = useSyncHealth();
 	const preferencesMutation = useUpdatePreferences();
 	const [saved, setSaved] = useState(false);
+	const browserTimezone = useSyncExternalStore(subscribeToBrowserTimezone, getBrowserTimezone, getServerTimezone);
+	const timezoneSuggestions = useMemo(
+		() => getTimezoneSuggestions(meQuery.data?.timezone, browserTimezone),
+		[meQuery.data?.timezone, browserTimezone],
+	);
 	const preferencesForm = useForm({
 		defaultValues: { timezone: 'UTC' },
 		validators: { onSubmit: timezoneFormSchema },
@@ -137,7 +145,7 @@ function SettingsPage() {
 						<div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 text-sm text-[var(--ink-soft)]">
 							<p className="font-bold text-[var(--indigo)]">Last sync</p>
 							<div className="mt-1 flex flex-wrap items-center justify-between gap-2">
-								<p>{formatDateTime(health.lastSyncAt)}</p>
+								<p>{formatDateTime(health.lastSyncAt, meQuery.data.timezone)}</p>
 								<button
 									type="button"
 									className="text-xs font-extrabold text-[var(--gold-deep)] underline"
@@ -206,10 +214,11 @@ function SettingsPage() {
 											<Label htmlFor="timezone">Timezone</Label>
 											<Input
 												id="timezone"
+												list="timezone-suggestions"
 												value={field.state.value}
 												maxLength={64}
 												aria-invalid={hasError}
-												aria-describedby={hasError ? errorId : undefined}
+												aria-describedby={hasError ? `${errorId} timezone-help` : 'timezone-help'}
 												onBlur={field.handleBlur}
 												onChange={(event) => {
 													setSaved(false);
@@ -217,6 +226,30 @@ function SettingsPage() {
 													field.handleChange(event.target.value);
 												}}
 											/>
+											<datalist id="timezone-suggestions">
+												{timezoneSuggestions.map((timezone) => (
+													<option key={timezone} value={timezone} />
+												))}
+											</datalist>
+											<div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+												<p id="timezone-help" className="text-xs leading-5 text-[var(--ink-faint)]">
+													{browserTimezone ? `Detected browser timezone: ${browserTimezone}.` : 'Detecting browser timezone…'}
+												</p>
+												<Button
+													type="button"
+													variant="ghost"
+													size="sm"
+													disabled={!browserTimezone}
+													onClick={() => {
+														if (!browserTimezone) return;
+														setSaved(false);
+														preferencesMutation.reset();
+														preferencesForm.setFieldValue('timezone', browserTimezone);
+													}}
+												>
+													Use detected timezone
+												</Button>
+											</div>
 											<FieldError id={errorId} errors={field.state.meta.errors} />
 										</div>
 									);

@@ -15,11 +15,13 @@ export function VillagePanel({
 	partyId,
 	village,
 	departureOpen,
+	timeZone,
 	readOnly = false,
 }: {
 	partyId: string;
 	village: Village;
 	departureOpen: boolean;
+	timeZone: string;
 	readOnly?: boolean;
 }) {
 	const purchaseMutation = usePurchaseVillage(partyId);
@@ -156,7 +158,8 @@ export function VillagePanel({
 							<p className="font-bold">Departure vote opened. The party can now choose its next branch.</p>
 							<p className="mt-1 text-xs">
 								{departureMutation.data.votes.length} vote{departureMutation.data.votes.length === 1 ? '' : 's'} ·{' '}
-								{formatTimeRemaining(departureMutation.data.deadlineAt)} · closes {formatDateTime(departureMutation.data.deadlineAt)}
+								{formatTimeRemaining(departureMutation.data.deadlineAt)} · closes{' '}
+								{formatDateTime(departureMutation.data.deadlineAt, timeZone)}
 							</p>
 						</div>
 					)}

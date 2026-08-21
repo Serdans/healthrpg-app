@@ -1,13 +1,7 @@
+import { isIanaTimezone } from '#/lib/dates';
 import { z } from 'zod';
 
-export function isIanaTimezone(value: string) {
-	try {
-		new Intl.DateTimeFormat('en-US', { timeZone: value }).format();
-		return true;
-	} catch {
-		return false;
-	}
-}
+export { isIanaTimezone } from '#/lib/dates';
 
 export const characterNameSchema = z
 	.string()
