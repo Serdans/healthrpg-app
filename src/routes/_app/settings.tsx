@@ -115,7 +115,7 @@ function SettingsPage() {
 				<p className="eyebrow">Expedition settings</p>
 				<h1 className="display-title mt-3 text-4xl font-semibold text-[var(--indigo)] sm:text-5xl">Keep the compass honest.</h1>
 				<p className="mt-3 max-w-2xl text-base leading-7 text-[var(--ink-soft)]">
-					Your timezone shapes the health window, while Google Health supplies the movement and rest signals that move the party.
+					Your timezone shapes the health window, while Google Health supplies the signals that create Momentum and Recovery for the party.
 				</p>
 			</div>
 
@@ -139,7 +139,7 @@ function SettingsPage() {
 								<Cloud className="size-6" />
 							</span>
 						</div>
-						<CardDescription>Steps and sleep are translated into movement and recovery for your parties.</CardDescription>
+						<CardDescription>Steps and sleep are translated into Momentum and Recovery for your parties.</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4 text-sm text-[var(--ink-soft)]">

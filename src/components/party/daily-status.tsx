@@ -1,10 +1,20 @@
+import { Clock3, Sparkles } from 'lucide-react';
+
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
 import { Progress } from '#/components/ui/progress';
-import type { DailyProgress } from '#/lib/api';
+import type { DailyProgress, PartyRoster } from '#/lib/api';
 
-export function DailyStatus({ daily }: { daily: DailyProgress }) {
-	const movementPercent = daily.movementCost > 0 ? (daily.movementUnits / daily.movementCost) * 100 : 100;
+function memberName(member: DailyProgress['members'][number], roster?: PartyRoster) {
+	const rosterMember = roster?.members.find((candidate) => candidate.userId === member.userId);
+	return rosterMember?.character?.name ?? rosterMember?.displayName ?? 'Traveler';
+}
+
+function readinessPercent(value: number, cost: number) {
+	return cost > 0 ? Math.min(100, (value / cost) * 100) : 100;
+}
+
+export function DailyStatus({ daily, roster }: { daily: DailyProgress; roster?: PartyRoster }) {
 	return (
 		<Card variant="game" tone="village">
 			<CardHeader>
@@ -25,22 +35,60 @@ export function DailyStatus({ daily }: { daily: DailyProgress }) {
 				</div>
 			</CardHeader>
 			<CardContent>
-				<div className="flex items-end justify-between gap-3 text-sm">
-					<span className="font-bold text-[var(--ink-soft)]">Movement toward gate</span>
-					<span className="font-mono font-medium text-[var(--indigo)]">
-						{daily.movementUnits} / {daily.movementCost}
-					</span>
-				</div>
-				<Progress value={movementPercent} aria-label="Daily movement progress" />
-				<div className="grid grid-cols-2 gap-3 pt-2">
-					<div className="rounded-xl bg-[var(--teal)]/10 p-3">
+				<div className="daily-summary-grid">
+					<div className="daily-summary-tile daily-summary-tile-teal">
 						<p className="font-mono text-xl text-[var(--teal-deep)]">{daily.recoveryPoints}</p>
 						<p className="mt-1 text-[0.62rem] font-extrabold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Recovery points</p>
 					</div>
-					<div className="rounded-xl bg-[var(--gold-wash)] p-3">
-						<p className="font-mono text-xl text-[var(--gold-deep)]">{daily.gateContribution}</p>
-						<p className="mt-1 text-[0.62rem] font-extrabold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Gate contribution</p>
+					<div className="daily-summary-tile daily-summary-tile-gold">
+						<p className="font-mono text-xl text-[var(--gold-deep)]">{daily.challengeCost > 0 ? daily.challengeContribution : '—'}</p>
+						<p className="mt-1 text-[0.62rem] font-extrabold uppercase tracking-[0.12em] text-[var(--ink-soft)]">Challenge contribution</p>
 					</div>
+				</div>
+
+				<div className="daily-readiness">
+					<div className="daily-readiness-heading">
+						<div>
+							<p className="game-pixel-label">Traveler readiness</p>
+							<p>Momentum is shown per traveler so the party can see who is ready to act.</p>
+						</div>
+						<Sparkles className="size-4" aria-hidden="true" />
+					</div>
+					{daily.members.length > 0 ? (
+						<ul className="daily-readiness-list" aria-label="Daily traveler readiness">
+							{daily.members.map((member) => {
+								const name = memberName(member, roster);
+								const ready = daily.movementCost === 0 || member.movementUnits >= daily.movementCost;
+								return (
+									<li className="daily-readiness-row" key={member.userId} data-testid="daily-readiness-member">
+										<div className="daily-readiness-row-header">
+											<div>
+												<strong>{name}</strong>
+												<span>{ready ? 'Ready for today’s Journey' : 'Gathering Momentum'}</span>
+											</div>
+											<Badge className={member.status === 'complete' ? 'daily-readiness-badge-complete' : ''}>{member.status}</Badge>
+										</div>
+										<div className="daily-readiness-row-values">
+											<span>
+												<Sparkles className="size-3" aria-hidden="true" />
+												<strong>{member.movementUnits}</strong> Momentum
+											</span>
+											<span>
+												<Clock3 className="size-3" aria-hidden="true" />
+												<strong>{member.recoveryPoints}</strong> Recovery
+											</span>
+										</div>
+										<Progress
+											value={readinessPercent(member.movementUnits, daily.movementCost)}
+											aria-label={`${name} Momentum readiness`}
+										/>
+									</li>
+								);
+							})}
+						</ul>
+					) : (
+						<p className="daily-readiness-empty">No traveler readiness has been recorded for today yet.</p>
+					)}
 				</div>
 			</CardContent>
 		</Card>

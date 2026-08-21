@@ -78,6 +78,7 @@ export function PartyActionSection({
 	userId,
 	timeZone,
 	party,
+	daily,
 	map,
 	readOnly,
 	isCombat,
@@ -97,6 +98,7 @@ export function PartyActionSection({
 	userId: string;
 	timeZone: string;
 	party: Party;
+	daily?: DailyProgress;
 	map: PartyMap;
 	readOnly: boolean;
 	isCombat: boolean;
@@ -139,6 +141,7 @@ export function PartyActionSection({
 					partyId={partyId}
 					userId={userId}
 					party={party}
+					daily={daily}
 					encounter={encounterQuery.data}
 					readOnly={readOnly}
 				/>
@@ -347,7 +350,7 @@ export function PartyRosterSection({
 			<div className="grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
 				<div className="space-y-5">
 					{daily ? (
-						<DailyStatus daily={daily} />
+						<DailyStatus daily={daily} roster={roster} />
 					) : (
 						<GameplayPanelState
 							tone="village"

@@ -50,7 +50,7 @@ export function EventDecision({
 							<p className="mt-5 text-lg font-extrabold text-[var(--indigo)]">{choice.displayName}</p>
 							<p className="mt-2 text-sm leading-6 text-[var(--ink-soft)]">{choice.description}</p>
 							<p className="mt-4 font-mono text-xs text-[var(--gold-deep)]">
-								{choice.requirements.movementUnits} movement · {choice.requirements.recoveryPoints} recovery
+								{choice.requirements.movementUnits} Momentum · {choice.requirements.recoveryPoints} Recovery
 							</p>
 							<p className="mt-2 text-xs font-bold text-[var(--ink-soft)]">
 								{voteCount} vote{voteCount === 1 ? '' : 's'} · your choice can change before the day closes

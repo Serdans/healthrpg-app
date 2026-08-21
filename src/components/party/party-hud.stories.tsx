@@ -18,11 +18,11 @@ const party: Party = {
 		templateKey: 'travel-v1',
 		config: {
 			movementCost: 10,
-			obstacleCost: 0,
+			challengeCost: 0,
 			event: { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] },
 		},
 	},
-	gateProgress: 12,
+	challengeProgress: 12,
 	decisionStartedAt: null,
 	members: [
 		{ userId: 'user-1', role: 'leader', displayName: 'Hero' },
@@ -56,10 +56,10 @@ const daily: DailyProgress = {
 	movementCost: 10,
 	movementSatisfied: false,
 	recoveryPoints: 4,
-	gateContribution: 4,
-	gateProgress: 12,
-	gateCost: 20,
-	gateUnlocked: false,
+	challengeContribution: 4,
+	challengeProgress: 12,
+	challengeCost: 20,
+	challengeCleared: false,
 	status: 'provisional',
 	members: [
 		{ userId: 'user-1', movementUnits: 7, recoveryPoints: 4, status: 'provisional' },
@@ -85,4 +85,16 @@ export const WithoutObjective: Story = {
 
 export const DailySignalUnavailable: Story = {
 	args: { daily: undefined },
+};
+
+export const WithoutChallenge: Story = {
+	args: {
+		daily: {
+			...daily,
+			challengeContribution: 0,
+			challengeProgress: 0,
+			challengeCost: 0,
+			challengeCleared: true,
+		},
+	},
 };

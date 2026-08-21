@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 
-import type { Encounter, Inventory, Party, PartyItemUse } from '#/lib/api';
+import type { DailyProgress, Encounter, Inventory, Party, PartyItemUse } from '#/lib/api';
 
 import { BattleScene } from './battle-scene';
 
@@ -17,9 +17,9 @@ const party: Party = {
 		name: 'Mossway Crossing',
 		nodeType: 'combat',
 		templateKey: 'combat-v1',
-		config: { movementCost: 10, obstacleCost: 0, event: { eventType: 'combat' } },
+		config: { movementCost: 10, challengeCost: 0, event: { eventType: 'combat' } },
 	},
-	gateProgress: 12,
+	challengeProgress: 12,
 	decisionStartedAt: '2026-08-20T00:00:00.000Z',
 	members: [
 		{ userId: 'user-1', role: 'leader', displayName: 'Hero' },
@@ -87,6 +87,26 @@ const activeEncounter: Encounter = {
 	],
 };
 
+const daily: DailyProgress = {
+	partyId: 'party-1',
+	nodeId: 'node-1',
+	worldDate: '2026-08-21',
+	movementUnits: 8,
+	movementCost: 10,
+	movementSatisfied: false,
+	recoveryPoints: 4,
+	challengeContribution: 0,
+	challengeProgress: 0,
+	challengeCost: 0,
+	challengeCleared: true,
+	status: 'provisional',
+	members: [
+		{ userId: 'user-1', movementUnits: 8, recoveryPoints: 4, status: 'provisional' },
+		{ userId: 'user-2', movementUnits: 6, recoveryPoints: 3, status: 'provisional' },
+		{ userId: 'user-3', movementUnits: 0, recoveryPoints: 2, status: 'provisional' },
+	],
+};
+
 const completedEncounter: Encounter = {
 	...activeEncounter,
 	status: 'completed',
@@ -147,6 +167,7 @@ function BattlePreview({
 			<BattleScene
 				encounter={encounter}
 				currentMember={currentMember}
+				daily={daily}
 				userId={userId}
 				readOnly={readOnly}
 				actionKey={actionKey}

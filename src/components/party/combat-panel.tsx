@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { BattleScene } from '#/components/party/battle-scene';
-import type { Encounter, Party } from '#/lib/api';
+import type { DailyProgress, Encounter, Party } from '#/lib/api';
 import { useInventory, useSetEncounterAction, useUsePartyItem } from '#/lib/queries';
 
 type ActionKey = Encounter['members'][number]['signatureAction']['key'];
@@ -11,12 +11,14 @@ export function CombatPanel({
 	partyId,
 	userId,
 	party,
+	daily,
 	encounter,
 	readOnly = false,
 }: {
 	partyId: string;
 	userId: string;
 	party: Party;
+	daily?: DailyProgress;
 	encounter: Encounter;
 	readOnly?: boolean;
 }) {
@@ -73,6 +75,7 @@ export function CombatPanel({
 		<BattleScene
 			encounter={encounter}
 			currentMember={currentMember}
+			daily={daily}
 			userId={userId}
 			readOnly={readOnly}
 			actionKey={actionKey}

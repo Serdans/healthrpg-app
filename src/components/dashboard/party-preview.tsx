@@ -32,7 +32,9 @@ export function PartyPreview({ party }: { party: Party }) {
 						<p className="mt-1 flex items-center gap-2 font-bold text-[var(--ink)]">
 							<UsersRound className="size-4 text-[var(--amethyst)]" /> {party.members.length} / {party.memberCapacity}
 						</p>
-						<p className="mt-1 text-xs text-[var(--ink-soft)]">{party.gateProgress} gate progress</p>
+						<p className="mt-1 text-xs text-[var(--ink-soft)]">
+							{party.currentNode.config.challengeCost > 0 ? `${party.challengeProgress} Challenge progress` : 'No active Challenge'}
+						</p>
 					</div>
 				</div>
 				<Link

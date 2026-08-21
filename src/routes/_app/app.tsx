@@ -103,11 +103,11 @@ function AppDashboard() {
 			<section className="grid gap-4 md:grid-cols-3">
 				<Metric
 					icon={<Footprints />}
-					label="Movement"
+					label="Momentum"
 					value={progress ? `${progress.movementUnits}` : '—'}
 					copy={
 						progress?.steps === null || progress?.steps === undefined
-							? 'Steps become travel units.'
+							? 'Steps become daily Momentum.'
 							: `${progress.steps.toLocaleString()} steps today`
 					}
 				/>

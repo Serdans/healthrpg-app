@@ -65,6 +65,7 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 	await expect(page.getByRole('heading', { name: 'The road ahead', level: 2 })).toBeVisible();
 	await expect(page.getByTestId('world-map')).toBeVisible();
 	await expect(page.getByTestId('world-map-party-marker')).toBeVisible();
+	await expect(page.getByTestId('daily-command-center')).toContainText('Your vote is needed');
 	await expect
 		.poll(async () =>
 			page
@@ -80,6 +81,9 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 		)
 		.toBe(75);
 	await expect(page.getByTestId('party-roster')).toBeVisible();
+	await expect(page.getByTestId('gameplay-mechanics').first()).toContainText('Momentum');
+	await expect(page.getByTestId('gameplay-mechanics').first()).toContainText('Journey');
+	await expect(page.getByTestId('gameplay-mechanics').first()).not.toContainText('Challenge');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('Daily resolution');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('The trail held');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('4 points');
@@ -124,7 +128,7 @@ test('opens a village departure vote and casts a route vote', async ({ page, req
 	await expect(page.getByRole('heading', { name: 'Mossway Village', level: 2 })).toBeVisible();
 	await page.getByRole('button', { name: /Start departure vote/i }).click();
 	await expect(page.getByRole('button', { name: /Departure vote open/i })).toBeVisible();
-	await expect(page.getByRole('heading', { name: 'Choose the next trail' })).toBeVisible();
+	await expect(page.getByTestId('party-action').getByRole('heading', { name: 'Choose the next trail' })).toBeVisible();
 
 	await page.locator('button.choice-card').filter({ hasText: 'North Lantern Road' }).click();
 	await expect
@@ -184,6 +188,8 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 		.toBe(1);
 	await expect(page.getByTestId('battle-enemy').first().locator('.battle-enemy-art')).toHaveCSS('background-size', 'contain');
 	await expect(page.getByTestId('combat-scene').locator('.battle-command-ribbon')).toContainText('Commanding');
+	await expect(page.getByTestId('daily-command-center')).toContainText('Your command is needed');
+	await expect(page.getByTestId('combat-scene').getByTestId('gameplay-mechanics')).toContainText('Momentum');
 	await page.getByTestId('battle-action-signature').click();
 	await page.getByTestId('battle-item-target').selectOption('user-2');
 	await page.getByTestId('battle-save-command').click();

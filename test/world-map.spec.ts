@@ -163,16 +163,16 @@ describe('world map layout', () => {
 		const map = withMapDefaults({
 			currentChapter: 1,
 			currentNodeId: 'camp',
-			nodes: [node('camp', 1), node('high-road', 2), node('low-road', 2), node('grove', 3), node('cavern', 3), node('gate', 4)],
+			nodes: [node('camp', 1), node('high-road', 2), node('low-road', 2), node('grove', 3), node('cavern', 3), node('challenge', 4)],
 			edges: [
 				{ id: 'edge-high', fromNodeId: 'camp', toNodeId: 'high-road', optionKey: 'high-road', sortOrder: 0 },
 				{ id: 'edge-low', fromNodeId: 'camp', toNodeId: 'low-road', optionKey: 'low-road', sortOrder: 1 },
 				{ id: 'edge-grove', fromNodeId: 'high-road', toNodeId: 'grove', optionKey: 'grove', sortOrder: 0 },
 				{ id: 'edge-cavern-high', fromNodeId: 'high-road', toNodeId: 'cavern', optionKey: 'cavern', sortOrder: 1 },
 				{ id: 'edge-cavern-low', fromNodeId: 'low-road', toNodeId: 'cavern', optionKey: 'cavern', sortOrder: 0 },
-				{ id: 'edge-gate-low', fromNodeId: 'low-road', toNodeId: 'gate', optionKey: 'gate', sortOrder: 1 },
-				{ id: 'edge-gate-grove', fromNodeId: 'grove', toNodeId: 'gate', optionKey: 'gate', sortOrder: 2 },
-				{ id: 'edge-gate-cavern', fromNodeId: 'cavern', toNodeId: 'gate', optionKey: 'gate', sortOrder: 3 },
+				{ id: 'edge-challenge-low', fromNodeId: 'low-road', toNodeId: 'challenge', optionKey: 'challenge', sortOrder: 1 },
+				{ id: 'edge-challenge-grove', fromNodeId: 'grove', toNodeId: 'challenge', optionKey: 'challenge', sortOrder: 2 },
+				{ id: 'edge-challenge-cavern', fromNodeId: 'cavern', toNodeId: 'challenge', optionKey: 'challenge', sortOrder: 3 },
 			],
 		});
 
@@ -183,7 +183,7 @@ describe('world map layout', () => {
 		expect(layout.layers.map((layer) => layer.x)).toStrictEqual([86, 306, 526, 746]);
 		expect(byId.get('high-road')?.y).toBeLessThan(byId.get('low-road')?.y ?? 0);
 		expect(byId.get('grove')?.y).not.toBe(byId.get('cavern')?.y);
-		expect(byId.get('camp')?.y).not.toBe(byId.get('gate')?.y);
+		expect(byId.get('camp')?.y).not.toBe(byId.get('challenge')?.y);
 		expect(new Set(layout.nodes.map((item) => item.y)).size).toBeGreaterThan(3);
 		expect(layout.height).toBeGreaterThanOrEqual(440);
 		expect(layout.nodes.every((item) => item.x >= 86 && item.x <= layout.width - 86 && item.y >= 96 && item.y <= layout.height - 96)).toBe(
@@ -195,7 +195,7 @@ describe('world map layout', () => {
 		const nodeTypes: Array<PartyMap['nodes'][number]['nodeType']> = [
 			'travel',
 			'dungeon',
-			'gate',
+			'challenge',
 			'rest',
 			'combat',
 			'treasure',

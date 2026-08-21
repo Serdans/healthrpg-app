@@ -1,3 +1,12 @@
+import battlefieldMosswayUrl from '#/assets/game/backgrounds/battlefield-mossway.webp';
+import interiorDungeonUrl from '#/assets/game/backgrounds/interior-dungeon.webp';
+import interiorVillageUrl from '#/assets/game/backgrounds/interior-village.webp';
+import overworldAtlasUrl from '#/assets/game/backgrounds/overworld-atlas.webp';
+import partyClassSpritesUrl from '#/assets/game/characters/party-class-sprites.webp';
+import partyTravelerSpriteUrl from '#/assets/game/characters/party-traveler-sprite.png';
+import landmarkSpritesUrl from '#/assets/game/landmarks/landmark-sprites.webp';
+import mossWolfUrl from '#/assets/game/monsters/moss-wolf.webp';
+
 import type { PartyMap } from '#/lib/api';
 
 export type GamePanelTone = 'atlas' | 'combat' | 'village' | 'arcane' | 'history';
@@ -18,7 +27,7 @@ const landmarkArt: Record<LandmarkSpriteKey, LandmarkArt> = {
 	treasure: { key: 'treasure', position: '100% 0%', fallbackLabel: 'Treasure landmark' },
 	narrative: { key: 'narrative', position: '0% 100%', fallbackLabel: 'Story landmark' },
 	rest: { key: 'rest', position: '33.3333% 100%', fallbackLabel: 'Rest landmark' },
-	gate: { key: 'gate', position: '66.6667% 100%', fallbackLabel: 'Gate landmark' },
+	challenge: { key: 'challenge', position: '66.6667% 100%', fallbackLabel: 'Challenge landmark' },
 	travel: { key: 'travel', position: '100% 100%', fallbackLabel: 'Trail landmark' },
 };
 
@@ -26,22 +35,27 @@ export function landmarkArtForNode(nodeType: LandmarkSpriteKey) {
 	return landmarkArt[nodeType];
 }
 
+export const landmarkSpriteArt = {
+	src: landmarkSpritesUrl,
+	backgroundSize: '400% 200%',
+} as const;
+
 export const partyTravelerArt = {
-	src: '/game-art/party-traveler-sprite.png',
+	src: partyTravelerSpriteUrl,
 	backgroundSize: '200% 400%',
 } as const;
 
 export const gameplayBackgroundArt = {
-	overworld: '/game-art/atlas-terrain-v2.webp',
-	dungeon: '/game-art/interior-dungeon-v2.webp',
-	village: '/game-art/interior-village-v2.webp',
-	battlefield: '/game-art/battlefield-mossway-v2.webp',
+	overworld: overworldAtlasUrl,
+	dungeon: interiorDungeonUrl,
+	village: interiorVillageUrl,
+	battlefield: battlefieldMosswayUrl,
 } as const;
 
 export type BattleClassKey = 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
 
 export const battlePartyArt = {
-	src: '/game-art/battle-party-classes.webp',
+	src: partyClassSpritesUrl,
 	backgroundSize: '300% 200%',
 	positions: {
 		warrior: '0% 0%',
@@ -55,11 +69,11 @@ export const battlePartyArt = {
 
 export const battleEnemyArt = {
 	mossWolf: {
-		src: '/game-art/battle-enemy-moss-wolf.webp',
+		src: mossWolfUrl,
 		backgroundSize: 'contain',
 	},
 	default: {
-		src: '/game-art/battle-enemy-moss-wolf.webp',
+		src: mossWolfUrl,
 		backgroundSize: 'contain',
 	},
 } as const;

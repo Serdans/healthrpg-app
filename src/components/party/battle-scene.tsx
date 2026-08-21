@@ -3,9 +3,10 @@ import { Check, Crosshair, HeartPulse, PackageOpen, Shield, Sparkles, Swords, Ta
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Progress } from '#/components/ui/progress';
-import type { Encounter, Inventory, PartyItemUse } from '#/lib/api';
+import type { DailyProgress, Encounter, Inventory, PartyItemUse } from '#/lib/api';
 import { battleEnemyArtForArchetype, battlePartyArtForClass, gameplayBackgroundArt } from '#/lib/game-art';
 import type { CSSProperties } from 'react';
+import { GameplayMechanics } from './gameplay-mechanics';
 
 type EncounterMember = Encounter['members'][number];
 type ActionKey = EncounterMember['signatureAction']['key'];
@@ -15,6 +16,7 @@ type InventoryItem = Inventory['items'][number];
 export interface BattleSceneProps {
 	encounter: Encounter;
 	currentMember: EncounterMember;
+	daily?: DailyProgress;
 	userId: string;
 	readOnly: boolean;
 	actionKey: ActionKey | null;
@@ -395,6 +397,7 @@ function BattleCommandTray({
 export function BattleScene({
 	encounter,
 	currentMember,
+	daily,
 	userId,
 	readOnly,
 	actionKey,
@@ -478,6 +481,8 @@ export function BattleScene({
 					</>
 				)}
 			</div>
+
+			<GameplayMechanics daily={daily} currentMemberUserId={currentMember.userId} compact />
 
 			<div className={`battle-command-ribbon battle-command-ribbon-${statusState}`} aria-label="Current battle command">
 				<span className="game-pixel-label">Commanding</span>

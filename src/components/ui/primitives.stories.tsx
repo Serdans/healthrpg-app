@@ -27,7 +27,7 @@ export const Content: Story = {
 				</CardHeader>
 				<CardContent>
 					<Progress value={68} />
-					<p className="text-sm text-[var(--ink-soft)]">68% toward the next gate.</p>
+					<p className="text-sm text-[var(--ink-soft)]">68% toward the next Challenge.</p>
 				</CardContent>
 			</Card>
 

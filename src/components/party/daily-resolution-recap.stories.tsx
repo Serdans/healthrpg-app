@@ -10,7 +10,7 @@ const baseResolution: PartyRecap['resolution'] = {
 	outcome: 'advanced',
 	movement: { units: 12, cost: 10, satisfied: true },
 	recoveryPoints: 4,
-	gate: { progressBefore: 4, contribution: 8, progressAfter: 12, cost: 10, unlocked: true },
+	challenge: { progressBefore: 4, contribution: 8, progressAfter: 12, cost: 10, cleared: true },
 	route: null,
 	event: null,
 	combat: null,
@@ -136,6 +136,18 @@ export const CompletedCombat: Story = {
 };
 
 export const NoRecap: Story = { args: { recap: null } };
+
+export const WithoutChallenge: Story = {
+	args: {
+		recap: {
+			...recap,
+			resolution: {
+				...baseResolution,
+				challenge: { progressBefore: 0, contribution: 0, progressAfter: 0, cost: 0, cleared: true },
+			},
+		},
+	},
+};
 
 export const Loading: Story = {
 	args: { recap: undefined, pending: true },

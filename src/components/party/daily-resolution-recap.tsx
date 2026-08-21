@@ -21,6 +21,17 @@ function outcomeLabel(outcome: PartyRecap['resolution']['outcome']) {
 	return 'The trail held';
 }
 
+function resolutionExplanation(resolution: PartyRecap['resolution']) {
+	if (!resolution.movement.satisfied) {
+		return `Needs ${Math.max(0, resolution.movement.cost - resolution.movement.units)} more Momentum for the Journey.`;
+	}
+	if (resolution.challenge.cost > 0 && !resolution.challenge.cleared) {
+		return `The Challenge needs ${Math.max(0, resolution.challenge.cost - resolution.challenge.progressAfter)} more progress.`;
+	}
+	if (resolution.event?.outcome === 'failed') return 'The event choice did not succeed.';
+	return resolution.outcome === 'held' ? 'The party is ready for the next resolution.' : 'The Journey requirement was met.';
+}
+
 function rewardSummary(reward: PartyRecap['resolution']['rewards'][number]) {
 	const rewards = [
 		reward.experience ? `${reward.experience} XP` : null,
@@ -89,6 +100,7 @@ export function DailyResolutionRecap({
 
 	const resolution = recap.resolution;
 	const combat = resolution.combat;
+	const journeyValue = resolution.movement.cost > 0 ? `${resolution.movement.units} / ${resolution.movement.cost} Momentum` : 'Ready';
 
 	return (
 		<Card variant="game" tone="history" data-testid="daily-resolution-recap">
@@ -115,30 +127,31 @@ export function DailyResolutionRecap({
 						<span>{resolution.destinationNode.name}</span>
 					</div>
 					<p className="mt-2 text-sm font-bold text-[var(--gold-deep)]">{outcomeLabel(resolution.outcome)}</p>
+					<p className="mt-1 text-sm text-[var(--ink-soft)]">{resolutionExplanation(resolution)}</p>
 				</div>
 
 				<div className="grid gap-3 sm:grid-cols-3">
-					<SummaryStat
-						label="Movement"
-						value={`${resolution.movement.units} / ${resolution.movement.cost}`}
-						icon={<MapPinned className="size-4" />}
-					/>
+					<SummaryStat label="Journey" value={journeyValue} icon={<MapPinned className="size-4" />} />
 					<SummaryStat label="Recovery" value={`${resolution.recoveryPoints} points`} icon={<HeartPulse className="size-4" />} />
-					<SummaryStat
-						label="Gate"
-						value={`${resolution.gate.progressAfter} / ${resolution.gate.cost}`}
-						icon={<Shield className="size-4" />}
-					/>
+					{resolution.challenge.cost > 0 && (
+						<SummaryStat
+							label="Challenge"
+							value={`${resolution.challenge.progressAfter} / ${resolution.challenge.cost}`}
+							icon={<Shield className="size-4" />}
+						/>
+					)}
 				</div>
 
 				{resolution.route && (
 					<DetailRow label="Route selected" value={`${label(resolution.route.optionKey)} · ${resolution.route.reason}`} />
 				)}
 
-				<DetailRow
-					label="Gate contribution"
-					value={`${resolution.gate.contribution} · ${resolution.gate.unlocked ? 'unlocked' : 'still sealed'}`}
-				/>
+				{resolution.challenge.cost > 0 && (
+					<DetailRow
+						label="Challenge contribution"
+						value={`${resolution.challenge.contribution} today · ${resolution.challenge.cleared ? 'cleared' : 'in progress'}`}
+					/>
+				)}
 
 				{resolution.event && (
 					<DetailRow
