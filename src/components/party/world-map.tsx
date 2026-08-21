@@ -9,6 +9,7 @@ import type { PartyMap } from '#/lib/api';
 import { gameplayBackgroundArt, partyTravelerArt } from '#/lib/game-art';
 import type { PartyTravelerDirection } from '#/lib/game-art';
 import { getAdjacentMapNodeId, mapDirectionForKey } from '#/lib/map-navigation';
+import { gameplayScrollBehavior, prefersReducedMotion } from '#/lib/gameplay-navigation';
 import { createWorldMapLayout, createWorldMapTravel } from '#/lib/world-map';
 import type { WorldMapLayout, WorldMapTravel } from '#/lib/world-map';
 import { InteriorMap } from './interior-map';
@@ -49,7 +50,7 @@ function OverworldMap({
 		const previousMap = previousMapRef.current;
 		previousMapRef.current = { currentNodeId: map.currentNodeId, layout };
 		setSelectedNodeId(map.currentNodeId);
-		currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+		currentNodeRef.current?.scrollIntoView({ behavior: gameplayScrollBehavior(), block: 'center', inline: 'center' });
 
 		if (!previousMap || previousMap.currentNodeId === map.currentNodeId) return;
 
@@ -57,12 +58,13 @@ function OverworldMap({
 		if (travelTimeoutRef.current !== null) window.clearTimeout(travelTimeoutRef.current);
 
 		const nextTravel = createWorldMapTravel(previousMap.layout, layout, previousMap.currentNodeId, map.currentNodeId);
-		if (!nextTravel) {
+		if (!nextTravel || prefersReducedMotion()) {
 			setTravel(undefined);
 			return;
 		}
 
-		const supportsMotionPath = typeof window !== 'undefined' && window.CSS.supports('offset-path', 'path("M 0 0 L 1 1")');
+		const supportsMotionPath =
+			typeof window !== 'undefined' && typeof window.CSS !== 'undefined' && window.CSS.supports('offset-path', 'path("M 0 0 L 1 1")');
 		const key = ++travelSequenceRef.current;
 		lastDirectionRef.current = nextTravel.direction;
 		setTravel({ ...nextTravel, key, started: false, supportsMotionPath });

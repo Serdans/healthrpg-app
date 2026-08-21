@@ -35,7 +35,7 @@ function SignalNotice({ daily, signal }: { daily?: DailyProgress; signal?: Daily
 	if (daily) {
 		if (signal?.isError) {
 			return (
-				<div className="daily-command-center-signal daily-command-center-signal-stale" role="status" aria-live="polite">
+				<div className="daily-command-center-signal daily-command-center-signal-stale">
 					<AlertCircle className="size-4" aria-hidden="true" />
 					<span>{signal.message ?? 'Today’s signal may be out of date.'}</span>
 					{signal.onRetry && (
@@ -52,7 +52,7 @@ function SignalNotice({ daily, signal }: { daily?: DailyProgress; signal?: Daily
 
 	if (signal?.isPending) {
 		return (
-			<div className="daily-command-center-signal" role="status" aria-live="polite">
+			<div className="daily-command-center-signal">
 				<LoaderCircle className="size-4 animate-spin" aria-hidden="true" />
 				<span>Reading today’s health signal…</span>
 			</div>
@@ -74,7 +74,7 @@ function SignalNotice({ daily, signal }: { daily?: DailyProgress; signal?: Daily
 	}
 
 	return (
-		<div className="daily-command-center-signal" role="status" aria-live="polite">
+		<div className="daily-command-center-signal">
 			<Compass className="size-4" aria-hidden="true" />
 			<span>Momentum and Journey details will appear when today’s signal is available.</span>
 		</div>
@@ -83,6 +83,13 @@ function SignalNotice({ daily, signal }: { daily?: DailyProgress; signal?: Daily
 
 export function DailyCommandCenter({ daily, state, signal }: DailyActionContextProps) {
 	const readiness = readinessSummary(daily);
+	const signalAnnouncement = signal?.isPending
+		? 'Reading today’s health signal.'
+		: signal?.isError && daily
+			? (signal.message ?? 'Today’s health signal may be out of date.')
+			: daily
+				? 'Today’s health signal is available.'
+				: 'Today’s health signal is unavailable.';
 
 	return (
 		<section
@@ -105,7 +112,7 @@ export function DailyCommandCenter({ daily, state, signal }: DailyActionContextP
 			</div>
 
 			<p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
-				{state.badge}. {state.title} {state.description}
+				{state.badge}. {state.title} {state.description} {signalAnnouncement}
 			</p>
 
 			<SignalNotice daily={daily} signal={signal} />

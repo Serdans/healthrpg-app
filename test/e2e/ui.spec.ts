@@ -122,10 +122,12 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 test('keeps the party shell navigable on a phone-sized viewport', async ({ page }) => {
 	await authenticate(page);
 	await page.setViewportSize({ width: 390, height: 844 });
+	await page.emulateMedia({ reducedMotion: 'reduce' });
 	await page.goto('/parties/party-1');
 
 	await expect(page.getByTestId('gameplay-section-nav')).toBeVisible();
 	await expect(page.getByRole('heading', { name: 'The travelers beside you', level: 2 })).toBeVisible();
+	await expect(page.getByTestId('map-scene')).toHaveCSS('animation-name', 'none');
 	await expect.poll(async () => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 

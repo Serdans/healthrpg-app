@@ -304,6 +304,14 @@ a {
 		0 3px 0 rgba(23, 20, 60, 0.1);
 }
 
+.game-choice-card[data-choice-state='error'] {
+	border-color: color-mix(in srgb, var(--danger) 62%, var(--game-copper));
+	background: color-mix(in srgb, var(--danger) 7%, var(--game-parchment));
+	box-shadow:
+		0 0 0 2px color-mix(in srgb, var(--danger) 12%, transparent),
+		0 3px 0 rgba(23, 20, 60, 0.1);
+}
+
 .game-choice-card[data-choice-state='closed'] {
 	cursor: default;
 	opacity: 0.72;
@@ -356,6 +364,34 @@ a {
 
 .game-action-error {
 	margin-top: 0.75rem;
+}
+
+.gameplay-panel-state[data-state='loading'] {
+	animation: gameplay-panel-loading 2200ms ease-in-out infinite;
+	background:
+		linear-gradient(105deg, transparent 20%, rgba(255, 243, 210, 0.2) 48%, transparent 76%),
+		linear-gradient(145deg, rgba(23, 20, 60, 0.96), rgba(43, 37, 92, 0.96));
+	background-size:
+		220% 100%,
+		100% 100%;
+}
+
+@keyframes gameplay-panel-loading {
+	from {
+		background-position:
+			-120% 0,
+			0 0;
+	}
+
+	to {
+		background-position:
+			120% 0,
+			0 0;
+	}
+}
+
+.gameplay-panel-state[data-state='error'] {
+	border-color: color-mix(in srgb, var(--danger) 36%, rgba(226, 171, 69, 0.48));
 }
 
 .game-input {
@@ -1061,6 +1097,7 @@ a {
 
 .daily-command-center-signal button {
 	margin-left: auto;
+	min-height: 2.25rem;
 	padding: 0.35rem 0.55rem;
 	border: 1px solid color-mix(in srgb, var(--command-tone) 52%, transparent);
 	border-radius: 0.2rem;
@@ -2241,7 +2278,7 @@ a {
 
 .battle-item-controls select {
 	width: 100%;
-	min-height: 2.3rem;
+	min-height: 2.75rem;
 	padding: 0.35rem 0.45rem;
 	border: 1px solid rgba(255, 243, 210, 0.28);
 	border-radius: 0.16rem;
@@ -2835,6 +2872,7 @@ a {
 .world-map-route-bridge a {
 	display: inline-flex;
 	flex: 0 0 auto;
+	min-height: 2.45rem;
 	align-items: center;
 	gap: 0.35rem;
 	border: 1px solid rgba(23, 20, 60, 0.28);
@@ -3513,6 +3551,20 @@ a {
 		justify-content: center;
 	}
 
+	.daily-command-center-signal {
+		align-items: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.daily-command-center-signal > span {
+		min-width: 0;
+		flex: 1 1 12rem;
+	}
+
+	.daily-command-center-signal button {
+		margin-left: 0;
+	}
+
 	.daily-action-strip {
 		top: 3.45rem;
 		align-items: stretch;
@@ -3560,6 +3612,15 @@ a {
 	.world-map-route-bridge {
 		align-items: stretch;
 		flex-direction: column;
+	}
+
+	.world-map-inspector-heading {
+		align-items: stretch;
+		flex-direction: column;
+	}
+
+	.world-map-inspector-heading > span {
+		align-self: flex-start;
 	}
 
 	.world-map-route-bridge a {
@@ -3700,6 +3761,14 @@ a {
 	button,
 	a {
 		transition-duration: 0.01ms !important;
+	}
+
+	.animate-spin {
+		animation: none !important;
+	}
+
+	.gameplay-panel-state[data-state='loading'] {
+		animation: none;
 	}
 
 	.map-scene-transition {

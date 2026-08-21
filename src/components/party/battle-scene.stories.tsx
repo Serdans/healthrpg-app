@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 
 import type { DailyProgress, Encounter, Inventory, Party, PartyItemUse } from '#/lib/api';
 import { combatCommandState } from '#/lib/combat-command-state';
@@ -238,6 +239,11 @@ type Story = StoryObj<typeof meta>;
 
 export const ActiveEncounter: Story = {
 	render: () => <BattlePreview />,
+	play: async ({ canvas, userEvent }) => {
+		await userEvent.click(canvas.getByTestId('battle-action-signature'));
+		await userEvent.click(canvas.getByTestId('battle-save-command'));
+		await expect(canvas.getByTestId('battle-status')).toHaveTextContent('locked in');
+	},
 };
 
 export const ResolvedEncounter: Story = {

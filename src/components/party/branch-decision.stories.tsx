@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn } from 'storybook/test';
 
 import type { PartyMap, PartyVotes } from '#/lib/api';
 
@@ -122,7 +123,15 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Available: Story = {};
+export const Available: Story = {
+	args: {
+		mutation: mutation({ mutate: fn<BranchMutation['mutate']>() }),
+	},
+	play: async ({ args, canvas, userEvent }) => {
+		await userEvent.click(canvas.getByRole('button', { name: /North Lantern Road/ }));
+		await expect(args.mutation.mutate).toHaveBeenCalledWith('edge-lantern-road');
+	},
+};
 
 export const SavedVote: Story = {
 	args: {
@@ -133,6 +142,15 @@ export const SavedVote: Story = {
 
 export const Saving: Story = {
 	args: { mutation: mutation({ isPending: true }) },
+};
+
+export const ErrorState: Story = {
+	args: {
+		mutation: mutation({ error: new Error('The route signal could not be saved.'), isError: true }),
+	},
+	play: async ({ canvas }) => {
+		await expect(canvas.getByRole('alert')).toHaveTextContent('The route signal could not be saved.');
+	},
 };
 
 export const Resolved: Story = {

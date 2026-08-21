@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect } from 'storybook/test';
 
 import { LocationPanel } from './location-panel';
 import { WorldMap } from './world-map';
@@ -413,6 +414,10 @@ type Story = StoryObj<typeof meta>;
 
 export const BranchedAtlas: Story = {
 	args: { map },
+	play: async ({ canvas, userEvent }) => {
+		await userEvent.click(canvas.getByRole('button', { name: /Mossway Village/ }));
+		await expect(canvas.getByTestId('world-map-inspector')).toHaveTextContent('Mossway Village');
+	},
 };
 
 export const NarrowFrontier: Story = {

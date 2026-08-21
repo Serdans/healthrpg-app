@@ -1,5 +1,6 @@
 import type { ComponentProps } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, fn } from 'storybook/test';
 
 import type { PartyEvent } from '#/lib/api';
 
@@ -53,7 +54,15 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Available: Story = {};
+export const Available: Story = {
+	args: {
+		mutation: mutation({ mutate: fn<EventMutation['mutate']>() }),
+	},
+	play: async ({ args, canvas, userEvent }) => {
+		await userEvent.click(canvas.getByRole('button', { name: /Follow the lanterns/ }));
+		await expect(args.mutation.mutate).toHaveBeenCalledWith('lantern');
+	},
+};
 
 export const SavedChoice: Story = {
 	args: {
@@ -67,6 +76,15 @@ export const SavedChoice: Story = {
 
 export const Saving: Story = {
 	args: { mutation: mutation({ isPending: true }) },
+};
+
+export const ErrorState: Story = {
+	args: {
+		mutation: mutation({ error: new Error('The event choice could not be saved.'), isError: true }),
+	},
+	play: async ({ canvas }) => {
+		await expect(canvas.getByRole('alert')).toHaveTextContent('The event choice could not be saved.');
+	},
 };
 
 export const ReadOnly: Story = {

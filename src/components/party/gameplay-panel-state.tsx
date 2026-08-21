@@ -22,7 +22,14 @@ export function GameplayPanelState({
 	testId?: string;
 }) {
 	return (
-		<Card variant="game" tone={tone} className="gameplay-panel-state" data-testid={testId}>
+		<Card
+			variant="game"
+			tone={tone}
+			className="gameplay-panel-state"
+			data-state={error ? 'error' : 'loading'}
+			data-testid={testId}
+			aria-busy={!error || retrying}
+		>
 			{error ? (
 				<ErrorNotice
 					error={error}

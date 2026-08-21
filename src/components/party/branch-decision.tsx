@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
 
+import { ErrorNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card';
 import type { PartyMap, PartyVotes } from '#/lib/api';
@@ -71,6 +72,11 @@ export function BranchDecision({
 						Your route vote is saved. The party can still change it before the decision closes.
 					</p>
 				)}
+				{mutation.isError && (
+					<div className="game-action-error">
+						<ErrorNotice error={mutation.error} message={mutation.error.message} />
+					</div>
+				)}
 			</CardHeader>
 			<CardContent className="grid gap-3 pt-1 sm:grid-cols-2">
 				{edges.map((edge) => {
@@ -84,7 +90,17 @@ export function BranchDecision({
 							className="choice-card game-choice-card p-5 text-left"
 							data-selected={selected}
 							data-choice-state={
-								mutation.isPending ? 'pending' : resolvedSelection ? 'resolved' : resolved ? 'closed' : selected ? 'selected' : 'available'
+								mutation.isPending
+									? 'pending'
+									: mutation.isError
+										? 'error'
+										: resolvedSelection
+											? 'resolved'
+											: resolved
+												? 'closed'
+												: selected
+													? 'selected'
+													: 'available'
 							}
 							aria-pressed={selected}
 							aria-busy={mutation.isPending}

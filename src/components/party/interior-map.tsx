@@ -6,6 +6,7 @@ import { Badge } from '#/components/ui/badge';
 import type { PartyMap } from '#/lib/api';
 import { gameplayBackgroundArt, partyTravelerArt } from '#/lib/game-art';
 import type { PartyTravelerDirection } from '#/lib/game-art';
+import { gameplayScrollBehavior, prefersReducedMotion } from '#/lib/gameplay-navigation';
 import { createInteriorMapLayout, createInteriorMapTravel } from '#/lib/interior-map';
 import type { InteriorMapLayout, InteriorMapLayoutNode, InteriorMapTravel } from '#/lib/interior-map';
 import { getAdjacentMapNodeId, mapDirectionForKey } from '#/lib/map-navigation';
@@ -91,7 +92,7 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 		const previousMap = previousMapRef.current;
 		previousMapRef.current = { currentNodeId: map.currentNodeId, layout };
 		setSelectedNodeId(map.currentNodeId);
-		currentNodeRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+		currentNodeRef.current?.scrollIntoView({ behavior: gameplayScrollBehavior(), block: 'center', inline: 'center' });
 
 		if (!previousMap || previousMap.currentNodeId === map.currentNodeId) return;
 
@@ -99,7 +100,7 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 		if (travelTimeoutRef.current !== null) window.clearTimeout(travelTimeoutRef.current);
 
 		const nextTravel = createInteriorMapTravel(previousMap.layout, layout, previousMap.currentNodeId, map.currentNodeId);
-		if (!nextTravel) {
+		if (!nextTravel || prefersReducedMotion()) {
 			setTravel(undefined);
 			return;
 		}
@@ -243,7 +244,7 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 								type="button"
 								className={`interior-map-room interior-map-room-${item.state}`}
 								style={{ left: `${item.x}px`, top: `${item.y}px` }}
-								aria-label={`${item.node.name}, ${stateLabel(item.state)}, ${readableRole(item.node.mapMetadata.role)}, ${floorLabel(map.currentMap.mapType, item.floorNo)}`}
+								aria-label={`${item.node.name}, ${stateLabel(item.state)}, ${readableRole(item.node.mapMetadata.role)}, ${floorLabel(map.currentMap.mapType, item.floorNo)}${item.state === 'current' ? '' : ', inspect only until the route resolves'}`}
 								aria-pressed={selected}
 								aria-current={item.state === 'current' ? 'location' : undefined}
 								data-node-id={item.node.id}
@@ -305,7 +306,7 @@ export function InteriorMap({ map }: { map: PartyMap }) {
 						<i className="interior-map-legend-dot interior-map-legend-party" aria-hidden="true" /> Party
 					</span>
 				</div>
-				<span className="interior-map-scroll-hint">Choose a room when the daily route resolves</span>
+				<span className="interior-map-scroll-hint">Inspect rooms · route resolution opens the next room</span>
 			</div>
 
 			<div

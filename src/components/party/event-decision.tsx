@@ -48,7 +48,7 @@ export function EventDecision({
 							type="button"
 							className="choice-card game-choice-card p-5 text-left"
 							data-selected={selected}
-							data-choice-state={mutation.isPending ? 'pending' : selected ? 'selected' : 'available'}
+							data-choice-state={mutation.isPending ? 'pending' : mutation.isError ? 'error' : selected ? 'selected' : 'available'}
 							aria-pressed={selected}
 							aria-busy={mutation.isPending}
 							disabled={readOnly || mutation.isPending}
