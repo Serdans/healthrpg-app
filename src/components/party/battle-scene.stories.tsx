@@ -138,12 +138,57 @@ const starterRosterEncounter: Encounter = {
 };
 
 const inventory: Inventory = {
-	currencies: [{ key: 'gold', kind: 'currency', displayName: 'Gold', quantity: 120 }],
-	items: [{ key: 'field-herb', kind: 'item', displayName: 'Field Herb', quantity: 2 }],
-	equipment: [{ key: 'trail-blade', kind: 'equipment', displayName: 'Trail Blade', quantity: 1 }],
+	currencies: [
+		{
+			key: 'gold',
+			kind: 'currency',
+			displayName: 'Gold',
+			details: {
+				description: 'The common coin of every road, market, and waystation.',
+				equipmentSlot: null,
+				effect: null,
+			},
+			quantity: 120,
+		},
+	],
+	items: [
+		{
+			key: 'herb',
+			kind: 'item',
+			displayName: 'Herb',
+			details: {
+				description: 'A fresh bundle of restorative leaves gathered along the trail.',
+				equipmentSlot: null,
+				effect: { kind: 'heal', amount: 10 },
+			},
+			quantity: 2,
+		},
+	],
+	equipment: [
+		{
+			key: 'short-sword',
+			kind: 'equipment',
+			displayName: 'Short Sword',
+			details: {
+				description: 'A dependable light blade made for a traveler’s first real battles.',
+				equipmentSlot: 'weapon',
+				effect: { kind: 'stat-modifiers', modifiers: { strength: 1 } },
+			},
+			quantity: 1,
+		},
+	],
 };
 
-const extendedFieldKit = [...inventory.items, { key: 'moon-seed', kind: 'item' as const, displayName: 'Moon Seed', quantity: 1 }];
+const extendedFieldKit = [
+	...inventory.items,
+	{
+		key: 'moon-seed',
+		kind: 'item' as const,
+		displayName: 'Moon Seed',
+		details: { description: 'An uncatalogued seed.', equipmentSlot: null, effect: null },
+		quantity: 1,
+	},
+];
 
 type ActionKey = Encounter['members'][number]['signatureAction']['key'];
 
@@ -259,8 +304,8 @@ type Story = StoryObj<typeof meta>;
 export const ActiveEncounter: Story = {
 	render: () => <BattlePreview />,
 	play: async ({ canvas, userEvent }) => {
-		await expect(canvas.getByTestId('battle-selected-item')).toHaveTextContent('Field Herb');
-		await expect(canvas.getByTestId('inventory-item-sprite-field-herb')).toBeInTheDocument();
+		await expect(canvas.getByTestId('battle-selected-item')).toHaveTextContent('Herb');
+		await expect(canvas.getByTestId('inventory-item-sprite-herb')).toBeInTheDocument();
 		await userEvent.click(canvas.getByTestId('battle-action-signature'));
 		await userEvent.click(canvas.getByTestId('battle-save-command'));
 		await expect(canvas.getByTestId('battle-status')).toHaveTextContent('locked in');

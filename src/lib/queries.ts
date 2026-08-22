@@ -125,10 +125,11 @@ export function useParty(partyId: string) {
 	});
 }
 
-export function usePartyRoster(partyId: string) {
+export function usePartyRoster(partyId: string, enabled = true) {
 	return useQuery({
 		queryKey: queryKeys.partyRoster(partyId),
 		queryFn: () => getPartyRoster(partyId),
+		enabled: enabled && Boolean(partyId),
 		refetchInterval: partyRefreshInterval,
 		refetchIntervalInBackground: false,
 	});

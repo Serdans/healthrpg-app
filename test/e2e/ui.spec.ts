@@ -219,6 +219,28 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 	await expect(page.getByText(/Restored 10 health for Mira/i)).toBeVisible();
 });
 
+test('uses a consumable from the kit on a selected party member', async ({ page, request }) => {
+	await authenticate(page);
+	await page.goto('/inventory');
+
+	await expect(page.getByRole('heading', { name: 'What are you carrying?' })).toBeVisible();
+	await expect(page.getByRole('heading', { name: 'Who needs a hand?' })).toBeVisible();
+	await page.getByRole('button', { name: 'Use on traveler' }).click();
+
+	const dialog = page.getByRole('alertdialog');
+	await expect(dialog).toBeVisible();
+	await dialog.getByRole('radio').nth(1).check();
+	await dialog.getByRole('button', { name: 'Use item' }).click();
+
+	await expect(page.getByRole('status')).toContainText('Herb used on Mira, restoring 10 HP.');
+	await expect
+		.poll(async () => lastMutation(request))
+		.toEqual({
+			path: '/api/v1/parties/party-1/item-uses',
+			body: { itemKey: 'herb', targetUserId: 'user-2' },
+		});
+});
+
 test('shows queued health sync feedback', async ({ page, request }) => {
 	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'branch' } });
 	await authenticate(page);

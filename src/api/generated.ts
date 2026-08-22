@@ -972,18 +972,81 @@ export interface paths {
 								key: string;
 								kind: 'currency' | 'item' | 'equipment';
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								quantity: number;
 							}[];
 							items: {
 								key: string;
 								kind: 'currency' | 'item' | 'equipment';
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								quantity: number;
 							}[];
 							equipment: {
 								key: string;
 								kind: 'currency' | 'item' | 'equipment';
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								quantity: number;
 							}[];
 						};
@@ -1045,18 +1108,81 @@ export interface paths {
 								slot: 'weapon' | 'armor' | 'accessory';
 								key: string;
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								quantity: number;
 							} | null;
 							armor: {
 								slot: 'weapon' | 'armor' | 'accessory';
 								key: string;
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								quantity: number;
 							} | null;
 							accessory: {
 								slot: 'weapon' | 'armor' | 'accessory';
 								key: string;
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								quantity: number;
 							} | null;
 						};
@@ -1127,18 +1253,81 @@ export interface paths {
 								slot: 'weapon' | 'armor' | 'accessory';
 								key: string;
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								quantity: number;
 							} | null;
 							armor: {
 								slot: 'weapon' | 'armor' | 'accessory';
 								key: string;
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								quantity: number;
 							} | null;
 							accessory: {
 								slot: 'weapon' | 'armor' | 'accessory';
 								key: string;
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								quantity: number;
 							} | null;
 						};
@@ -4148,6 +4337,27 @@ export interface paths {
 								key: string;
 								kind: 'item' | 'equipment';
 								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+												};
+										  }
+										| null;
+								};
 								currencyKey: string;
 								unitPrice: number;
 								ownedQuantity: number;
@@ -4279,6 +4489,27 @@ export interface paths {
 							nodeId: string;
 							itemKey: string;
 							displayName: string;
+							details: {
+								description: string;
+								equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+								effect:
+									| {
+											/** @enum {string} */
+											kind: 'heal';
+											amount: number;
+									  }
+									| {
+											/** @enum {string} */
+											kind: 'stat-modifiers';
+											modifiers: {
+												strength?: number;
+												agility?: number;
+												vitality?: number;
+												insight?: number;
+											};
+									  }
+									| null;
+							};
 							quantity: number;
 							unitPrice: number;
 							totalPrice: number;
