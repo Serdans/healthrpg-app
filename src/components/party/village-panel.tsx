@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Coins, DoorOpen, ShoppingBag, Sparkles } from 'lucide-react';
+import { Coins, DoorOpen, ShoppingBag } from 'lucide-react';
 
 import { ErrorNotice } from '#/components/app-state';
+import { InventoryItemSprite } from '#/components/inventory/inventory-item-sprite';
 import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import { FieldError } from '#/components/ui/field-error';
 import type { Village } from '#/lib/api';
 import { formatDateTime, formatTimeRemaining } from '#/lib/dates';
+import { itemEffectLabel } from '#/lib/item-details';
 import { usePurchaseVillage, useStartVillageDeparture } from '#/lib/queries';
 import { purchaseQuantitySchema } from '#/lib/validation';
 
@@ -87,12 +89,18 @@ export function VillagePanel({
 							return (
 								<div key={offer.key} className="game-inset game-inset-muted p-4">
 									<div className="flex items-start justify-between gap-3">
-										<div>
-											<p className="eyebrow">{offer.kind}</p>
-											<p className="mt-2 font-extrabold text-[var(--indigo)]">{offer.displayName}</p>
-											<p className="mt-1 text-xs text-[var(--ink-soft)]">Owned: {offer.ownedQuantity}</p>
+										<div className="flex min-w-0 items-start gap-3">
+											<InventoryItemSprite itemKey={offer.key} kind={offer.kind} size="md" className="bg-[var(--gold-wash)]" />
+											<div className="min-w-0">
+												<p className="eyebrow">{offer.kind}</p>
+												<p className="mt-2 truncate font-extrabold text-[var(--indigo)]">{offer.displayName}</p>
+												<p className="mt-1 text-xs text-[var(--ink-soft)]">Owned: {offer.ownedQuantity}</p>
+												<p className="mt-2 text-xs leading-5 text-[var(--ink-soft)]">{offer.details.description}</p>
+												{itemEffectLabel(offer.details) && (
+													<p className="mt-2 text-xs font-extrabold text-[var(--gold-deep)]">{itemEffectLabel(offer.details)}</p>
+												)}
+											</div>
 										</div>
-										<Sparkles className="size-5 text-[var(--amethyst)]" aria-hidden="true" />
 									</div>
 									<div className="mt-4 flex items-end gap-3">
 										<label className="block flex-1 text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--ink-soft)]">

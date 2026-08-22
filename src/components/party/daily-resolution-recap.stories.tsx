@@ -47,8 +47,8 @@ export const Rewards: Story = {
 					{
 						experience: 100,
 						currency: { key: 'gold', amount: 40 },
-						item: { key: 'field-herb', quantity: 2 },
-						equipment: { key: 'trail-blade' },
+						item: { key: 'herb', quantity: 2 },
+						equipment: { key: 'short-sword' },
 					},
 					{ item: { key: 'moon-seed', quantity: 1 } },
 				],
@@ -57,8 +57,8 @@ export const Rewards: Story = {
 	},
 	play: async ({ canvas }) => {
 		await expect(canvas.getByTestId('inventory-item-sprite-gold')).toBeInTheDocument();
-		await expect(canvas.getByTestId('inventory-item-sprite-field-herb')).toBeInTheDocument();
-		await expect(canvas.getByTestId('inventory-item-sprite-trail-blade')).toBeInTheDocument();
+		await expect(canvas.getByTestId('inventory-item-sprite-herb')).toBeInTheDocument();
+		await expect(canvas.getByTestId('inventory-item-sprite-short-sword')).toBeInTheDocument();
 		await expect(canvas.getByTestId('inventory-item-sprite-moon-seed')).toHaveAttribute('data-fallback', 'true');
 	},
 };

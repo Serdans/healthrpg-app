@@ -50,13 +50,17 @@ export interface InventoryItemSpriteArt {
 
 const inventoryItemArt = new Map<string, InventoryItemSpriteArt>([
 	['gold', { position: '0% 0%', fallbackLabel: 'Gold' }],
-	['field-herb', { position: '50% 0%', fallbackLabel: 'Field herb' }],
-	['trail-blade', { position: '100% 0%', fallbackLabel: 'Trail Blade' }],
+	['herb', { position: '33.3333% 0%', fallbackLabel: 'Herb' }],
+	['nut', { position: '66.6667% 0%', fallbackLabel: 'Nut' }],
+	['potion', { position: '100% 0%', fallbackLabel: 'Potion' }],
+	['short-sword', { position: '0% 100%', fallbackLabel: 'Short Sword' }],
+	['leather-armor', { position: '33.3333% 100%', fallbackLabel: 'Leather Armor' }],
+	['leather-armlet', { position: '66.6667% 100%', fallbackLabel: 'Leather Armlet' }],
 ]);
 
 export const inventoryItemSpriteArt = {
 	src: itemSpritesUrl,
-	backgroundSize: '300% 100%',
+	backgroundSize: '400% 200%',
 } as const;
 
 export function inventoryItemArtForKey(itemKey: string) {

@@ -401,17 +401,116 @@ function village() {
 		merchant: { key: 'wayfarer-market', displayName: 'The Wayfarer Market', role: 'Traveling merchant' },
 		currency: { key: 'gold', displayName: 'Gold', balance: 120 },
 		offers: [
-			{ key: 'field-herb', kind: 'item', displayName: 'Field Herb', currencyKey: 'gold', unitPrice: 10, ownedQuantity: 1 },
-			{ key: 'trail-blade', kind: 'equipment', displayName: 'Trail Blade', currencyKey: 'gold', unitPrice: 100, ownedQuantity: 0 },
+			{
+				key: 'herb',
+				kind: 'item',
+				displayName: 'Herb',
+				details: {
+					description: 'A fresh bundle of restorative leaves gathered along the trail.',
+					equipmentSlot: null,
+					effect: { kind: 'heal', amount: 10 },
+				},
+				currencyKey: 'gold',
+				unitPrice: 10,
+				ownedQuantity: 1,
+			},
+			{
+				key: 'nut',
+				kind: 'item',
+				displayName: 'Nut',
+				details: {
+					description: 'A dense, sun-baked nut that steadies a weary traveler.',
+					equipmentSlot: null,
+					effect: { kind: 'heal', amount: 20 },
+				},
+				currencyKey: 'gold',
+				unitPrice: 25,
+				ownedQuantity: 0,
+			},
+			{
+				key: 'short-sword',
+				kind: 'equipment',
+				displayName: 'Short Sword',
+				details: {
+					description: 'A dependable light blade made for a traveler’s first real battles.',
+					equipmentSlot: 'weapon',
+					effect: { kind: 'stat-modifiers', modifiers: { strength: 1 } },
+				},
+				currencyKey: 'gold',
+				unitPrice: 100,
+				ownedQuantity: 0,
+			},
+			{
+				key: 'leather-armor',
+				kind: 'equipment',
+				displayName: 'Leather Armor',
+				details: {
+					description: 'Supple hide that turns a glancing blow into a survivable one.',
+					equipmentSlot: 'armor',
+					effect: { kind: 'stat-modifiers', modifiers: { vitality: 1 } },
+				},
+				currencyKey: 'gold',
+				unitPrice: 80,
+				ownedQuantity: 0,
+			},
+			{
+				key: 'leather-armlet',
+				kind: 'equipment',
+				displayName: 'Leather Armlet',
+				details: {
+					description: 'A fitted wrist guard that keeps a traveler quick on their feet.',
+					equipmentSlot: 'accessory',
+					effect: { kind: 'stat-modifiers', modifiers: { agility: 1 } },
+				},
+				currencyKey: 'gold',
+				unitPrice: 60,
+				ownedQuantity: 0,
+			},
 		],
 	};
 }
 
 function inventory() {
 	return {
-		currencies: [{ key: 'gold', kind: 'currency', displayName: 'Gold', quantity: 120 }],
-		items: [{ key: 'field-herb', kind: 'item', displayName: 'Field Herb', quantity: 1 }],
-		equipment: [{ key: 'trail-blade', kind: 'equipment', displayName: 'Trail Blade', quantity: 1 }],
+		currencies: [
+			{
+				key: 'gold',
+				kind: 'currency',
+				displayName: 'Gold',
+				details: {
+					description: 'The common coin of every road, market, and waystation.',
+					equipmentSlot: null,
+					effect: null,
+				},
+				quantity: 120,
+			},
+		],
+		items: [
+			{
+				key: 'herb',
+				kind: 'item',
+				displayName: 'Herb',
+				details: {
+					description: 'A fresh bundle of restorative leaves gathered along the trail.',
+					equipmentSlot: null,
+					effect: { kind: 'heal', amount: 10 },
+				},
+				quantity: 1,
+			},
+		],
+		equipment: [
+			{
+				key: 'short-sword',
+				kind: 'equipment',
+				displayName: 'Short Sword',
+				details: {
+					description: 'A dependable light blade made for a traveler’s first real battles.',
+					equipmentSlot: 'weapon',
+					effect: { kind: 'stat-modifiers', modifiers: { strength: 1 } },
+				},
+				quantity: 1,
+			},
+		],
 	};
 }
 
@@ -564,6 +663,7 @@ async function handler(request) {
 	}
 	if (path === '/api/v1/parties/party-1/item-uses' && request.method === 'POST') {
 		const payload = await body(request);
+		state.lastMutation = { path, body: payload };
 		return json({
 			itemKey: payload.itemKey,
 			targetUserId: payload.targetUserId,
