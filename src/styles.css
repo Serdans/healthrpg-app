@@ -1890,8 +1890,10 @@ a {
 
 .battle-enemy-art {
 	display: block;
-	width: 100%;
-	height: clamp(5rem, 11vw, 10.5rem);
+	width: min(100%, clamp(5rem, 11vw, 10.5rem));
+	height: auto;
+	aspect-ratio: 1;
+	margin-inline: auto;
 	background-repeat: no-repeat;
 	background-position: center;
 	background-size: contain;
@@ -1976,27 +1978,6 @@ a {
 .battle-combatant-health .h-2\.5 > div {
 	border-radius: 0;
 	background: var(--game-verdigris);
-}
-
-.battle-pressure-pips {
-	display: flex;
-	gap: 0.2rem;
-	margin-top: 0.34rem;
-}
-
-.battle-pressure-pips i {
-	display: block;
-	width: 0.42rem;
-	height: 0.25rem;
-	border: 1px solid rgba(255, 243, 210, 0.42);
-	border-radius: 0.06rem;
-	background: rgba(23, 20, 60, 0.58);
-}
-
-.battle-pressure-pips .battle-pressure-pip-active {
-	border-color: var(--game-gold);
-	background: var(--game-gold);
-	box-shadow: 0 0 5px rgba(226, 171, 69, 0.55);
 }
 
 .battle-enemy-selected,
@@ -3733,7 +3714,7 @@ a {
 
 	.battle-enemy-art {
 		width: min(100%, 7rem);
-		height: 5.2rem;
+		height: auto;
 		aspect-ratio: 1;
 		margin-inline: auto;
 	}

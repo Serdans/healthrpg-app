@@ -4554,7 +4554,6 @@ export interface paths {
 								displayName: string;
 								maxHealth: number;
 								currentHealth: number;
-								pressure: number;
 							}[];
 							members: {
 								userId: string;
@@ -4707,7 +4706,6 @@ export interface paths {
 								displayName: string;
 								maxHealth: number;
 								currentHealth: number;
-								pressure: number;
 							}[];
 							members: {
 								userId: string;

@@ -5,7 +5,7 @@ import overworldAtlasUrl from '#/assets/game/backgrounds/overworld-atlas.webp';
 import partyClassSpritesUrl from '#/assets/game/characters/party-class-sprites.webp';
 import partyTravelerSpriteUrl from '#/assets/game/characters/party-traveler-sprite.png';
 import landmarkSpritesUrl from '#/assets/game/landmarks/landmark-sprites.webp';
-import mossWolfUrl from '#/assets/game/monsters/moss-wolf.webp';
+import monsterSpritesUrl from '#/assets/game/monsters/monster-sprites.webp';
 import itemSpritesUrl from '#/assets/game/items/item-sprites.webp';
 
 import type { Inventory, PartyMap } from '#/lib/api';
@@ -90,19 +90,32 @@ export const battlePartyArt = {
 	} satisfies Record<BattleClassKey, string>,
 } as const;
 
-export const battleEnemyArt = {
-	mossWolf: {
-		src: mossWolfUrl,
-		backgroundSize: 'contain',
-	},
-	default: {
-		src: mossWolfUrl,
-		backgroundSize: 'contain',
-	},
+export type BattleEnemyArchetype =
+	'vermin' | 'bat' | 'wild-mushroom' | 'slime' | 'wolf' | 'grotto-mite' | 'thorn-wolf' | 'ruin-sentinel' | 'unknown';
+
+export const battleEnemySpriteArt = {
+	src: monsterSpritesUrl,
+	backgroundSize: '300% 300%',
+} as const;
+
+const battleEnemyPositions: Record<BattleEnemyArchetype, string> = {
+	vermin: '0% 0%',
+	bat: '50% 0%',
+	'wild-mushroom': '100% 0%',
+	slime: '0% 50%',
+	wolf: '50% 50%',
+	'grotto-mite': '100% 50%',
+	'thorn-wolf': '0% 100%',
+	'ruin-sentinel': '50% 100%',
+	unknown: '100% 100%',
 } as const;
 
 function isBattleClassKey(value: string): value is BattleClassKey {
 	return value in battlePartyArt.positions;
+}
+
+function isBattleEnemyArchetype(value: string): value is BattleEnemyArchetype {
+	return value in battleEnemyPositions;
 }
 
 export function battlePartyArtForClass(classKey: string) {
@@ -113,5 +126,9 @@ export function battlePartyArtForClass(classKey: string) {
 }
 
 export function battleEnemyArtForArchetype(archetypeKey: string) {
-	return archetypeKey === 'moss-wolf' ? battleEnemyArt.mossWolf : battleEnemyArt.default;
+	const key = isBattleEnemyArchetype(archetypeKey) ? archetypeKey : 'unknown';
+	return {
+		...battleEnemySpriteArt,
+		position: battleEnemyPositions[key],
+	};
 }

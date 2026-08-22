@@ -36,8 +36,8 @@ const activeEncounter: Encounter = {
 	worldDate: '2026-08-21',
 	status: 'active',
 	enemies: [
-		{ id: 'enemy-1', archetypeKey: 'moss-wolf', displayName: 'Moss Wolf', maxHealth: 30, currentHealth: 30, pressure: 2 },
-		{ id: 'enemy-2', archetypeKey: 'moss-wolf', displayName: 'Moss Wolf Alpha', maxHealth: 42, currentHealth: 23, pressure: 4 },
+		{ id: 'enemy-1', archetypeKey: 'slime', displayName: 'Slime', maxHealth: 10, currentHealth: 10 },
+		{ id: 'enemy-2', archetypeKey: 'wolf', displayName: 'Wolf', maxHealth: 12, currentHealth: 8 },
 	],
 	members: [
 		{
@@ -48,7 +48,7 @@ const activeEncounter: Encounter = {
 			signatureAction: {
 				key: 'shield-wall',
 				displayName: 'Shield Wall',
-				description: 'Guard the party from incoming pressure.',
+				description: 'Guard the party from incoming attacks.',
 				targetMode: 'enemy',
 			},
 			selectedActionKey: null,
@@ -118,6 +118,23 @@ const completedEncounter: Encounter = {
 const noStandingFoeEncounter: Encounter = {
 	...activeEncounter,
 	enemies: activeEncounter.enemies.map((enemy) => ({ ...enemy, currentHealth: 0 })),
+};
+
+const starterRosterEncounter: Encounter = {
+	...activeEncounter,
+	enemies: [
+		{ id: 'enemy-vermin', archetypeKey: 'vermin', displayName: 'Vermin', maxHealth: 6, currentHealth: 6 },
+		{ id: 'enemy-bat', archetypeKey: 'bat', displayName: 'Bat', maxHealth: 7, currentHealth: 7 },
+		{
+			id: 'enemy-mushroom',
+			archetypeKey: 'wild-mushroom',
+			displayName: 'Wild Mushroom',
+			maxHealth: 8,
+			currentHealth: 8,
+		},
+		{ id: 'enemy-slime', archetypeKey: 'slime', displayName: 'Slime', maxHealth: 10, currentHealth: 10 },
+		{ id: 'enemy-wolf', archetypeKey: 'wolf', displayName: 'Wolf', maxHealth: 12, currentHealth: 12 },
+	],
 };
 
 const inventory: Inventory = {
@@ -256,6 +273,15 @@ export const FieldKitSelection: Story = {
 		await userEvent.selectOptions(canvas.getByTestId('battle-item-select'), 'moon-seed');
 		await expect(canvas.getByTestId('battle-selected-item')).toHaveTextContent('Moon Seed');
 		await expect(canvas.getByTestId('inventory-item-sprite-moon-seed')).toHaveAttribute('data-fallback', 'true');
+	},
+};
+
+export const StarterMonsterRoster: Story = {
+	render: () => <BattlePreview encounter={starterRosterEncounter} />,
+	play: async ({ canvas }) => {
+		for (const archetypeKey of ['vermin', 'bat', 'wild-mushroom', 'slime', 'wolf']) {
+			await expect(canvas.getByTestId(`battle-enemy-art-${archetypeKey}`)).toBeInTheDocument();
+		}
 	},
 };
 
