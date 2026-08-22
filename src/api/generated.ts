@@ -974,7 +974,7 @@ export interface paths {
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -989,6 +989,7 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
@@ -1001,7 +1002,7 @@ export interface paths {
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -1016,6 +1017,7 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
@@ -1028,7 +1030,7 @@ export interface paths {
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -1043,6 +1045,7 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
@@ -1105,12 +1108,12 @@ export interface paths {
 					content: {
 						'application/json': {
 							weapon: {
-								slot: 'weapon' | 'armor' | 'accessory';
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
 								key: string;
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -1125,19 +1128,20 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
 								};
 								quantity: number;
 							} | null;
-							armor: {
-								slot: 'weapon' | 'armor' | 'accessory';
+							body: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
 								key: string;
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -1152,19 +1156,20 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
 								};
 								quantity: number;
 							} | null;
-							accessory: {
-								slot: 'weapon' | 'armor' | 'accessory';
+							head: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
 								key: string;
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -1179,6 +1184,119 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
+												};
+										  }
+										| null;
+								};
+								quantity: number;
+							} | null;
+							arm: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
+								key: string;
+								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+													defense?: number;
+												};
+										  }
+										| null;
+								};
+								quantity: number;
+							} | null;
+							boots: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
+								key: string;
+								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+													defense?: number;
+												};
+										  }
+										| null;
+								};
+								quantity: number;
+							} | null;
+							ring: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
+								key: string;
+								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+													defense?: number;
+												};
+										  }
+										| null;
+								};
+								quantity: number;
+							} | null;
+							shirt: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
+								key: string;
+								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
@@ -1230,7 +1348,7 @@ export interface paths {
 				query?: never;
 				header?: never;
 				path: {
-					slot: 'weapon' | 'armor' | 'accessory';
+					slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
 				};
 				cookie?: never;
 			};
@@ -1250,12 +1368,12 @@ export interface paths {
 					content: {
 						'application/json': {
 							weapon: {
-								slot: 'weapon' | 'armor' | 'accessory';
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
 								key: string;
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -1270,19 +1388,20 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
 								};
 								quantity: number;
 							} | null;
-							armor: {
-								slot: 'weapon' | 'armor' | 'accessory';
+							body: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
 								key: string;
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -1297,19 +1416,20 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
 								};
 								quantity: number;
 							} | null;
-							accessory: {
-								slot: 'weapon' | 'armor' | 'accessory';
+							head: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
 								key: string;
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -1324,6 +1444,119 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
+												};
+										  }
+										| null;
+								};
+								quantity: number;
+							} | null;
+							arm: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
+								key: string;
+								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+													defense?: number;
+												};
+										  }
+										| null;
+								};
+								quantity: number;
+							} | null;
+							boots: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
+								key: string;
+								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+													defense?: number;
+												};
+										  }
+										| null;
+								};
+								quantity: number;
+							} | null;
+							ring: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
+								key: string;
+								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+													defense?: number;
+												};
+										  }
+										| null;
+								};
+								quantity: number;
+							} | null;
+							shirt: {
+								slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
+								key: string;
+								displayName: string;
+								details: {
+									description: string;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
+									effect:
+										| {
+												/** @enum {string} */
+												kind: 'heal';
+												amount: number;
+										  }
+										| {
+												/** @enum {string} */
+												kind: 'stat-modifiers';
+												modifiers: {
+													strength?: number;
+													agility?: number;
+													vitality?: number;
+													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
@@ -1398,7 +1631,7 @@ export interface paths {
 				query?: never;
 				header?: never;
 				path: {
-					slot: 'weapon' | 'armor' | 'accessory';
+					slot: 'weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt';
 				};
 				cookie?: never;
 			};
@@ -2467,6 +2700,13 @@ export interface paths {
 										agility: number;
 										vitality: number;
 										insight: number;
+									};
+									combatStats: {
+										strength: number;
+										agility: number;
+										vitality: number;
+										insight: number;
+										defense: number;
 									};
 								} | null;
 								progression: {
@@ -4339,7 +4579,7 @@ export interface paths {
 								displayName: string;
 								details: {
 									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+									equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 									effect:
 										| {
 												/** @enum {string} */
@@ -4354,6 +4594,7 @@ export interface paths {
 													agility?: number;
 													vitality?: number;
 													insight?: number;
+													defense?: number;
 												};
 										  }
 										| null;
@@ -4491,7 +4732,7 @@ export interface paths {
 							displayName: string;
 							details: {
 								description: string;
-								equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
+								equipmentSlot: ('weapon' | 'body' | 'head' | 'arm' | 'boots' | 'ring' | 'shirt') | null;
 								effect:
 									| {
 											/** @enum {string} */
@@ -4506,6 +4747,7 @@ export interface paths {
 												agility?: number;
 												vitality?: number;
 												insight?: number;
+												defense?: number;
 											};
 									  }
 									| null;

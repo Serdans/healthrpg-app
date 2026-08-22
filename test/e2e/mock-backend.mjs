@@ -102,6 +102,7 @@ function partyRoster() {
 					backgroundKey: 'wanderer',
 					backgroundName: 'Wanderer',
 					stats: { strength: 4, agility: 3, vitality: 4, insight: 2 },
+					combatStats: { strength: 5, agility: 3, vitality: 5, insight: 2, defense: 2 },
 				},
 				progression: { experience: 120, level: 2, nextLevelExperience: 400 },
 				health: { currentHealth: 20, maxHealth: 20 },
@@ -117,6 +118,7 @@ function partyRoster() {
 					backgroundKey: 'caretaker',
 					backgroundName: 'Caretaker',
 					stats: { strength: 3, agility: 4, vitality: 5, insight: 8 },
+					combatStats: { strength: 3, agility: 4, vitality: 5, insight: 8, defense: 1 },
 				},
 				progression: { experience: 400, level: 3, nextLevelExperience: 900 },
 				health: { currentHealth: 38, maxHealth: 50 },
@@ -446,8 +448,8 @@ function village() {
 				displayName: 'Leather Armor',
 				details: {
 					description: 'Supple hide that turns a glancing blow into a survivable one.',
-					equipmentSlot: 'armor',
-					effect: { kind: 'stat-modifiers', modifiers: { vitality: 1 } },
+					equipmentSlot: 'body',
+					effect: { kind: 'stat-modifiers', modifiers: { defense: 1, vitality: 1 } },
 				},
 				currencyKey: 'gold',
 				unitPrice: 80,
@@ -459,11 +461,37 @@ function village() {
 				displayName: 'Leather Armlet',
 				details: {
 					description: 'A fitted wrist guard that keeps a traveler quick on their feet.',
-					equipmentSlot: 'accessory',
-					effect: { kind: 'stat-modifiers', modifiers: { agility: 1 } },
+					equipmentSlot: 'arm',
+					effect: { kind: 'stat-modifiers', modifiers: { defense: 1, agility: 1 } },
 				},
 				currencyKey: 'gold',
 				unitPrice: 60,
+				ownedQuantity: 0,
+			},
+			{
+				key: 'padded-vest',
+				kind: 'equipment',
+				displayName: 'Padded Vest',
+				details: {
+					description: 'Quilted layers that soften the first bite of a wild creature’s attack.',
+					equipmentSlot: 'body',
+					effect: { kind: 'stat-modifiers', modifiers: { defense: 1, vitality: 1 } },
+				},
+				currencyKey: 'gold',
+				unitPrice: 90,
+				ownedQuantity: 0,
+			},
+			{
+				key: 'copper-band',
+				kind: 'equipment',
+				displayName: 'Copper Band',
+				details: {
+					description: 'A warm copper ring worn by travelers who prefer a little extra force behind a blow.',
+					equipmentSlot: 'ring',
+					effect: { kind: 'stat-modifiers', modifiers: { strength: 1 } },
+				},
+				currencyKey: 'gold',
+				unitPrice: 75,
 				ownedQuantity: 0,
 			},
 		],
@@ -510,12 +538,23 @@ function inventory() {
 				},
 				quantity: 1,
 			},
+			{
+				key: 'leather-armor',
+				kind: 'equipment',
+				displayName: 'Leather Armor',
+				details: {
+					description: 'Supple hide that turns a glancing blow into a survivable one.',
+					equipmentSlot: 'body',
+					effect: { kind: 'stat-modifiers', modifiers: { defense: 1, vitality: 1 } },
+				},
+				quantity: 1,
+			},
 		],
 	};
 }
 
 function loadout() {
-	return { weapon: null, armor: null, accessory: null };
+	return { weapon: null, body: null, head: null, arm: null, boots: null, ring: null, shirt: null };
 }
 
 function encounter() {

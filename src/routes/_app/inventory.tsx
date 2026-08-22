@@ -13,8 +13,12 @@ export const Route = createFileRoute('/_app/inventory')({
 
 const slotLabels: Record<EquipmentSlot, string> = {
 	weapon: 'Weapon',
-	armor: 'Armor',
-	accessory: 'Accessory',
+	body: 'Body',
+	head: 'Head',
+	arm: 'Arms',
+	boots: 'Boots',
+	ring: 'Ring',
+	shirt: 'Shirt',
 };
 
 function InventoryPage() {
