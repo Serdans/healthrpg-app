@@ -378,11 +378,11 @@ function dailyRecap() {
 							enemies: [
 								{
 									id: 'enemy-1',
-									displayName: 'Moss Wolf',
-									healthBefore: 30,
+									displayName: 'Wolf',
+									healthBefore: 12,
 									damageTaken: 8,
-									healthAfter: 22,
-									maxHealth: 30,
+									healthAfter: 4,
+									maxHealth: 12,
 									defeated: false,
 								},
 							],
@@ -425,7 +425,7 @@ function encounter() {
 		nodeId: 'node-1',
 		worldDate: '2026-08-20',
 		status: 'active',
-		enemies: [{ id: 'enemy-1', archetypeKey: 'moss-wolf', displayName: 'Moss Wolf', maxHealth: 30, currentHealth: 30, pressure: 2 }],
+		enemies: [{ id: 'enemy-1', archetypeKey: 'wolf', displayName: 'Wolf', maxHealth: 12, currentHealth: 12 }],
 		members: [
 			{
 				userId: 'user-1',
@@ -435,7 +435,7 @@ function encounter() {
 				signatureAction: {
 					key: 'shield-wall',
 					displayName: 'Shield Wall',
-					description: 'Guard the party from incoming pressure.',
+					description: 'Guard the party from incoming attacks.',
 					targetMode: 'enemy',
 				},
 				selectedActionKey: state.selectedAction?.actionKey ?? null,

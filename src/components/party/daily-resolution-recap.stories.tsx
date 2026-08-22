@@ -115,11 +115,11 @@ export const OngoingCombat: Story = {
 					enemies: [
 						{
 							id: 'enemy-1',
-							displayName: 'Moss Wolf',
-							healthBefore: 30,
-							damageTaken: 8,
-							healthAfter: 22,
-							maxHealth: 30,
+							displayName: 'Wolf',
+							healthBefore: 12,
+							damageTaken: 4,
+							healthAfter: 8,
+							maxHealth: 12,
 							defeated: false,
 						},
 					],
@@ -147,11 +147,11 @@ export const CompletedCombat: Story = {
 					enemies: [
 						{
 							id: 'enemy-1',
-							displayName: 'Moss Wolf',
-							healthBefore: 30,
-							damageTaken: 30,
+							displayName: 'Wolf',
+							healthBefore: 12,
+							damageTaken: 12,
 							healthAfter: 0,
-							maxHealth: 30,
+							maxHealth: 12,
 							defeated: true,
 						},
 					],

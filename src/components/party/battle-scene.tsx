@@ -135,7 +135,7 @@ function Battlefield({
 								data-testid="battle-enemy"
 								data-enemy-id={enemy.id}
 								data-selected={selected}
-								aria-label={`${enemy.displayName}, ${defeated ? 'defeated' : 'standing'}, ${enemy.currentHealth} of ${enemy.maxHealth} health, pressure ${enemy.pressure}`}
+								aria-label={`${enemy.displayName}, ${defeated ? 'defeated' : 'standing'}, ${enemy.currentHealth} of ${enemy.maxHealth} health`}
 								aria-pressed={selected}
 								disabled={interactionDisabled || defeated}
 								onClick={() => onEnemySelect(enemy.id)}
@@ -143,22 +143,22 @@ function Battlefield({
 								<span
 									className="battle-enemy-art"
 									aria-hidden="true"
-									style={{ backgroundImage: `url('${enemyArt.src}')`, backgroundSize: enemyArt.backgroundSize }}
+									data-testid={`battle-enemy-art-${enemy.archetypeKey}`}
+									style={{
+										backgroundImage: `url('${enemyArt.src}')`,
+										backgroundPosition: enemyArt.position,
+										backgroundSize: enemyArt.backgroundSize,
+									}}
 								/>
 								<span className="battle-enemy-nameplate">
 									<strong>{enemy.displayName}</strong>
-									<span>{defeated ? 'Defeated' : `Pressure ${enemy.pressure}`}</span>
+									{defeated && <span>Defeated</span>}
 								</span>
 								<span className="battle-combatant-health">
 									<span>
 										{enemy.currentHealth}/{enemy.maxHealth} HP
 									</span>
 									<Progress value={healthPercent(enemy.currentHealth, enemy.maxHealth)} />
-								</span>
-								<span className="battle-pressure-pips" aria-label={`${enemy.pressure} pressure`}>
-									{Array.from({ length: 5 }, (_, index) => (
-										<i key={index} className={index < enemy.pressure ? 'battle-pressure-pip-active' : ''} />
-									))}
 								</span>
 								{selected && <Crosshair className="battle-target-reticle" aria-hidden="true" />}
 							</button>

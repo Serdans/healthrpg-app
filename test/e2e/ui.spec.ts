@@ -183,7 +183,7 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 
 	await expect(page.getByTestId('combat-scene')).toBeVisible();
 	await expect(page.getByTestId('battlefield')).toBeVisible();
-	await expect(page.getByTestId('battle-enemy').first()).toContainText('Moss Wolf');
+	await expect(page.getByTestId('battle-enemy').first()).toContainText('Wolf');
 	await expect(page.getByTestId('battle-party-member').first()).toContainText('Hero');
 	await expect
 		.poll(async () =>
@@ -197,7 +197,7 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 				}),
 		)
 		.toBe(1);
-	await expect(page.getByTestId('battle-enemy').first().locator('.battle-enemy-art')).toHaveCSS('background-size', 'contain');
+	await expect(page.getByTestId('battle-enemy').first().locator('.battle-enemy-art')).toHaveCSS('background-size', '300% 300%');
 	await expect(page.getByTestId('combat-scene').locator('.battle-command-ribbon')).toContainText('Commanding');
 	await expect(page.getByTestId('daily-command-center')).toContainText('Your command is needed');
 	await expect(page.getByTestId('combat-scene').getByTestId('gameplay-mechanics')).toContainText('Momentum');
