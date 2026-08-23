@@ -7,7 +7,7 @@ import type { InteriorMapLayout } from '#/lib/interior-map';
 import { createWorldMapLayout, createWorldMapTravel, getWorldMapTravelDirection } from '#/lib/world-map';
 
 type TestNode = Omit<PartyMap['nodes'][number], 'mapMetadata'>;
-type TestMap = Omit<PartyMap, 'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds'> & {
+type TestMap = Omit<PartyMap, 'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance'> & {
 	nodes: TestNode[];
 };
 
@@ -25,8 +25,10 @@ function withMapDefaults(value: TestMap): PartyMap {
 		enterableLocation: null,
 		objectives: [],
 		completedObjectiveIds: [],
+		tileBalance: 12,
 		nodes: value.nodes.map((item, index) => ({
 			...item,
+			discovered: true,
 			mapMetadata: {
 				mapId: 'overworld',
 				nodeId: item.id,
@@ -35,6 +37,9 @@ function withMapDefaults(value: TestMap): PartyMap {
 				sortOrder: index,
 				isEntry: index === 0,
 				isExit: false,
+				tileX: null,
+				tileY: null,
+				spawnArchetype: null,
 			},
 		})),
 	};
@@ -42,6 +47,7 @@ function withMapDefaults(value: TestMap): PartyMap {
 
 function node(id: string, regionNo: number, name = id): TestNode {
 	return {
+		discovered: true,
 		id,
 		chapterNo: 1,
 		regionNo,
@@ -76,7 +82,11 @@ function interiorNode(
 			sortOrder,
 			isEntry: role === 'entrance',
 			isExit: role === 'exit',
+			tileX: null,
+			tileY: null,
+			spawnArchetype: null,
 		},
+		discovered: true,
 	};
 }
 
@@ -97,6 +107,7 @@ function interiorMap(mapType: 'village' | 'dungeon', currentNodeId: string, node
 		edges,
 		objectives: [],
 		completedObjectiveIds: [],
+		tileBalance: 12,
 	};
 }
 

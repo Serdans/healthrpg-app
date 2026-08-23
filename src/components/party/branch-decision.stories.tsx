@@ -35,7 +35,11 @@ const map: PartyMap = {
 				sortOrder: 0,
 				isEntry: true,
 				isExit: false,
+				tileX: null,
+				tileY: null,
+				spawnArchetype: null,
 			},
+			discovered: true,
 		},
 		{
 			id: 'lantern-road',
@@ -53,7 +57,11 @@ const map: PartyMap = {
 				sortOrder: 1,
 				isEntry: false,
 				isExit: false,
+				tileX: null,
+				tileY: null,
+				spawnArchetype: null,
 			},
+			discovered: true,
 		},
 		{
 			id: 'old-ruins',
@@ -71,7 +79,11 @@ const map: PartyMap = {
 				sortOrder: 2,
 				isEntry: false,
 				isExit: false,
+				tileX: null,
+				tileY: null,
+				spawnArchetype: null,
 			},
+			discovered: true,
 		},
 	],
 	edges: [
@@ -80,6 +92,7 @@ const map: PartyMap = {
 	],
 	objectives: [],
 	completedObjectiveIds: [],
+	tileBalance: 12,
 };
 
 const votes: PartyVotes = {

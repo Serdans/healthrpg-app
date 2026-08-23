@@ -10,8 +10,12 @@ import itemSpritesUrl from '#/assets/game/items/item-sprites.webp';
 import weaponSpritesUrl from '#/assets/game/weapons/weapon-sprites.webp';
 import armorSpritesUrl from '#/assets/game/armor/armor-sprites.webp';
 import accessorySpritesUrl from '#/assets/game/accessories/accessory-sprites.webp';
+import dungeonTilesetUrl from '#/assets/game/tiles/dungeon-tileset.png';
+import dungeonPropsUrl from '#/assets/game/tiles/dungeon-props.png';
 
 import type { Inventory, PartyMap } from '#/lib/api';
+import { DUNGEON_PROP_TEXTURE_COUNT, DUNGEON_PROP_ART_SIZE, DUNGEON_PROP_TEXTURE_NAMES } from '#/lib/dungeon-props';
+import { TEXTURE_COUNT } from '#/lib/dungeon-tiles';
 
 export type GamePanelTone = 'atlas' | 'combat' | 'village' | 'arcane' | 'history';
 
@@ -247,6 +251,21 @@ export type BattleEnemyArchetype =
 export const battleEnemySpriteArt = {
 	src: monsterSpritesUrl,
 	backgroundSize: '300% 300%',
+} as const;
+
+/** Baked 24px dungeon chunk strip, consumed by the canvas world renderer. */
+export const dungeonTilesetArt = {
+	src: dungeonTilesetUrl,
+	tileSize: 24,
+	totalWidth: TEXTURE_COUNT * 24,
+} as const;
+
+/** Transparent 24px dungeon-object sprites, consumed by the Pixi world renderer. */
+export const dungeonPropsArt = {
+	src: dungeonPropsUrl,
+	tileSize: DUNGEON_PROP_ART_SIZE,
+	names: DUNGEON_PROP_TEXTURE_NAMES,
+	totalWidth: DUNGEON_PROP_TEXTURE_COUNT * DUNGEON_PROP_ART_SIZE,
 } as const;
 
 const battleEnemyPositions: Record<BattleEnemyArchetype, string> = {

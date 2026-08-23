@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
 	answerCharacter,
 	castVote,
+	claimDungeonNavigator,
+	clearDungeonRouteIntent,
 	chooseEvent,
 	commitCharacter,
 	createInvite,
@@ -34,14 +36,20 @@ import {
 	purchaseVillage,
 	resetCharacterCreation,
 	revokeInvite,
+	releaseDungeonNavigator,
+	setDungeonRouteIntent,
 	setEncounterAction,
 	startVillageDeparture,
 	syncHealth,
 	transferLeadership,
+	transferDungeonNavigator,
 	unequipLoadout,
 	updatePreferences,
 	usePartyItem,
+	voteDungeonRoute,
+	walkDungeon,
 } from './api';
+import type { DungeonNavigation, DungeonNavigatorTransferInput, DungeonRouteTargetInput, DungeonWalkInput, PartyMap } from './api';
 
 const partyRefreshInterval = 15_000;
 const decisionRefreshInterval = 10_000;
@@ -165,6 +173,142 @@ export function useEnterLocation(partyId: string) {
 			void queryClient.invalidateQueries({ queryKey: queryKeys.village(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.encounter(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.votes(partyId, party.currentNode.id) });
+		},
+	});
+}
+
+/**
+ * Tile walking with the app's first optimistic mutation: the party marker
+ * moves immediately toward the requested path, then the server response
+ * reconciles position, fog reveals, and tile balance.
+ */
+export function useWalkDungeon(partyId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (input: DungeonWalkInput) => walkDungeon(partyId, input),
+		onMutate: async (input) => {
+			await queryClient.cancelQueries({ queryKey: queryKeys.map(partyId) });
+			const previous = queryClient.getQueryData<PartyMap>(queryKeys.map(partyId));
+			if (!previous || input.mode !== 'manual') return { previous };
+			let nodeId = previous.currentNodeId;
+			const nodesById = new Map(previous.nodes.map((node) => [node.id, node]));
+			const nodesByCoordinate = new Map(
+				previous.nodes
+					.filter(({ mapMetadata }) => mapMetadata.tileX !== null && mapMetadata.tileY !== null)
+					.map((node) => {
+						const { floorNo, tileX, tileY } = node.mapMetadata;
+						return [`${String(floorNo)}:${String(tileX)}:${String(tileY)}`, node] as const;
+					}),
+			);
+			const stepDelta: Record<(typeof input.steps)[number], [number, number]> = {
+				up: [0, -1],
+				down: [0, 1],
+				left: [-1, 0],
+				right: [1, 0],
+			};
+			for (const step of input.steps) {
+				const current = nodesById.get(nodeId);
+				const metadata = current?.mapMetadata;
+				if (!metadata) break;
+				const { floorNo, tileX, tileY } = metadata;
+				if (tileX === null || tileY === null) break;
+				const [dc, dr] = stepDelta[step];
+				const next = nodesByCoordinate.get(`${String(floorNo)}:${String(tileX + dc)}:${String(tileY + dr)}`);
+				if (!next) break;
+				nodeId = next.id;
+			}
+			if (nodeId !== previous.currentNodeId) {
+				queryClient.setQueryData<PartyMap>(queryKeys.map(partyId), { ...previous, currentNodeId: nodeId });
+			}
+			return { previous };
+		},
+		onSuccess: (walk) => {
+			queryClient.setQueryData<PartyMap | undefined>(queryKeys.map(partyId), (map) =>
+				map ? { ...map, currentNodeId: walk.nodeId, navigation: walk.navigation } : map,
+			);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.encounter(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
+		},
+		onError: (_error, _input, context) => {
+			if (context?.previous) {
+				queryClient.setQueryData(queryKeys.map(partyId), context.previous);
+			}
+		},
+		onSettled: () => {
+			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+		},
+	});
+}
+
+function updateDungeonNavigation(queryClient: ReturnType<typeof useQueryClient>, partyId: string, navigation: DungeonNavigation | null) {
+	queryClient.setQueryData<PartyMap | undefined>(queryKeys.map(partyId), (map) => (map ? { ...map, navigation } : map));
+}
+
+export function useClaimDungeonNavigator(partyId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: () => claimDungeonNavigator(partyId),
+		onSuccess: (navigation) => {
+			updateDungeonNavigation(queryClient, partyId, navigation);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+		},
+	});
+}
+
+export function useReleaseDungeonNavigator(partyId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: () => releaseDungeonNavigator(partyId),
+		onSuccess: (navigation) => {
+			updateDungeonNavigation(queryClient, partyId, navigation);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+		},
+	});
+}
+
+export function useTransferDungeonNavigator(partyId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (body: DungeonNavigatorTransferInput) => transferDungeonNavigator(partyId, body),
+		onSuccess: (navigation) => {
+			updateDungeonNavigation(queryClient, partyId, navigation);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+		},
+	});
+}
+
+export function useVoteDungeonRoute(partyId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (target: DungeonRouteTargetInput) => voteDungeonRoute(partyId, target),
+		onSuccess: (navigation) => {
+			updateDungeonNavigation(queryClient, partyId, navigation);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+		},
+	});
+}
+
+export function useSetDungeonRouteIntent(partyId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: (target: DungeonRouteTargetInput) => setDungeonRouteIntent(partyId, target),
+		onSuccess: (navigation) => {
+			updateDungeonNavigation(queryClient, partyId, navigation);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
+		},
+	});
+}
+
+export function useClearDungeonRouteIntent(partyId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: () => clearDungeonRouteIntent(partyId),
+		onSuccess: (navigation) => {
+			updateDungeonNavigation(queryClient, partyId, navigation);
+			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
 		},
 	});
 }

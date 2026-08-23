@@ -15,6 +15,7 @@ import { ProgressionHistory } from '#/components/party/progression-history';
 import { Roster } from '#/components/party/roster';
 import { VillagePanel } from '#/components/party/village-panel';
 import { WorldMap } from '#/components/party/world-map';
+import type { DungeonNavigatorControls } from '#/components/party/dungeon-grid-map';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import type { DailyProgress, Party, PartyEvent, PartyMap, PartyRoster, PartyVotes } from '#/lib/api';
@@ -30,6 +31,7 @@ import type {
 	usePartyRoster,
 	usePartyVotes,
 	useVillage,
+	useWalkDungeon,
 } from '#/lib/queries';
 
 type AdventureQuery = ReturnType<typeof useAdventure>;
@@ -37,6 +39,7 @@ type DailyQuery = ReturnType<typeof useDailyProgress>;
 type EncounterQuery = ReturnType<typeof useEncounter>;
 type EventQuery = ReturnType<typeof usePartyEvent>;
 type EnterLocationMutation = ReturnType<typeof useEnterLocation>;
+type WalkDungeonMutation = ReturnType<typeof useWalkDungeon>;
 type RosterQuery = ReturnType<typeof usePartyRoster>;
 type RecapQuery = ReturnType<typeof usePartyRecap>;
 type VotesQuery = ReturnType<typeof usePartyVotes>;
@@ -222,6 +225,8 @@ export function PartyFieldSection({
 	currentMapNode,
 	readOnly,
 	enterLocationMutation,
+	walkMutation,
+	navigatorControls,
 	adventureQuery,
 	isVillage,
 	villageEnabled,
@@ -236,6 +241,8 @@ export function PartyFieldSection({
 	currentMapNode: PartyMap['nodes'][number] | undefined;
 	readOnly: boolean;
 	enterLocationMutation: EnterLocationMutation;
+	walkMutation?: WalkDungeonMutation;
+	navigatorControls?: DungeonNavigatorControls;
 	adventureQuery: AdventureQuery;
 	isVillage: boolean;
 	villageEnabled: boolean;
@@ -243,17 +250,27 @@ export function PartyFieldSection({
 	timeZone: string;
 	actionHref?: '#party-action';
 }) {
+	const isDungeon = map.currentMap.mapType === 'dungeon';
 	return (
 		<section id="party-field" className="gameplay-section" aria-labelledby="party-field-title" tabIndex={-1}>
 			<SectionHeading
-				eyebrow="Field journal"
-				title="The road ahead"
-				description="Chart the revealed trail, inspect nearby landmarks, and follow the party marker into the next chapter."
+				eyebrow={isDungeon ? 'Dungeon expedition' : 'Field journal'}
+				title={isDungeon ? 'Into the ruins' : 'The road ahead'}
+				description={
+					isDungeon
+						? 'Read the floor, follow the light, and guide the party through the ruins one tile at a time.'
+						: 'Chart the revealed trail, inspect nearby landmarks, and follow the party marker into the next chapter.'
+				}
 				id="party-field-title"
 				icon={<Compass className="size-5" />}
 			/>
 
-			<Card variant="game" tone="atlas" className="game-map-panel">
+			<Card
+				variant="game"
+				tone="atlas"
+				className={`game-map-panel ${map.currentMap.mapType === 'dungeon' ? 'game-panel-dungeon' : ''}`}
+				data-map-surface={map.currentMap.mapType}
+			>
 				<CardHeader>
 					<div className="flex items-start justify-between gap-4">
 						<div>
@@ -267,13 +284,24 @@ export function PartyFieldSection({
 								<strong>{mapTypeLabel === 'Overworld' ? 'Overworld atlas' : `${mapTypeLabel} interior`}</strong>
 							</div>
 							<CardTitle className="mt-4 text-3xl">{map.currentMap.name}</CardTitle>
-							<CardDescription>Only discovered and adjacent nodes are revealed. The rest stays beyond the mist.</CardDescription>
+							<CardDescription>
+								{isDungeon
+									? 'Only discovered and adjacent tiles are revealed. Keep your bearings and follow the light toward the next floor.'
+									: 'Only discovered and adjacent nodes are revealed. The rest stays beyond the mist.'}
+							</CardDescription>
 						</div>
 						<MapIcon className="size-6 text-[var(--gold)]" aria-hidden="true" />
 					</div>
 				</CardHeader>
 				<CardContent>
-					<WorldMap map={map} enterMutation={enterLocationMutation} readOnly={readOnly} actionHref={actionHref} />
+					<WorldMap
+						map={map}
+						enterMutation={enterLocationMutation}
+						walkMutation={walkMutation}
+						navigatorControls={navigatorControls}
+						readOnly={readOnly}
+						actionHref={actionHref}
+					/>
 				</CardContent>
 			</Card>
 

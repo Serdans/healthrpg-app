@@ -14,20 +14,34 @@ const state = {
 	scenario: 'branch',
 	decisionStartedAt: '2026-08-20T00:00:00.000Z',
 	selectedEdgeId: null,
+	selectedEventChoice: null,
+	eventResolved: false,
 	selectedAction: null,
 	lastMutation: { path: null, body: null },
 	healthLastSyncAt: initialHealthSync,
 	healthSyncReadyAt: null,
+	dungeonWalkDelayMs: 0,
+	dungeonRejectNext: false,
+	walkedTo: null,
+	walkCount: 0,
+	dungeonDiscovered: new Set(['tile-entry']),
 };
 
 function resetState() {
 	state.scenario = 'branch';
 	state.decisionStartedAt = '2026-08-20T00:00:00.000Z';
 	state.selectedEdgeId = null;
+	state.selectedEventChoice = null;
+	state.eventResolved = false;
 	state.selectedAction = null;
 	state.lastMutation = { path: null, body: null };
 	state.healthLastSyncAt = initialHealthSync;
 	state.healthSyncReadyAt = null;
+	state.dungeonWalkDelayMs = 0;
+	state.dungeonRejectNext = false;
+	state.walkedTo = null;
+	state.walkCount = 0;
+	state.dungeonDiscovered = new Set(['tile-entry']);
 }
 
 function json(response, status = 200) {
@@ -46,6 +60,7 @@ async function body(request) {
 
 function currentNodeType() {
 	if (state.scenario === 'village' || state.scenario === 'village-interior') return 'village';
+	if (state.scenario === 'dungeon-grid') return 'travel';
 	if (state.scenario === 'combat') return 'combat';
 	if (state.scenario === 'event') return 'narrative';
 	return 'travel';
@@ -74,11 +89,29 @@ function party() {
 						: state.scenario === 'village' || state.scenario === 'village-interior'
 							? { eventType: 'village', settlementKey: 'mossway' }
 							: state.scenario === 'event'
-								? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
+								? {
+										eventType: 'narrative',
+										prompt: 'Which light do you follow?',
+										choices: [
+											{
+												key: 'lantern',
+												displayName: 'Follow the lanterns',
+												description: 'Take the warm road.',
+												requirements: { movementUnits: 0, recoveryPoints: 0 },
+											},
+											{
+												key: 'stars',
+												displayName: 'Read the stars',
+												description: 'Trust the high path.',
+												requirements: { movementUnits: 1, recoveryPoints: 0 },
+											},
+										],
+									}
 								: undefined,
 			},
 		},
 		challengeProgress: 0,
+		tileBalance: 9,
 		decisionStartedAt: state.decisionStartedAt,
 		members: [
 			{ userId: 'user-1', role: 'leader', displayName: 'Hero' },
@@ -128,6 +161,83 @@ function partyRoster() {
 }
 
 function map() {
+	if (state.scenario === 'dungeon-grid') {
+		const tile = (nodeId, kind, x, y, role, nodeType = 'travel', archetype = null, discovered = true) => {
+			const isDiscovered = state.dungeonDiscovered?.has(nodeId) ?? discovered;
+			return {
+				id: nodeId,
+				chapterNo: 1,
+				regionNo: 0,
+				name: `F1 ${kind.replaceAll('-', ' ')} ${String(x)}:${String(y)}`,
+				nodeType,
+				templateKey: `dungeon-tile-${kind}-v1`,
+				config: { movementCost: 0, challengeCost: 0 },
+				adjacent: true,
+				mapMetadata: {
+					mapId: 'map-dungeon',
+					nodeId,
+					floorNo: 0,
+					role,
+					sortOrder: x * 10 + y,
+					isEntry: kind === 'entry',
+					isExit: false,
+					tileX: x,
+					tileY: y,
+					spawnArchetype: archetype,
+				},
+				discovered: isDiscovered,
+			};
+		};
+		return {
+			currentChapter: 1,
+			currentNodeId: state.walkedTo ?? 'tile-entry',
+			currentMap: {
+				id: 'map-dungeon',
+				mapType: 'dungeon',
+				name: 'First Ruins',
+				templateKey: 'dungeon-v1',
+				parentNodeId: 'node-9',
+				entryNodeId: 'tile-entry',
+			},
+			enterableLocation: null,
+			objectives: [
+				{
+					id: 'obj-goal',
+					mapId: 'map-dungeon',
+					key: 'reach-dungeon-goal',
+					type: 'reach-node',
+					targetNodeId: 'tile-goal',
+					required: true,
+					displayName: 'Reach the Memory Well',
+					description: 'Delve to the heart of the ruins.',
+				},
+			],
+			completedObjectiveIds: [],
+			tileBalance: 9,
+			nodes: [
+				tile('tile-entry', 'entry', 2, 2, 'entrance'),
+				tile('tile-a', 'floor', 3, 2, 'room'),
+				tile('tile-north-a', 'floor', 3, 1, 'room'),
+				tile('tile-b', 'floor', 4, 2, 'room'),
+				tile('tile-north-b', 'floor', 4, 1, 'room'),
+				tile('tile-c', 'floor', 5, 2, 'room'),
+				tile('tile-north-c', 'floor', 5, 1, 'room'),
+				tile('tile-d', 'floor', 6, 2, 'room'),
+				tile('tile-north-d', 'floor', 6, 1, 'room'),
+				tile('tile-spawn', 'spawn', 7, 2, 'combat', 'combat', 'slime'),
+				tile('tile-north-spawn', 'floor', 7, 1, 'room'),
+				tile('tile-south-entry', 'floor', 2, 3, 'room'),
+				tile('tile-south-a', 'floor', 3, 3, 'room'),
+				tile('tile-south-b', 'floor', 4, 3, 'room'),
+				tile('tile-south-c', 'floor', 5, 3, 'room'),
+				tile('tile-south-d', 'floor', 6, 3, 'room'),
+				tile('tile-south-spawn', 'floor', 7, 3, 'room'),
+				tile('tile-treasure', 'treasure', 2, 1, 'treasure'),
+				tile('tile-goal', 'goal', 8, 2, 'goal'),
+			],
+			edges: [],
+		};
+	}
 	if (state.scenario === 'village-interior') {
 		const villageMetadata = (nodeId, sortOrder, role, isEntry = false, isExit = false) => ({
 			mapId: 'map-village',
@@ -320,6 +430,33 @@ function voteState() {
 		deadlineAt: '2030-08-20T00:00:00.000Z',
 		resolvedEdgeId: null,
 		votes: state.selectedEdgeId ? [{ userId: 'user-1', edgeId: state.selectedEdgeId }] : [],
+	};
+}
+
+function partyEvent() {
+	return {
+		partyId: 'party-1',
+		nodeId: 'node-1',
+		worldDate: '2026-08-20',
+		eventType: 'narrative',
+		prompt: 'Which light do you follow?',
+		choices: [
+			{
+				key: 'lantern',
+				displayName: 'Follow the lanterns',
+				description: 'Take the warm road.',
+				requirements: { movementUnits: 0, recoveryPoints: 0 },
+			},
+			{
+				key: 'stars',
+				displayName: 'Read the stars',
+				description: 'Trust the high path.',
+				requirements: { movementUnits: 1, recoveryPoints: 0 },
+			},
+		],
+		selectedChoiceKey: state.selectedEventChoice,
+		resolved: state.eventResolved,
+		votes: state.selectedEventChoice ? [{ userId: 'user-1', choiceKey: state.selectedEventChoice }] : [],
 	};
 }
 
@@ -618,10 +755,19 @@ async function handler(request) {
 	if (path === '/__scenario' && request.method === 'POST') {
 		const payload = await body(request);
 		state.scenario = payload.scenario ?? 'branch';
-		state.decisionStartedAt = state.scenario === 'village' || state.scenario === 'village-interior' ? null : '2026-08-20T00:00:00.000Z';
+		state.walkedTo = null;
+		state.walkCount = 0;
+		state.dungeonDiscovered = new Set(['tile-entry']);
+		state.dungeonWalkDelayMs = Math.max(0, Number(payload.dungeonWalkDelayMs ?? 0));
+		state.dungeonRejectNext = Boolean(payload.dungeonRejectNext);
+		state.decisionStartedAt =
+			state.scenario === 'village' || state.scenario === 'village-interior' || state.scenario === 'dungeon-grid'
+				? null
+				: '2026-08-20T00:00:00.000Z';
 		return json({ ok: true, scenario: state.scenario });
 	}
 	if (path === '/__last-mutation') return json(state.lastMutation);
+	if (path === '/__walk-count') return json({ count: state.walkCount ?? 0 });
 
 	if (path === '/api/v1/me' && request.method === 'GET') return json(user);
 	if (path === '/api/v1/parties' && request.method === 'GET') return json([party()]);
@@ -674,7 +820,87 @@ async function handler(request) {
 		state.lastMutation = { path, body: null };
 		return json(party());
 	}
+	if (path === '/api/v1/parties/party-1/dungeon/walk' && request.method === 'POST') {
+		const payload = await body(request);
+		state.lastMutation = { path, body: payload };
+		if (state.dungeonWalkDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, state.dungeonWalkDelayMs));
+		if (state.dungeonRejectNext && payload.mode === 'manual') {
+			state.dungeonRejectNext = false;
+			return json({ detail: 'The dungeon rejects this step.' }, 409);
+		}
+		state.walkCount = (state.walkCount ?? 0) + 1;
+		if (payload.mode === 'manual') {
+			const dungeon = map();
+			const nodesById = new Map(dungeon.nodes.map((node) => [node.id, node]));
+			const deltas = {
+				up: [0, -1],
+				down: [0, 1],
+				left: [-1, 0],
+				right: [1, 0],
+			};
+			let currentNodeId = state.walkedTo ?? 'tile-entry';
+			const pathNodeIds = [];
+			let haltedReason = null;
+			for (const step of payload.steps ?? []) {
+				const current = nodesById.get(currentNodeId);
+				const delta = deltas[step];
+				if (!current || !delta || current.mapMetadata.tileX === null || current.mapMetadata.tileY === null) {
+					haltedReason = 'wall';
+					break;
+				}
+				const next = dungeon.nodes.find(
+					(node) =>
+						node.mapMetadata.floorNo === current.mapMetadata.floorNo &&
+						node.mapMetadata.tileX === current.mapMetadata.tileX + delta[0] &&
+						node.mapMetadata.tileY === current.mapMetadata.tileY + delta[1],
+				);
+				if (!next) {
+					haltedReason = 'wall';
+					break;
+				}
+				currentNodeId = next.id;
+				pathNodeIds.push(next.id);
+				state.dungeonDiscovered.add(next.id);
+			}
+			state.walkedTo = currentNodeId;
+			return json({
+				partyId: 'party-1',
+				nodeId: currentNodeId,
+				tileBalance: 8,
+				stepsTaken: pathNodeIds.length,
+				pathNodeIds,
+				revealedCount: pathNodeIds.length,
+				floorChanged: false,
+				encounterTriggeredNodeId: null,
+				haltedReason,
+			});
+		}
+		// Auto-explore follows the fixture corridor: entry → a → b → c → d → spawn.
+		const corridor = ['tile-entry', 'tile-a', 'tile-b', 'tile-c', 'tile-d', 'tile-spawn'];
+		const currentIndex = corridor.indexOf(state.walkedTo ?? 'tile-entry');
+		const next = corridor[Math.min(corridor.length - 1, currentIndex + 1)] ?? 'tile-b';
+		state.walkedTo = next;
+		state.dungeonDiscovered.add(next);
+		return json({
+			partyId: 'party-1',
+			nodeId: next,
+			tileBalance: 8,
+			stepsTaken: 1,
+			pathNodeIds: [next],
+			revealedCount: 2,
+			floorChanged: false,
+			encounterTriggeredNodeId: null,
+			haltedReason: null,
+		});
+	}
 	if (path === '/api/v1/parties/party-1/map' && request.method === 'GET') return json(map());
+	if (path === '/api/v1/parties/party-1/event' && request.method === 'GET') return json(partyEvent());
+	if (path === '/api/v1/parties/party-1/event/choices/me' && request.method === 'PUT') {
+		const payload = await body(request);
+		state.selectedEventChoice = payload.choiceKey ?? null;
+		state.lastMutation = { path, body: payload };
+		return json(partyEvent());
+	}
 	if (path === '/api/v1/parties/party-1/adventure') return json(adventure());
 	if (path === '/api/v1/parties/party-1/progress') return json(dailyProgress());
 	if (path === '/api/v1/parties/party-1/recap') return json(dailyRecap());

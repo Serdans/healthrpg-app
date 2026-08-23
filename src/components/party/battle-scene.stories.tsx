@@ -22,6 +22,7 @@ const party: Party = {
 		config: { movementCost: 10, challengeCost: 0, event: { eventType: 'combat' } },
 	},
 	challengeProgress: 12,
+	tileBalance: 12,
 	decisionStartedAt: '2026-08-20T00:00:00.000Z',
 	members: [
 		{ userId: 'user-1', role: 'leader', displayName: 'Hero' },

@@ -18,6 +18,11 @@ async function lastMutation(request: APIRequestContext) {
 	return response.json() as Promise<{ path: string | null; body: unknown }>;
 }
 
+async function walkCount(request: APIRequestContext) {
+	const response = await request.get(`${mockBackendUrl}/__walk-count`);
+	return (response.json() as Promise<{ count: number }>).then((payload) => payload.count);
+}
+
 test.beforeEach(async ({ request }) => {
 	await request.post(`${mockBackendUrl}/__reset`);
 });
@@ -174,6 +179,140 @@ test('enters a nested village map from the overworld', async ({ page, request })
 			path: '/api/v1/parties/party-1/locations/map-village/enter',
 			body: null,
 		});
+});
+
+test('walks a tile-based dungeon with auto-explore and manual steps', async ({ page, request }) => {
+	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'dungeon-grid' } });
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	const grid = page.getByTestId('dungeon-grid');
+	await expect(grid).toBeVisible();
+	await expect(grid).toHaveAttribute('data-dungeon-renderer', 'pixi');
+	await expect(grid).toHaveAttribute('data-dungeon-theme', 'atmospheric');
+	await expect(grid).toHaveAttribute('data-dungeon-floor', '0');
+	await expect(grid).toHaveAttribute('data-tile-balance', '9');
+	await expect(page.getByTestId('map-scene')).toHaveAttribute('data-map-type', 'dungeon');
+	await expect(page.locator('.game-panel-dungeon')).toBeVisible();
+	// The world renders to a single canvas now.
+	const canvas = page.getByTestId('dungeon-grid-canvas');
+	await expect(canvas).toBeVisible();
+	expect(await canvas.evaluate((element) => (element as HTMLCanvasElement).width)).toBeGreaterThan(0);
+	// The live-region announces the party's tile.
+	await expect(page.getByTestId('dungeon-live-status')).toContainText(/Party is at/);
+
+	await page.getByTestId('dungeon-explore').click();
+	await expect
+		.poll(async () => lastMutation(request))
+		.toEqual({
+			path: '/api/v1/parties/party-1/dungeon/walk',
+			body: { mode: 'auto' },
+		});
+
+	// Manual stepping: arrow keys send single-tile walk requests.
+	const atEntry = await page.getByTestId('dungeon-live-status').textContent();
+	await page.getByTestId('dungeon-grid-viewport').focus();
+	await page.keyboard.press('ArrowRight');
+	await expect
+		.poll(async () => lastMutation(request))
+		.toEqual({
+			path: '/api/v1/parties/party-1/dungeon/walk',
+			body: { mode: 'manual', steps: ['right'] },
+		});
+	await expect(page.getByTestId('dungeon-live-status')).not.toHaveText(atEntry ?? '');
+
+	// Holding a direction chains steps at hop cadence, PMD style.
+	const before = await walkCount(request);
+	await page.keyboard.down('ArrowRight');
+	await page.waitForTimeout(700);
+	await page.keyboard.up('ArrowRight');
+	await expect.poll(async () => (await walkCount(request)) - before).toBeGreaterThanOrEqual(2);
+});
+
+test('walks up and down through fog-covered dungeon tiles', async ({ page, request }) => {
+	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'dungeon-grid' } });
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	const grid = page.getByTestId('dungeon-grid');
+	const viewport = page.getByTestId('dungeon-grid-viewport');
+	await viewport.focus();
+
+	await page.keyboard.press('ArrowUp');
+	await expect
+		.poll(async () => lastMutation(request))
+		.toEqual({
+			path: '/api/v1/parties/party-1/dungeon/walk',
+			body: { mode: 'manual', steps: ['up'] },
+		});
+	await expect(grid).toHaveAttribute('data-party-node-id', 'tile-treasure');
+
+	await page.keyboard.press('ArrowDown');
+	await expect
+		.poll(async () => lastMutation(request))
+		.toEqual({
+			path: '/api/v1/parties/party-1/dungeon/walk',
+			body: { mode: 'manual', steps: ['down'] },
+		});
+	await expect(grid).toHaveAttribute('data-party-node-id', 'tile-entry');
+});
+
+test('stops buffered dungeon movement after releasing the key', async ({ page, request }) => {
+	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'dungeon-grid', dungeonWalkDelayMs: 2_000 } });
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	const grid = page.getByTestId('dungeon-grid');
+	await page.getByTestId('dungeon-grid-viewport').focus();
+	await page.keyboard.down('ArrowRight');
+	await page.waitForTimeout(300);
+	await page.keyboard.up('ArrowRight');
+
+	await expect.poll(async () => walkCount(request)).toBe(1);
+	await page.waitForTimeout(2_200);
+	await expect.poll(async () => walkCount(request)).toBe(1);
+	await expect(grid).toHaveAttribute('data-party-node-id', 'tile-a');
+});
+
+test('renders a manual dungeon step before the server responds', async ({ page, request }) => {
+	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'dungeon-grid', dungeonWalkDelayMs: 500 } });
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	const grid = page.getByTestId('dungeon-grid');
+	await expect(grid).toHaveAttribute('data-party-node-id', 'tile-entry');
+	await page.getByTestId('dungeon-grid-viewport').focus();
+	await page.keyboard.press('ArrowRight');
+
+	await expect(grid).toHaveAttribute('data-party-node-id', 'tile-a');
+	await expect(page.getByTestId('dungeon-live-status')).toContainText('tile-a');
+	await expect
+		.poll(async () => lastMutation(request))
+		.toEqual({
+			path: '/api/v1/parties/party-1/dungeon/walk',
+			body: { mode: 'manual', steps: ['right'] },
+		});
+	await expect.poll(async () => walkCount(request)).toBe(1);
+});
+
+test('snaps a rejected dungeon step back and discards queued input', async ({ page, request }) => {
+	await request.post(`${mockBackendUrl}/__scenario`, {
+		data: { scenario: 'dungeon-grid', dungeonWalkDelayMs: 1_000, dungeonRejectNext: true },
+	});
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	const grid = page.getByTestId('dungeon-grid');
+	await page.getByTestId('dungeon-grid-viewport').focus();
+	await page.keyboard.press('ArrowRight');
+	await expect(grid).toHaveAttribute('data-party-node-id', 'tile-a');
+
+	await expect(grid).toHaveAttribute('data-party-node-id', 'tile-entry');
+	await expect(page.getByTestId('dungeon-grid-inspector')).toContainText('entry');
+	await expect(page.getByText('The dungeon rejects this step.')).toBeVisible();
+	await expect(grid).toHaveAttribute('data-party-recovery-count', '1');
+	await expect(grid).toHaveAttribute('data-party-traveling', 'false');
+	await expect.poll(async () => walkCount(request)).toBe(0);
 });
 
 test('submits a combat action and uses a field item', async ({ page, request }) => {

@@ -1989,6 +1989,7 @@ export interface paths {
 								};
 							};
 							challengeProgress: number;
+							tileBalance: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -2085,6 +2086,7 @@ export interface paths {
 								};
 							};
 							challengeProgress: number;
+							tileBalance: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -2227,6 +2229,7 @@ export interface paths {
 								};
 							};
 							challengeProgress: number;
+							tileBalance: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -2405,7 +2408,11 @@ export interface paths {
 									sortOrder: number;
 									isEntry: boolean;
 									isExit: boolean;
+									tileX: number | null;
+									tileY: number | null;
+									spawnArchetype: string | null;
 								};
+								discovered: boolean;
 							}[];
 							edges: {
 								id: string;
@@ -2425,6 +2432,36 @@ export interface paths {
 								description: string;
 							}[];
 							completedObjectiveIds: string[];
+							tileBalance: number;
+							navigation: {
+								navigatorUserId: string | null;
+								navigatorDisplayName: string | null;
+								claimedAt: string | null;
+								lastActiveAt: string | null;
+								leaseExpiresAt: string | null;
+								routeIntent: {
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									setByUserId: string | null;
+									setAt: string | null;
+									/** Format: date-time */
+									deadlineAt: string;
+									votes: {
+										userId: string;
+										kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+										nodeId: string | null;
+										/** Format: date-time */
+										votedAt: string;
+									}[];
+								} | null;
+								routeVotes: {
+									userId: string;
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									/** Format: date-time */
+									votedAt: string;
+								}[];
+							} | null;
 						};
 					};
 				};
@@ -2566,6 +2603,7 @@ export interface paths {
 								};
 							};
 							challengeProgress: number;
+							tileBalance: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -2654,6 +2692,1097 @@ export interface paths {
 			};
 		};
 		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/dungeon/walk': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json':
+						| {
+								/** @enum {string} */
+								mode: 'auto';
+						  }
+						| {
+								/** @enum {string} */
+								mode: 'manual';
+								steps: ('up' | 'down' | 'left' | 'right')[];
+						  };
+				};
+			};
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							partyId: string;
+							nodeId: string;
+							tileBalance: number;
+							stepsTaken: number;
+							pathNodeIds: string[];
+							revealedCount: number;
+							floorChanged: boolean;
+							encounterTriggeredNodeId: string | null;
+							haltedReason: string | null;
+							navigation: {
+								navigatorUserId: string | null;
+								navigatorDisplayName: string | null;
+								claimedAt: string | null;
+								lastActiveAt: string | null;
+								leaseExpiresAt: string | null;
+								routeIntent: {
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									setByUserId: string | null;
+									setAt: string | null;
+									/** Format: date-time */
+									deadlineAt: string;
+									votes: {
+										userId: string;
+										kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+										nodeId: string | null;
+										/** Format: date-time */
+										votedAt: string;
+									}[];
+								} | null;
+								routeVotes: {
+									userId: string;
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									/** Format: date-time */
+									votedAt: string;
+								}[];
+							};
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/dungeon/navigator/claim': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							navigatorUserId: string | null;
+							navigatorDisplayName: string | null;
+							claimedAt: string | null;
+							lastActiveAt: string | null;
+							leaseExpiresAt: string | null;
+							routeIntent: {
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								setByUserId: string | null;
+								setAt: string | null;
+								/** Format: date-time */
+								deadlineAt: string;
+								votes: {
+									userId: string;
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									/** Format: date-time */
+									votedAt: string;
+								}[];
+							} | null;
+							routeVotes: {
+								userId: string;
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								/** Format: date-time */
+								votedAt: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/dungeon/navigator/release': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							navigatorUserId: string | null;
+							navigatorDisplayName: string | null;
+							claimedAt: string | null;
+							lastActiveAt: string | null;
+							leaseExpiresAt: string | null;
+							routeIntent: {
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								setByUserId: string | null;
+								setAt: string | null;
+								/** Format: date-time */
+								deadlineAt: string;
+								votes: {
+									userId: string;
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									/** Format: date-time */
+									votedAt: string;
+								}[];
+							} | null;
+							routeVotes: {
+								userId: string;
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								/** Format: date-time */
+								votedAt: string;
+							}[];
+						} | null;
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/dungeon/navigator': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': {
+						targetUserId: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							navigatorUserId: string | null;
+							navigatorDisplayName: string | null;
+							claimedAt: string | null;
+							lastActiveAt: string | null;
+							leaseExpiresAt: string | null;
+							routeIntent: {
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								setByUserId: string | null;
+								setAt: string | null;
+								/** Format: date-time */
+								deadlineAt: string;
+								votes: {
+									userId: string;
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									/** Format: date-time */
+									votedAt: string;
+								}[];
+							} | null;
+							routeVotes: {
+								userId: string;
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								/** Format: date-time */
+								votedAt: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/dungeon/route-votes': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': {
+						targetKind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+						targetNodeId: string | null;
+					};
+				};
+			};
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							navigatorUserId: string | null;
+							navigatorDisplayName: string | null;
+							claimedAt: string | null;
+							lastActiveAt: string | null;
+							leaseExpiresAt: string | null;
+							routeIntent: {
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								setByUserId: string | null;
+								setAt: string | null;
+								/** Format: date-time */
+								deadlineAt: string;
+								votes: {
+									userId: string;
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									/** Format: date-time */
+									votedAt: string;
+								}[];
+							} | null;
+							routeVotes: {
+								userId: string;
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								/** Format: date-time */
+								votedAt: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	'/api/v1/parties/{partyId}/dungeon/route-intent': {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody: {
+				content: {
+					'application/json': {
+						targetKind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+						targetNodeId: string | null;
+					};
+				};
+			};
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							navigatorUserId: string | null;
+							navigatorDisplayName: string | null;
+							claimedAt: string | null;
+							lastActiveAt: string | null;
+							leaseExpiresAt: string | null;
+							routeIntent: {
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								setByUserId: string | null;
+								setAt: string | null;
+								/** Format: date-time */
+								deadlineAt: string;
+								votes: {
+									userId: string;
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									/** Format: date-time */
+									votedAt: string;
+								}[];
+							} | null;
+							routeVotes: {
+								userId: string;
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								/** Format: date-time */
+								votedAt: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		post?: never;
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					partyId: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Default Response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/json': {
+							navigatorUserId: string | null;
+							navigatorDisplayName: string | null;
+							claimedAt: string | null;
+							lastActiveAt: string | null;
+							leaseExpiresAt: string | null;
+							routeIntent: {
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								setByUserId: string | null;
+								setAt: string | null;
+								/** Format: date-time */
+								deadlineAt: string;
+								votes: {
+									userId: string;
+									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+									nodeId: string | null;
+									/** Format: date-time */
+									votedAt: string;
+								}[];
+							} | null;
+							routeVotes: {
+								userId: string;
+								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
+								nodeId: string | null;
+								/** Format: date-time */
+								votedAt: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+				/** @description Default Response */
+				409: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						'application/problem+json': {
+							type: string;
+							title: string;
+							status: number;
+							detail: string;
+							instance?: string;
+							invalidParams?: {
+								name: string;
+								reason: string;
+							}[];
+						};
+					};
+				};
+			};
+		};
 		options?: never;
 		head?: never;
 		patch?: never;
@@ -3063,7 +4192,7 @@ export interface paths {
 									name: string;
 									nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
 								};
-								outcome: 'advanced' | 'held' | 'route-selected';
+								outcome: 'advanced' | 'held' | 'route-selected' | 'returned';
 								movement: {
 									units: number;
 									cost: number;
@@ -3128,6 +4257,12 @@ export interface paths {
 										key: string;
 									};
 								}[];
+								navigation?: {
+									/** @enum {string} */
+									mode: 'safe-autopilot';
+									steps: number;
+									haltedReason: string;
+								} | null;
 							};
 						} | null;
 					};
@@ -3638,6 +4773,7 @@ export interface paths {
 								};
 							};
 							challengeProgress: number;
+							tileBalance: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -3697,6 +4833,7 @@ export interface paths {
 								};
 							};
 							challengeProgress: number;
+							tileBalance: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -4232,6 +5369,7 @@ export interface paths {
 								};
 							};
 							challengeProgress: number;
+							tileBalance: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -4418,6 +5556,7 @@ export interface paths {
 								};
 							};
 							challengeProgress: number;
+							tileBalance: number;
 							decisionStartedAt: string | null;
 							members: {
 								userId: string;
@@ -5491,6 +6630,7 @@ export interface paths {
 								};
 							}[];
 							selectedChoiceKey: string | null;
+							resolved: boolean;
 							votes: {
 								userId: string;
 								choiceKey: string;
@@ -5632,6 +6772,7 @@ export interface paths {
 								};
 							}[];
 							selectedChoiceKey: string | null;
+							resolved: boolean;
 							votes: {
 								userId: string;
 								choiceKey: string;

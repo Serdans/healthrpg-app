@@ -30,6 +30,7 @@
 		"test:e2e": "playwright test"
 	},
 	"dependencies": {
+		"@pixi/react": "^8.0.5",
 		"@radix-ui/react-alert-dialog": "^1.1.23",
 		"@tailwindcss/vite": "^4.1.18",
 		"@tanstack/react-devtools": "latest",
@@ -42,8 +43,10 @@
 		"clsx": "^2.1.1",
 		"ky": "^2.0.2",
 		"lucide-react": "^0.577.0",
+		"pixi.js": "^8.20.0",
 		"react": "^19.2.0",
 		"react-dom": "^19.2.0",
+		"react-reconciler": "0.31.0",
 		"tailwind-merge": "^3.0.2",
 		"tailwindcss": "^4.1.18",
 		"ts-pattern": "5.9.0",
@@ -71,6 +74,7 @@
 		"prettier": "^3.8.1",
 		"react-doctor": "0.9.12",
 		"storybook": "^10.5.10",
+		"tsx": "^4.23.12",
 		"typescript": "^6.0.2",
 		"vite": "^8.0.0",
 		"vitest": "^4.1.11"

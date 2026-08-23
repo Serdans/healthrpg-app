@@ -7,7 +7,7 @@ import { WorldMap } from './world-map';
 import type { PartyMap } from '#/lib/api';
 
 type StoryNode = Omit<PartyMap['nodes'][number], 'mapMetadata'>;
-type StoryMap = Omit<PartyMap, 'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds'> & {
+type StoryMap = Omit<PartyMap, 'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance'> & {
 	nodes: StoryNode[];
 };
 
@@ -25,6 +25,7 @@ function withMapDefaults(value: StoryMap): PartyMap {
 		enterableLocation: null,
 		objectives: [],
 		completedObjectiveIds: [],
+		tileBalance: 12,
 		nodes: value.nodes.map((node, index) => ({
 			...node,
 			mapMetadata: {
@@ -34,6 +35,9 @@ function withMapDefaults(value: StoryMap): PartyMap {
 				role: 'overworld',
 				sortOrder: index,
 				isEntry: index === 0,
+				tileX: null,
+				tileY: null,
+				spawnArchetype: null,
 				isExit: false,
 			},
 		})),
@@ -52,8 +56,10 @@ const map: PartyMap = withMapDefaults({
 			nodeType: 'travel',
 			templateKey: 'travel-v1',
 			config: null,
+			discovered: true,
 		},
 		{
+			discovered: true,
 			id: 'crossing',
 			chapterNo: 1,
 			regionNo: 1,
@@ -74,6 +80,7 @@ const map: PartyMap = withMapDefaults({
 			nodeType: 'village',
 			templateKey: 'village-v1',
 			config: null,
+			discovered: true,
 		},
 		{
 			id: 'ruins',
@@ -83,6 +90,7 @@ const map: PartyMap = withMapDefaults({
 			nodeType: 'dungeon',
 			templateKey: 'dungeon-v1',
 			config: null,
+			discovered: true,
 		},
 		{
 			id: 'challenge',
@@ -92,6 +100,7 @@ const map: PartyMap = withMapDefaults({
 			nodeType: 'challenge',
 			templateKey: 'challenge-v1',
 			config: null,
+			discovered: true,
 		},
 	],
 	edges: [
@@ -115,6 +124,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'rest',
 			templateKey: 'rest-v1',
 			config: null,
+			discovered: true,
 		},
 		{
 			id: 'high-road',
@@ -124,6 +134,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'travel',
 			templateKey: 'travel-v1',
 			config: null,
+			discovered: true,
 		},
 		{
 			id: 'low-road',
@@ -133,6 +144,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'combat',
 			templateKey: 'combat-v1',
 			config: null,
+			discovered: true,
 		},
 		{
 			id: 'sunlit-grove',
@@ -142,6 +154,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'village',
 			templateKey: 'village-v1',
 			config: null,
+			discovered: true,
 		},
 		{
 			id: 'mirror-cavern',
@@ -151,6 +164,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'dungeon',
 			templateKey: 'dungeon-v1',
 			config: null,
+			discovered: true,
 		},
 		{
 			id: 'mist-steps',
@@ -160,6 +174,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'narrative',
 			templateKey: 'narrative-v1',
 			config: null,
+			discovered: true,
 		},
 		{
 			id: 'lantern-gate',
@@ -169,6 +184,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'challenge',
 			templateKey: 'challenge-v1',
 			config: null,
+			discovered: true,
 		},
 		{
 			id: 'starfall-cache',
@@ -178,6 +194,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'treasure',
 			templateKey: 'treasure-v1',
 			config: null,
+			discovered: true,
 		},
 	],
 	edges: [
@@ -217,6 +234,10 @@ const interiorMetadata = (
 	sortOrder: number,
 	isEntry = false,
 	isExit = false,
+	tileX = null,
+	tileY = null,
+	spawnArchetype: string | null = null,
+	discovered = true,
 ) => ({
 	mapId,
 	nodeId,
@@ -225,6 +246,10 @@ const interiorMetadata = (
 	sortOrder,
 	isEntry,
 	isExit,
+	tileX,
+	tileY,
+	spawnArchetype,
+	discovered,
 });
 
 const interiorVillageMap: PartyMap = {
@@ -241,6 +266,7 @@ const interiorVillageMap: PartyMap = {
 	enterableLocation: null,
 	nodes: [
 		{
+			discovered: true,
 			id: 'village-hub',
 			chapterNo: 1,
 			regionNo: 2,
@@ -251,6 +277,7 @@ const interiorVillageMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-village', 'village-hub', 0, 'hub', 0, true),
 		},
 		{
+			discovered: true,
 			id: 'village-shop',
 			chapterNo: 1,
 			regionNo: 2,
@@ -261,6 +288,7 @@ const interiorVillageMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-village', 'village-shop', 0, 'shop', 1),
 		},
 		{
+			discovered: true,
 			id: 'village-rest',
 			chapterNo: 1,
 			regionNo: 2,
@@ -271,6 +299,7 @@ const interiorVillageMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-village', 'village-rest', 0, 'rest', 2),
 		},
 		{
+			discovered: true,
 			id: 'village-exit',
 			chapterNo: 1,
 			regionNo: 2,
@@ -299,6 +328,7 @@ const interiorVillageMap: PartyMap = {
 		},
 	],
 	completedObjectiveIds: [],
+	tileBalance: 12,
 };
 
 const interiorDungeonMap: PartyMap = {
@@ -314,6 +344,7 @@ const interiorDungeonMap: PartyMap = {
 	},
 	nodes: [
 		{
+			discovered: true,
 			id: 'dungeon-entry',
 			chapterNo: 1,
 			regionNo: 3,
@@ -324,6 +355,7 @@ const interiorDungeonMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-ruins', 'dungeon-entry', 0, 'entrance', 0, true),
 		},
 		{
+			discovered: true,
 			id: 'dungeon-puzzle',
 			chapterNo: 1,
 			regionNo: 3,
@@ -334,6 +366,7 @@ const interiorDungeonMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-ruins', 'dungeon-puzzle', 1, 'puzzle', 0),
 		},
 		{
+			discovered: true,
 			id: 'dungeon-guard',
 			chapterNo: 1,
 			regionNo: 3,
@@ -344,6 +377,7 @@ const interiorDungeonMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-ruins', 'dungeon-guard', 2, 'combat', 0),
 		},
 		{
+			discovered: true,
 			id: 'dungeon-reliquary',
 			chapterNo: 1,
 			regionNo: 3,
@@ -354,6 +388,7 @@ const interiorDungeonMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-ruins', 'dungeon-reliquary', 2, 'treasure', 1),
 		},
 		{
+			discovered: true,
 			id: 'dungeon-exit',
 			chapterNo: 1,
 			regionNo: 3,
@@ -383,6 +418,7 @@ const interiorDungeonMap: PartyMap = {
 		},
 	],
 	completedObjectiveIds: [],
+	tileBalance: 12,
 };
 
 function TravelerPreview() {
@@ -484,6 +520,7 @@ export const LandmarkGallery: Story = {
 			currentNodeId: 'landmark-village',
 			nodes: [
 				...(['travel', 'dungeon', 'challenge', 'rest', 'combat', 'treasure', 'narrative', 'village'] as const).map((nodeType, index) => ({
+					discovered: true,
 					id: `landmark-${nodeType}`,
 					chapterNo: 1,
 					regionNo: index + 1,

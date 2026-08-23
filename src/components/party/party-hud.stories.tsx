@@ -23,6 +23,7 @@ const party: Party = {
 		},
 	},
 	challengeProgress: 12,
+	tileBalance: 12,
 	decisionStartedAt: null,
 	members: [
 		{ userId: 'user-1', role: 'leader', displayName: 'Hero' },

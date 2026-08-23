@@ -5,6 +5,8 @@ import { MapPin, Sparkles } from 'lucide-react';
 import { WorldMapInspector } from '#/components/party/world-map-inspector';
 import type { WorldMapEntryMutation } from '#/components/party/world-map-inspector';
 import { WorldMapNode } from '#/components/party/world-map-node';
+import { DungeonGridMap } from './dungeon-grid-map';
+import type { DungeonNavigatorControls, DungeonWalkMutation } from './dungeon-grid-map';
 import type { PartyMap } from '#/lib/api';
 import { gameplayBackgroundArt, partyTravelerArt } from '#/lib/game-art';
 import type { PartyTravelerDirection } from '#/lib/game-art';
@@ -278,18 +280,32 @@ function OverworldMap({
 export function WorldMap(props: {
 	map: PartyMap;
 	enterMutation?: WorldMapEntryMutation;
+	walkMutation?: DungeonWalkMutation;
+	navigatorControls?: DungeonNavigatorControls;
 	readOnly?: boolean;
 	actionHref?: '#party-action';
 }) {
+	const isTileDungeon = props.map.currentMap.mapType === 'dungeon' && props.map.nodes.some((node) => node.mapMetadata.tileX !== null);
 	return (
 		<div
 			key={props.map.currentMap.id}
-			className="map-scene-transition"
+			className={`map-scene-transition ${isTileDungeon ? 'map-scene-transition-dungeon' : ''}`}
 			data-testid="map-scene"
 			data-map-id={props.map.currentMap.id}
 			data-map-type={props.map.currentMap.mapType}
 		>
-			{props.map.currentMap.mapType !== 'overworld' ? <InteriorMap map={props.map} /> : <OverworldMap {...props} />}
+			{isTileDungeon ? (
+				<DungeonGridMap
+					map={props.map}
+					walkMutation={props.walkMutation}
+					navigatorControls={props.navigatorControls}
+					readOnly={props.readOnly}
+				/>
+			) : props.map.currentMap.mapType !== 'overworld' ? (
+				<InteriorMap map={props.map} />
+			) : (
+				<OverworldMap {...props} />
+			)}
 		</div>
 	);
 }

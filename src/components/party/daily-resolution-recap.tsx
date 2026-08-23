@@ -69,6 +69,21 @@ function signedHealth(value: number) {
 	return value > 0 ? `+${value}` : String(value);
 }
 
+function navigationHaltLabel(reason: string) {
+	switch (reason) {
+		case 'checkpoint':
+			return 'waiting for the next daily signal';
+		case 'encounter':
+			return 'paused at an encounter for the party';
+		case 'safe-boundary':
+			return 'exploring safe ground';
+		case 'risk':
+			return 'paused while the party recovers';
+		default:
+			return label(reason);
+	}
+}
+
 export function DailyResolutionRecap({
 	partyId,
 	recap,
@@ -165,6 +180,13 @@ export function DailyResolutionRecap({
 
 				{resolution.route && (
 					<DetailRow label="Route selected" value={`${label(resolution.route.optionKey)} · ${resolution.route.reason}`} />
+				)}
+
+				{resolution.navigation?.mode === 'safe-autopilot' && (
+					<DetailRow
+						label="Automatic expedition"
+						value={`${resolution.navigation.steps} tile steps · ${navigationHaltLabel(resolution.navigation.haltedReason)}`}
+					/>
 				)}
 
 				{resolution.challenge.cost > 0 && (

@@ -27,6 +27,7 @@ const event: PartyEvent = {
 		},
 	],
 	selectedChoiceKey: null,
+	resolved: false,
 	votes: [],
 };
 

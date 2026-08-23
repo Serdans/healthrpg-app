@@ -183,6 +183,51 @@ export const enterLocation = (partyId: string, locationId: string) =>
 		method: 'post',
 	});
 
+type DungeonWalkResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/walk']['post']>;
+type DungeonNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/navigator/claim']['post']>;
+type DungeonReleaseNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/navigator/release']['post']>;
+type DungeonNavigatorTransferBody = RequestBody<paths['/api/v1/parties/{partyId}/dungeon/navigator']['put']>;
+type DungeonRouteTargetBody = RequestBody<paths['/api/v1/parties/{partyId}/dungeon/route-votes']['put']>;
+type DungeonRouteNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/route-votes']['put']>;
+
+export const walkDungeon = (
+	partyId: string,
+	input: { mode: 'auto' } | { mode: 'manual'; steps: Array<'up' | 'down' | 'left' | 'right'> },
+) => requestJson<DungeonWalkResponse>(partyPath(partyId, '/dungeon/walk'), { method: 'post', json: input });
+
+export const claimDungeonNavigator = (partyId: string) =>
+	requestJson<DungeonNavigationResponse>(partyPath(partyId, '/dungeon/navigator/claim'), {
+		method: 'post',
+	});
+
+export const releaseDungeonNavigator = (partyId: string) =>
+	requestJson<DungeonReleaseNavigationResponse>(partyPath(partyId, '/dungeon/navigator/release'), {
+		method: 'post',
+	});
+
+export const transferDungeonNavigator = (partyId: string, body: DungeonNavigatorTransferBody) =>
+	requestJson<DungeonNavigationResponse>(partyPath(partyId, '/dungeon/navigator'), {
+		method: 'put',
+		json: body,
+	});
+
+export const voteDungeonRoute = (partyId: string, body: DungeonRouteTargetBody) =>
+	requestJson<DungeonRouteNavigationResponse>(partyPath(partyId, '/dungeon/route-votes'), {
+		method: 'put',
+		json: body,
+	});
+
+export const setDungeonRouteIntent = (partyId: string, body: DungeonRouteTargetBody) =>
+	requestJson<DungeonRouteNavigationResponse>(partyPath(partyId, '/dungeon/route-intent'), {
+		method: 'put',
+		json: body,
+	});
+
+export const clearDungeonRouteIntent = (partyId: string) =>
+	requestJson<DungeonRouteNavigationResponse>(partyPath(partyId, '/dungeon/route-intent'), {
+		method: 'delete',
+	});
+
 export const getAdventure = (partyId: string) => requestJson<AdventureResponse>(partyPath(partyId, '/adventure'));
 
 export const getDailyProgress = (partyId: string) => requestJson<DailyProgressResponse>(partyPath(partyId, '/progress'));
@@ -296,8 +341,20 @@ export type User = MeResponse;
 export type Party = PartyResponse;
 export type PartyRoster = PartyRosterResponse;
 export type PartyRecap = Exclude<PartyRecapResponse, null>;
-export type PartyMap = MapResponse;
+// Navigation was added after the map fixtures shipped. Keep the client-side
+// view type tolerant of older story/test fixtures while the wire response is
+// still required to include the field.
+export type PartyMap = Omit<MapResponse, 'navigation'> & {
+	navigation?: MapResponse['navigation'];
+};
 export type EnterLocation = EnterLocationResponse;
+export type DungeonWalk = Omit<DungeonWalkResponse, 'navigation'> & {
+	navigation?: DungeonWalkResponse['navigation'];
+};
+export type DungeonWalkInput = Parameters<typeof walkDungeon>[1];
+export type DungeonNavigation = DungeonNavigationResponse;
+export type DungeonNavigatorTransferInput = DungeonNavigatorTransferBody;
+export type DungeonRouteTargetInput = DungeonRouteTargetBody;
 export type Adventure = AdventureResponse;
 export type Character = CharacterResponse;
 export type CharacterCreation = CharacterCreationResponse;

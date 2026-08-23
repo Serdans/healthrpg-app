@@ -54,6 +54,7 @@ const event: PartyEvent = {
 		},
 	],
 	selectedChoiceKey: null,
+	resolved: false,
 	votes: [],
 };
 
@@ -113,6 +114,10 @@ describe('daily loop state', () => {
 
 	it('tracks event choices for the current traveler', () => {
 		expect(derive({ kind: 'event', data: event, isLoading: false, hasError: false })).toMatchObject({ kind: 'choice-required' });
+		expect(derive({ kind: 'event', data: { ...event, resolved: true }, isLoading: false, hasError: false })).toMatchObject({
+			kind: 'resolved',
+			actionHref: '#party-field',
+		});
 		expect(
 			derive({
 				kind: 'event',
