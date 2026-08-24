@@ -49,7 +49,7 @@ import {
 	voteDungeonRoute,
 	walkDungeon,
 } from './api';
-import type { DungeonNavigation, DungeonNavigatorTransferInput, DungeonRouteTargetInput, DungeonWalkInput, PartyMap } from './api';
+import type { DungeonNavigation, DungeonNavigatorTransferInput, DungeonRoutePolicyInput, DungeonWalkInput, PartyMap } from './api';
 
 const partyRefreshInterval = 15_000;
 const decisionRefreshInterval = 10_000;
@@ -281,7 +281,7 @@ export function useTransferDungeonNavigator(partyId: string) {
 export function useVoteDungeonRoute(partyId: string) {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: (target: DungeonRouteTargetInput) => voteDungeonRoute(partyId, target),
+		mutationFn: (policy: DungeonRoutePolicyInput) => voteDungeonRoute(partyId, policy),
 		onSuccess: (navigation) => {
 			updateDungeonNavigation(queryClient, partyId, navigation);
 			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
@@ -292,7 +292,7 @@ export function useVoteDungeonRoute(partyId: string) {
 export function useSetDungeonRouteIntent(partyId: string) {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: (target: DungeonRouteTargetInput) => setDungeonRouteIntent(partyId, target),
+		mutationFn: (policy: DungeonRoutePolicyInput) => setDungeonRouteIntent(partyId, policy),
 		onSuccess: (navigation) => {
 			updateDungeonNavigation(queryClient, partyId, navigation);
 			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });

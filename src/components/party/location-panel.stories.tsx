@@ -117,6 +117,7 @@ const dungeonMap: PartyMap = {
 	],
 	completedObjectiveIds: [],
 	tileBalance: 12,
+	navigation: null,
 };
 
 const villageInteriorMap: PartyMap = {
@@ -148,6 +149,7 @@ const villageInteriorMap: PartyMap = {
 	objectives: [],
 	completedObjectiveIds: [],
 	tileBalance: 12,
+	navigation: null,
 };
 
 const meta = {

@@ -7,7 +7,10 @@ import { WorldMap } from './world-map';
 import type { PartyMap } from '#/lib/api';
 
 type StoryNode = Omit<PartyMap['nodes'][number], 'mapMetadata'>;
-type StoryMap = Omit<PartyMap, 'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance'> & {
+type StoryMap = Omit<
+	PartyMap,
+	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation'
+> & {
 	nodes: StoryNode[];
 };
 
@@ -26,6 +29,7 @@ function withMapDefaults(value: StoryMap): PartyMap {
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 12,
+		navigation: null,
 		nodes: value.nodes.map((node, index) => ({
 			...node,
 			mapMetadata: {
@@ -329,6 +333,7 @@ const interiorVillageMap: PartyMap = {
 	],
 	completedObjectiveIds: [],
 	tileBalance: 12,
+	navigation: null,
 };
 
 const interiorDungeonMap: PartyMap = {

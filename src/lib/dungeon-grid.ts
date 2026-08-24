@@ -1,8 +1,7 @@
 import type { PartyMap } from '#/lib/api';
 import type { PartyTravelerDirection } from '#/lib/game-art';
 
-export type DungeonGridTileKind =
-	'entry' | 'floor' | 'stairs-up' | 'stairs-down' | 'treasure' | 'rest' | 'spawn' | 'goal' | 'boss' | 'exit';
+export type DungeonGridTileKind = 'entry' | 'floor' | 'stairs-up' | 'stairs-down' | 'treasure' | 'rest' | 'spawn' | 'goal' | 'boss';
 
 export type DungeonGridTileState = 'current' | 'revealed';
 export type DungeonGridTerrain = 'floor' | 'wall' | 'fog';
@@ -84,7 +83,7 @@ const stageSidePadding = 48;
 const minStageWidth = 960;
 const minStageHeight = 720;
 
-const KINDS: ReadonlySet<string> = new Set(['entry', 'stairs-up', 'stairs-down', 'treasure', 'rest', 'spawn', 'goal', 'boss', 'exit']);
+const KINDS: ReadonlySet<string> = new Set(['entry', 'stairs-up', 'stairs-down', 'treasure', 'rest', 'spawn', 'goal', 'boss']);
 
 export function dungeonTileKind(templateKey: string): DungeonGridTileKind {
 	const match = /^dungeon-tile-(.+)-v1$/.exec(templateKey);

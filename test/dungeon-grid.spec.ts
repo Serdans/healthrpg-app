@@ -56,6 +56,7 @@ function dungeonMap(currentNodeId: string, nodes: MapNode[]): PartyMap {
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 9,
+		navigation: null,
 	};
 }
 

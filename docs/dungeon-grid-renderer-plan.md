@@ -25,11 +25,13 @@ not a pause button for the Health loop. Safe ground and newly revealed ordinary
 tiles are explored automatically; bosses and low-health risk states halt the
 automatic route instead of spending the party's progress blindly.
 
-Any member can suggest a visible target—safe exploration, stairs, the mission,
-rest, or treasure. The Navigator commits one route intent for the next 24 hours
-and the server follows it during daily resolution. Suggestions are advisory and
-never race the shared party position. The map keeps a four-button touch D-pad
-alongside keyboard input for an explicit one-tile manual override.
+The party's route is policy-first. Mission is the default. Any member can
+suggest Mission, Explore, Treasure, or Rest; the Navigator commits one policy
+and the server follows it until the policy target is reached or the Navigator
+changes it. Stairs are planner-managed floor transitions, not a separate route
+choice. Suggestions are advisory and never race the shared party position. The
+map keeps a four-button touch D-pad alongside keyboard input for an explicit
+one-tile manual nudge.
 
 - Stairs are the only floor-transition marker. Stairs down land the party on
   the linked stair landing on the next floor; stairs up are the corresponding
@@ -43,16 +45,15 @@ alongside keyboard input for an explicit one-tile manual override.
   pinned until resolved; event tiles remain in place until their daily choice
   resolves.
 - Routine encounters can be reached by the automatic route when party health
-  is safe; any member below 25% projected health closes that risk path until
-  recovery. The current tile remains the single source of truth for the next
-  daily resolution.
+  is safe and resolve with the party's default combat behavior, with the daily
+  recap recording the result. Boss encounters remain a deliberate party
+  decision. Any member below 25% projected health sends the party to the
+  nearest discovered campsite, then resumes Mission after recovery. The
+  current tile remains the single source of truth for the next daily
+  resolution.
 - Tile dungeons never create overworld branch votes or silently follow graph
   edges during daily projection. The tile graph owns movement while the party
   is inside the location session.
-- Older persisted maps may still contain an `exit` tile. It is accepted by the
-  server as ordinary passage data and shown as a normal floor cell. New maps do
-  not generate a separate exit because it duplicates the goal-to-overworld
-  return route.
 
 ## Active-floor layout
 
@@ -80,8 +81,7 @@ alongside keyboard input for an explicit one-tile manual override.
   `scripts/build-dungeon-props.ts`. It contains the chest, directional
   stairwells, objective beacon, entry gate, campsite, and combat/boss runes.
   Their glows and ambient effects remain deterministic Pixi overlays, so the
-  API does not need new prop metadata. Legacy exit art remains in the atlas for
-  cache compatibility but is not selected for new map data.
+  API does not need new prop metadata.
 - The PixiJS scene-graph draw order is backdrop, terrain, cliff edges, light pools,
   markers, shadows, depth-sorted actors, atmospheric tint, motes, and the
   party's underfoot feedback.
@@ -119,7 +119,7 @@ alongside keyboard input for an explicit one-tile manual override.
   explicitly described as the mission objective, not as an unexplained crystal
   or a separate exit.
 - The route panel explains that the Mission objective is the final return
-  objective; stairs only change floors. It shows the active automatic focus,
+  objective; stairs only change floors. It shows the active automatic policy,
   the party's suggestions, and whether the current user is the Navigator.
 - Event responses expose `resolved: boolean`. Resolved event choices are
   visibly closed in the client and the daily-loop command center reports that

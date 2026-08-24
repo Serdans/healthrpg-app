@@ -187,7 +187,7 @@ type DungeonWalkResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/
 type DungeonNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/navigator/claim']['post']>;
 type DungeonReleaseNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/navigator/release']['post']>;
 type DungeonNavigatorTransferBody = RequestBody<paths['/api/v1/parties/{partyId}/dungeon/navigator']['put']>;
-type DungeonRouteTargetBody = RequestBody<paths['/api/v1/parties/{partyId}/dungeon/route-votes']['put']>;
+type DungeonRoutePolicyBody = RequestBody<paths['/api/v1/parties/{partyId}/dungeon/route-votes']['put']>;
 type DungeonRouteNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/route-votes']['put']>;
 
 export const walkDungeon = (
@@ -211,13 +211,13 @@ export const transferDungeonNavigator = (partyId: string, body: DungeonNavigator
 		json: body,
 	});
 
-export const voteDungeonRoute = (partyId: string, body: DungeonRouteTargetBody) =>
+export const voteDungeonRoute = (partyId: string, body: DungeonRoutePolicyBody) =>
 	requestJson<DungeonRouteNavigationResponse>(partyPath(partyId, '/dungeon/route-votes'), {
 		method: 'put',
 		json: body,
 	});
 
-export const setDungeonRouteIntent = (partyId: string, body: DungeonRouteTargetBody) =>
+export const setDungeonRouteIntent = (partyId: string, body: DungeonRoutePolicyBody) =>
 	requestJson<DungeonRouteNavigationResponse>(partyPath(partyId, '/dungeon/route-intent'), {
 		method: 'put',
 		json: body,
@@ -341,20 +341,13 @@ export type User = MeResponse;
 export type Party = PartyResponse;
 export type PartyRoster = PartyRosterResponse;
 export type PartyRecap = Exclude<PartyRecapResponse, null>;
-// Navigation was added after the map fixtures shipped. Keep the client-side
-// view type tolerant of older story/test fixtures while the wire response is
-// still required to include the field.
-export type PartyMap = Omit<MapResponse, 'navigation'> & {
-	navigation?: MapResponse['navigation'];
-};
+export type PartyMap = MapResponse;
 export type EnterLocation = EnterLocationResponse;
-export type DungeonWalk = Omit<DungeonWalkResponse, 'navigation'> & {
-	navigation?: DungeonWalkResponse['navigation'];
-};
+export type DungeonWalk = DungeonWalkResponse;
 export type DungeonWalkInput = Parameters<typeof walkDungeon>[1];
 export type DungeonNavigation = DungeonNavigationResponse;
 export type DungeonNavigatorTransferInput = DungeonNavigatorTransferBody;
-export type DungeonRouteTargetInput = DungeonRouteTargetBody;
+export type DungeonRoutePolicyInput = DungeonRoutePolicyBody;
 export type Adventure = AdventureResponse;
 export type Character = CharacterResponse;
 export type CharacterCreation = CharacterCreationResponse;

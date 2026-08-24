@@ -13,8 +13,6 @@ export const DUNGEON_PROP_TEXTURE_NAMES = [
 	'stairs-up',
 	'objective-beacon',
 	'entry-gate',
-	// Kept in the atlas for old cached maps; new dungeon rendering does not use it.
-	'exit-gate',
 	'rest-camp',
 	'combat-rune',
 	'boss-rune',
@@ -192,11 +190,11 @@ function objectiveBeacon(): PixelProp {
 	return { palette: PROP_PALETTE, rows: rows(grid) };
 }
 
-function gate(accent: 'entry' | 'exit'): PixelProp {
+function gate(): PixelProp {
 	const grid = createGrid();
-	const frame = accent === 'entry' ? '3' : '6';
-	const edge = accent === 'entry' ? '4' : '8';
-	const light = accent === 'entry' ? 'd' : 'a';
+	const frame = '3';
+	const edge = '4';
+	const light = 'd';
 
 	fillRect(grid, 5, 19, 14, 1, '0');
 	fillRect(grid, 7, 20, 10, 1, '1');
@@ -208,10 +206,10 @@ function gate(accent: 'entry' | 'exit'): PixelProp {
 	fillRect(grid, 8, 7, 8, 2, edge);
 	fillRect(grid, 9, 6, 6, 1, edge);
 	fillRect(grid, 8, 9, 8, 2, '1');
-	fillRect(grid, 9, 11, 6, 7, accent === 'entry' ? 'b' : '7');
+	fillRect(grid, 9, 11, 6, 7, 'b');
 	fillRect(grid, 10, 12, 4, 6, '0');
 	fillRect(grid, 7, 10, 1, 7, light);
-	fillRect(grid, 16, 10, 1, 7, accent === 'entry' ? 'c' : '9');
+	fillRect(grid, 16, 10, 1, 7, 'c');
 	setPixel(grid, 9, 7, light);
 	setPixel(grid, 14, 7, light);
 	setPixel(grid, 8, 18, edge);
@@ -279,8 +277,7 @@ const PROPS: Readonly<Record<DungeonPropTextureName, PixelProp>> = {
 	'stairs-down': stairs('down'),
 	'stairs-up': stairs('up'),
 	'objective-beacon': objectiveBeacon(),
-	'entry-gate': gate('entry'),
-	'exit-gate': gate('exit'),
+	'entry-gate': gate(),
 	'rest-camp': restCamp(),
 	'combat-rune': rune('combat'),
 	'boss-rune': rune('boss'),

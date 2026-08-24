@@ -8,7 +8,6 @@ export interface DungeonMarkerPresentation {
 	description: string;
 	role: DungeonMarkerRole;
 	propName: DungeonPropTextureName | null;
-	/** Legacy exit nodes remain valid data, but are deliberately rendered as ordinary floor. */
 	visible: boolean;
 }
 
@@ -75,13 +74,6 @@ const PRESENTATION: Record<DungeonGridTileKind, DungeonMarkerPresentation> = {
 		role: 'encounter',
 		propName: 'boss-rune',
 		visible: true,
-	},
-	exit: {
-		label: 'Passage',
-		description: 'A legacy exit marker. New dungeons use the stairs and mission objective flow.',
-		role: 'passage',
-		propName: null,
-		visible: false,
 	},
 };
 

@@ -25,7 +25,7 @@ function tileNode(id: string, kind: string, x: number, y: number): PartyMap['nod
 			mapId: 'map-dungeon',
 			nodeId: id,
 			floorNo: 0,
-			role: kind === 'spawn' ? 'combat' : kind === 'entry' ? 'entrance' : kind === 'exit' ? 'exit' : 'room',
+			role: kind === 'spawn' ? 'combat' : kind === 'entry' ? 'entrance' : 'room',
 			sortOrder: x * 10 + y,
 			isEntry: kind === 'entry',
 			isExit: false,
@@ -74,7 +74,6 @@ const dungeonMap: PartyMap = {
 		tileNode('lower-end', 'floor', 9, 4),
 		tileNode('lower-deep', 'floor', 9, 5),
 		tileNode('boss', 'boss', 9, 3),
-		tileNode('exit', 'exit', 10, 3),
 		tileNode('stairs', 'stairs-down', 10, 4),
 		tileNode('goal', 'goal', 10, 5),
 	],
@@ -82,6 +81,17 @@ const dungeonMap: PartyMap = {
 	objectives: [],
 	completedObjectiveIds: [],
 	tileBalance: 9,
+	navigation: null,
+};
+
+const walkNavigation = {
+	navigatorUserId: null,
+	navigatorDisplayName: null,
+	claimedAt: null,
+	lastActiveAt: null,
+	leaseExpiresAt: null,
+	routeIntent: null,
+	routeVotes: [],
 };
 
 export const ExploredCorridor: StoryObj<typeof DungeonGridMap> = {
@@ -120,6 +130,7 @@ function InteractiveWalkView() {
 							floorChanged: false,
 							encounterTriggeredNodeId: null,
 							haltedReason: null,
+							navigation: walkNavigation,
 						};
 					}
 					const currentMeta = current.nodes.find((node) => node.id === current.currentNodeId)?.mapMetadata;
@@ -134,6 +145,7 @@ function InteractiveWalkView() {
 							floorChanged: false,
 							encounterTriggeredNodeId: null,
 							haltedReason: null,
+							navigation: walkNavigation,
 						};
 					}
 					const delta = {
@@ -161,6 +173,7 @@ function InteractiveWalkView() {
 						floorChanged: false,
 						encounterTriggeredNodeId: null,
 						haltedReason: null,
+						navigation: walkNavigation,
 					};
 				},
 			}}
@@ -212,6 +225,7 @@ export const NavigatorGated: StoryObj<typeof DungeonGridMap> = {
 					floorChanged: false,
 					encounterTriggeredNodeId: null,
 					haltedReason: null,
+					navigation: walkNavigation,
 				}),
 			}}
 			navigatorControls={{
@@ -233,7 +247,7 @@ export const NavigatorGated: StoryObj<typeof DungeonGridMap> = {
 		const canvas = within(canvasElement);
 		await expect(canvas.getByTestId('dungeon-navigator')).toHaveAttribute('data-navigation-mode', 'observing');
 		await expect(canvas.queryByTestId('dungeon-navigator-claim')).not.toBeInTheDocument();
-		await expect(canvas.getByTestId('dungeon-explore')).toBeDisabled();
+		await expect(canvas.getByTestId('dungeon-advance')).toBeDisabled();
 		await expect(canvas.getByTestId('dungeon-route-intent')).toBeVisible();
 		await expect(canvas.getByTestId('dungeon-route-vote')).toBeVisible();
 		await expect(canvas.getByTestId('dungeon-step-up')).toBeDisabled();

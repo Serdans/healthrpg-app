@@ -2440,24 +2440,19 @@ export interface paths {
 								lastActiveAt: string | null;
 								leaseExpiresAt: string | null;
 								routeIntent: {
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									setByUserId: string | null;
 									setAt: string | null;
-									/** Format: date-time */
-									deadlineAt: string;
 									votes: {
 										userId: string;
-										kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-										nodeId: string | null;
+										policy: 'mission' | 'explore' | 'treasure' | 'rest';
 										/** Format: date-time */
 										votedAt: string;
 									}[];
 								} | null;
 								routeVotes: {
 									userId: string;
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									/** Format: date-time */
 									votedAt: string;
 								}[];
@@ -2753,24 +2748,19 @@ export interface paths {
 								lastActiveAt: string | null;
 								leaseExpiresAt: string | null;
 								routeIntent: {
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									setByUserId: string | null;
 									setAt: string | null;
-									/** Format: date-time */
-									deadlineAt: string;
 									votes: {
 										userId: string;
-										kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-										nodeId: string | null;
+										policy: 'mission' | 'explore' | 'treasure' | 'rest';
 										/** Format: date-time */
 										votedAt: string;
 									}[];
 								} | null;
 								routeVotes: {
 									userId: string;
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									/** Format: date-time */
 									votedAt: string;
 								}[];
@@ -2914,24 +2904,19 @@ export interface paths {
 							lastActiveAt: string | null;
 							leaseExpiresAt: string | null;
 							routeIntent: {
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								setByUserId: string | null;
 								setAt: string | null;
-								/** Format: date-time */
-								deadlineAt: string;
 								votes: {
 									userId: string;
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									/** Format: date-time */
 									votedAt: string;
 								}[];
 							} | null;
 							routeVotes: {
 								userId: string;
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								/** Format: date-time */
 								votedAt: string;
 							}[];
@@ -3055,24 +3040,19 @@ export interface paths {
 							lastActiveAt: string | null;
 							leaseExpiresAt: string | null;
 							routeIntent: {
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								setByUserId: string | null;
 								setAt: string | null;
-								/** Format: date-time */
-								deadlineAt: string;
 								votes: {
 									userId: string;
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									/** Format: date-time */
 									votedAt: string;
 								}[];
 							} | null;
 							routeVotes: {
 								userId: string;
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								/** Format: date-time */
 								votedAt: string;
 							}[];
@@ -3201,24 +3181,19 @@ export interface paths {
 							lastActiveAt: string | null;
 							leaseExpiresAt: string | null;
 							routeIntent: {
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								setByUserId: string | null;
 								setAt: string | null;
-								/** Format: date-time */
-								deadlineAt: string;
 								votes: {
 									userId: string;
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									/** Format: date-time */
 									votedAt: string;
 								}[];
 							} | null;
 							routeVotes: {
 								userId: string;
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								/** Format: date-time */
 								votedAt: string;
 							}[];
@@ -3349,8 +3324,7 @@ export interface paths {
 			requestBody: {
 				content: {
 					'application/json': {
-						targetKind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-						targetNodeId: string | null;
+						policy: 'mission' | 'explore' | 'treasure' | 'rest';
 					};
 				};
 			};
@@ -3368,24 +3342,19 @@ export interface paths {
 							lastActiveAt: string | null;
 							leaseExpiresAt: string | null;
 							routeIntent: {
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								setByUserId: string | null;
 								setAt: string | null;
-								/** Format: date-time */
-								deadlineAt: string;
 								votes: {
 									userId: string;
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									/** Format: date-time */
 									votedAt: string;
 								}[];
 							} | null;
 							routeVotes: {
 								userId: string;
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								/** Format: date-time */
 								votedAt: string;
 							}[];
@@ -3516,8 +3485,7 @@ export interface paths {
 			requestBody: {
 				content: {
 					'application/json': {
-						targetKind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-						targetNodeId: string | null;
+						policy: 'mission' | 'explore' | 'treasure' | 'rest';
 					};
 				};
 			};
@@ -3535,24 +3503,19 @@ export interface paths {
 							lastActiveAt: string | null;
 							leaseExpiresAt: string | null;
 							routeIntent: {
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								setByUserId: string | null;
 								setAt: string | null;
-								/** Format: date-time */
-								deadlineAt: string;
 								votes: {
 									userId: string;
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									/** Format: date-time */
 									votedAt: string;
 								}[];
 							} | null;
 							routeVotes: {
 								userId: string;
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								/** Format: date-time */
 								votedAt: string;
 							}[];
@@ -3681,24 +3644,19 @@ export interface paths {
 							lastActiveAt: string | null;
 							leaseExpiresAt: string | null;
 							routeIntent: {
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								setByUserId: string | null;
 								setAt: string | null;
-								/** Format: date-time */
-								deadlineAt: string;
 								votes: {
 									userId: string;
-									kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-									nodeId: string | null;
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
 									/** Format: date-time */
 									votedAt: string;
 								}[];
 							} | null;
 							routeVotes: {
 								userId: string;
-								kind: 'safe-explore' | 'stairs-up' | 'stairs-down' | 'mission' | 'rest' | 'treasure';
-								nodeId: string | null;
+								policy: 'mission' | 'explore' | 'treasure' | 'rest';
 								/** Format: date-time */
 								votedAt: string;
 							}[];
@@ -4260,6 +4218,8 @@ export interface paths {
 								navigation?: {
 									/** @enum {string} */
 									mode: 'safe-autopilot';
+									policy: 'mission' | 'explore' | 'treasure' | 'rest';
+									retreating: boolean;
 									steps: number;
 									haltedReason: string;
 								} | null;

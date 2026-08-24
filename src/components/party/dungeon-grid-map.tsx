@@ -3,7 +3,7 @@ import type { KeyboardEvent, PointerEvent } from 'react';
 import { ArrowRightLeft, Check, Crown, Footprints, Gamepad2, LogIn, LogOut, MapPin, Sparkles, Target } from 'lucide-react';
 
 import { Badge } from '#/components/ui/badge';
-import type { DungeonRouteTargetInput, DungeonWalk, DungeonWalkInput, Party, PartyMap } from '#/lib/api';
+import type { DungeonRoutePolicyInput, DungeonWalk, DungeonWalkInput, Party, PartyMap } from '#/lib/api';
 import { cellAtScreen, followCamera, isInteractiveCell } from '#/lib/dungeon-camera';
 import type { CameraState, StagePoint } from '#/lib/dungeon-camera';
 import { createDungeonGridLayout, directionBetween, tileCenter } from '#/lib/dungeon-grid';
@@ -49,12 +49,12 @@ export interface DungeonNavigatorControls {
 	voteRouteMutation?: {
 		isPending: boolean;
 		error: Error | null;
-		mutateAsync: (input: DungeonRouteTargetInput) => Promise<unknown>;
+		mutateAsync: (input: DungeonRoutePolicyInput) => Promise<unknown>;
 	};
 	setRouteIntentMutation?: {
 		isPending: boolean;
 		error: Error | null;
-		mutateAsync: (input: DungeonRouteTargetInput) => Promise<unknown>;
+		mutateAsync: (input: DungeonRoutePolicyInput) => Promise<unknown>;
 	};
 	clearRouteIntentMutation?: {
 		isPending: boolean;
@@ -70,13 +70,20 @@ const KEY_DIRECTIONS: Record<string, { direction: PartyTravelerDirection; step: 
 	ArrowRight: { direction: 'east', step: 'right' },
 };
 
-const ROUTE_TARGET_LABELS: Record<DungeonRouteTargetInput['targetKind'], string> = {
-	'safe-explore': 'Explore safely',
-	'stairs-up': 'Stairs up',
-	'stairs-down': 'Stairs down',
-	mission: 'Mission objective',
-	rest: 'Rest at camp',
+type DungeonRoutePolicy = DungeonRoutePolicyInput['policy'];
+
+const ROUTE_POLICY_LABELS: Record<DungeonRoutePolicy, string> = {
+	mission: 'Complete mission',
+	explore: 'Explore safely',
 	treasure: 'Find treasure',
+	rest: 'Recover at camp',
+};
+
+const ROUTE_POLICY_DESCRIPTIONS: Record<DungeonRoutePolicy, string> = {
+	mission: 'Advance through the dungeon and resolve its final objective.',
+	explore: 'Reveal safe ground, then return to the mission.',
+	treasure: 'Find the nearest known cache, then return to the mission.',
+	rest: 'Recover at the nearest known campsite, then return to the mission.',
 };
 
 interface DungeonView {
@@ -87,19 +94,6 @@ interface DungeonView {
 function pointForNode(layout: DungeonGridLayout, nodeId: string, fallback: StagePoint): StagePoint {
 	const tile = layout.tiles.find((candidate) => candidate.node.id === nodeId);
 	return tile ? tileCenter(layout, tile) : fallback;
-}
-
-function routeTargetKey(target: DungeonRouteTargetInput): string {
-	return `${target.targetKind}:${target.targetNodeId ?? ''}`;
-}
-
-function routeTargetForTile(tile: DungeonGridLayout['tiles'][number]): DungeonRouteTargetInput | null {
-	if (!tile.node.discovered) return null;
-	if (tile.kind === 'goal') return { targetKind: 'mission', targetNodeId: tile.node.id };
-	if (tile.kind === 'stairs-up' || tile.kind === 'stairs-down' || tile.kind === 'rest' || tile.kind === 'treasure') {
-		return { targetKind: tile.kind, targetNodeId: tile.node.id };
-	}
-	return null;
 }
 
 function movementHintForTile(tile: DungeonGridLayout['tiles'][number] | null | undefined): string {
@@ -147,9 +141,9 @@ function navigatorDescription(isNavigator: boolean, canClaim: boolean): string {
 	return 'You can observe the floor while the Navigator moves.';
 }
 
-function exploreButtonLabel(canNavigate: boolean, busy: boolean): string {
+function advanceButtonLabel(canNavigate: boolean, busy: boolean): string {
 	if (!canNavigate) return 'Navigator controls movement';
-	return busy ? 'Exploring…' : 'Explore';
+	return busy ? 'Advancing…' : 'Advance once';
 }
 
 export function DungeonGridMap({
@@ -164,21 +158,6 @@ export function DungeonGridMap({
 	readOnly?: boolean;
 }) {
 	const layout = useMemo(() => createDungeonGridLayout(map), [map]);
-	const routeTargetOptions = useMemo(() => {
-		const safeExplore: DungeonRouteTargetInput = { targetKind: 'safe-explore', targetNodeId: null };
-		const options: Array<DungeonRouteTargetInput & { label: string }> = [{ ...safeExplore, label: ROUTE_TARGET_LABELS['safe-explore'] }];
-		const seen = new Set<string>([routeTargetKey(safeExplore)]);
-		for (const tile of layout.tiles) {
-			const target = routeTargetForTile(tile);
-			if (!target || seen.has(routeTargetKey(target))) continue;
-			seen.add(routeTargetKey(target));
-			options.push({
-				...target,
-				label: `${ROUTE_TARGET_LABELS[target.targetKind]} · ${tile.node.name}`,
-			});
-		}
-		return options;
-	}, [layout]);
 	const viewportRef = useRef<HTMLDivElement>(null);
 	const cameraRef = useRef<CameraState | null>(null);
 	const [movement] = useState(
@@ -194,7 +173,7 @@ export function DungeonGridMap({
 	const [pixiError, setPixiError] = useState<string | null>(null);
 	const [now, setNow] = useState(() => Date.now());
 	const [transferTargetUserId, setTransferTargetUserId] = useState('');
-	const [routeTarget, setRouteTarget] = useState<DungeonRouteTargetInput>({ targetKind: 'safe-explore', targetNodeId: null });
+	const [routePolicy, setRoutePolicy] = useState<DungeonRoutePolicy>('mission');
 
 	const leaseExpired = Boolean(map.navigation?.leaseExpiresAt && Date.parse(map.navigation.leaseExpiresAt) <= now);
 	const isNavigator = navigatorControls ? map.navigation?.navigatorUserId === navigatorControls.userId && !leaseExpired : !readOnly;
@@ -265,9 +244,8 @@ export function DungeonGridMap({
 
 	useEffect(() => {
 		const intent = map.navigation?.routeIntent;
-		if (!intent) return;
-		setRouteTarget({ targetKind: intent.kind, targetNodeId: intent.nodeId });
-	}, [map.navigation?.routeIntent?.kind, map.navigation?.routeIntent?.nodeId]);
+		setRoutePolicy(intent?.policy ?? 'mission');
+	}, [map.navigation?.routeIntent?.policy]);
 
 	const clearHeld = useCallback(() => {
 		const held = heldRef.current;
@@ -350,7 +328,7 @@ export function DungeonGridMap({
 		pumpRequestsRef.current = pumpRequests;
 	}, [pumpRequests]);
 
-	const startAutoExplore = useCallback(() => {
+	const advancePolicy = useCallback(() => {
 		if (!canNavigate || autoBusyRef.current || movement.isBusy) return;
 		const mutation = walkMutationRef.current;
 		if (!mutation) return;
@@ -529,7 +507,7 @@ export function DungeonGridMap({
 	const routeVotes = map.navigation?.routeVotes ?? [];
 	const currentUserRouteVote = routeVotes.find((vote) => vote.userId === navigatorControls?.userId);
 	const routeActionsAvailable = Boolean(navigatorControls?.voteRouteMutation && !readOnly);
-	const routeIntentLabel = routeIntent ? ROUTE_TARGET_LABELS[routeIntent.kind] : 'Explore safely';
+	const routeIntentLabel = routeIntent ? ROUTE_POLICY_LABELS[routeIntent.policy] : ROUTE_POLICY_LABELS.mission;
 
 	if (!layout.currentTile) {
 		return (
@@ -685,28 +663,25 @@ export function DungeonGridMap({
 						<Target className="size-4" aria-hidden="true" />
 						<div>
 							<span className="dungeon-grid-navigator-kicker">Shared route plan</span>
-							<strong>{routeIntent ? `Automatic route: ${routeIntentLabel}` : 'Choose the party’s next focus'}</strong>
+							<strong>{routeIntent ? `Automatic policy: ${routeIntentLabel}` : 'Mission is the default policy'}</strong>
 							<small>
 								{routeIntent
-									? 'Daily Health progress follows this visible target while the party stays safe.'
-									: 'Everyone can suggest a destination. The Navigator decides what the daily expedition follows.'}
+									? ROUTE_POLICY_DESCRIPTIONS[routeIntent.policy]
+									: 'Everyone can suggest a policy. The Navigator decides what the daily expedition follows.'}
 							</small>
 						</div>
 					</div>
 					{routeActionsAvailable ? (
 						<div className="dungeon-grid-route-controls">
-							<label htmlFor="dungeon-route-target">Route focus</label>
+							<label htmlFor="dungeon-route-policy">Route policy</label>
 							<select
-								id="dungeon-route-target"
-								value={routeTargetKey(routeTarget)}
-								onChange={(event) => {
-									const next = routeTargetOptions.find((option) => routeTargetKey(option) === event.target.value);
-									if (next) setRouteTarget({ targetKind: next.targetKind, targetNodeId: next.targetNodeId });
-								}}
+								id="dungeon-route-policy"
+								value={routePolicy}
+								onChange={(event) => setRoutePolicy(event.target.value as DungeonRoutePolicy)}
 							>
-								{routeTargetOptions.map((option) => (
-									<option key={routeTargetKey(option)} value={routeTargetKey(option)}>
-										{option.label}
+								{(Object.keys(ROUTE_POLICY_LABELS) as DungeonRoutePolicy[]).map((policy) => (
+									<option key={policy} value={policy}>
+										{ROUTE_POLICY_LABELS[policy]}
 									</option>
 								))}
 							</select>
@@ -715,22 +690,18 @@ export function DungeonGridMap({
 									type="button"
 									className="dungeon-grid-navigator-button"
 									disabled={Boolean(navigatorControls.voteRouteMutation?.isPending)}
-									onClick={() => void navigatorControls.voteRouteMutation?.mutateAsync(routeTarget)}
+									onClick={() => void navigatorControls.voteRouteMutation?.mutateAsync({ policy: routePolicy })}
 									data-testid="dungeon-route-vote"
 								>
 									<Check className="size-4" aria-hidden="true" />
-									{currentUserRouteVote &&
-									currentUserRouteVote.kind === routeTarget.targetKind &&
-									currentUserRouteVote.nodeId === routeTarget.targetNodeId
-										? 'Voted'
-										: 'Vote'}
+									{currentUserRouteVote?.policy === routePolicy ? 'Voted' : 'Vote'}
 								</button>
 								{isNavigator && navigatorControls.setRouteIntentMutation ? (
 									<button
 										type="button"
 										className="dungeon-grid-navigator-button dungeon-grid-route-confirm"
 										disabled={navigatorControls.setRouteIntentMutation.isPending}
-										onClick={() => void navigatorControls.setRouteIntentMutation?.mutateAsync(routeTarget)}
+										onClick={() => void navigatorControls.setRouteIntentMutation?.mutateAsync({ policy: routePolicy })}
 										data-testid="dungeon-route-set"
 									>
 										<Target className="size-4" aria-hidden="true" />
@@ -755,7 +726,7 @@ export function DungeonGridMap({
 						<span>
 							{routeVotes.length} suggestion{routeVotes.length === 1 ? '' : 's'} from the party
 						</span>
-						{routeIntent ? <span>Navigator focus: {routeIntentLabel}</span> : <span>Until then, autoplay explores safe ground.</span>}
+						{routeIntent ? <span>Navigator policy: {routeIntentLabel}</span> : <span>Autoplay advances the mission by default.</span>}
 					</div>
 					{routeError ? <small className="dungeon-grid-navigator-error">{routeError.message}</small> : null}
 				</div>
@@ -767,11 +738,11 @@ export function DungeonGridMap({
 						type="button"
 						className="dungeon-grid-explore-button"
 						disabled={movementBusy || !canNavigate}
-						onClick={startAutoExplore}
-						data-testid="dungeon-explore"
+						onClick={advancePolicy}
+						data-testid="dungeon-advance"
 					>
 						<Footprints className="size-4" aria-hidden="true" />
-						{exploreButtonLabel(canNavigate, autoBusy || walkMutation.isPending)}
+						{advanceButtonLabel(canNavigate, autoBusy || walkMutation.isPending)}
 					</button>
 					<span className="dungeon-grid-hint">{movementHint}</span>
 					<div className="dungeon-grid-dpad" aria-label="Touch movement controls">
@@ -823,36 +794,39 @@ export function DungeonGridMap({
 				</div>
 			) : null}
 
-			<div className="dungeon-grid-legend" aria-label="Dungeon marker legend">
-				<span className="dungeon-grid-legend-title">What the markers mean</span>
-				<div className="dungeon-grid-legend-items">
-					{DUNGEON_LEGEND_KINDS.map((kind) => {
-						const marker = dungeonMarkerPresentation(kind);
-						return (
-							<div className="dungeon-grid-legend-item" key={kind} data-marker-role={marker.role}>
-								<span className="dungeon-grid-legend-swatch" aria-hidden="true">
-									{dungeonLegendGlyph(kind)}
-								</span>
-								<span>
-									<strong>{marker.label}</strong>
-									<small>{marker.description}</small>
-								</span>
-							</div>
-						);
-					})}
+			<details className="dungeon-grid-secondary" open>
+				<summary>Map details and marker legend</summary>
+				<div className="dungeon-grid-legend" aria-label="Dungeon marker legend">
+					<span className="dungeon-grid-legend-title">What the markers mean</span>
+					<div className="dungeon-grid-legend-items">
+						{DUNGEON_LEGEND_KINDS.map((kind) => {
+							const marker = dungeonMarkerPresentation(kind);
+							return (
+								<div className="dungeon-grid-legend-item" key={kind} data-marker-role={marker.role}>
+									<span className="dungeon-grid-legend-swatch" aria-hidden="true">
+										{dungeonLegendGlyph(kind)}
+									</span>
+									<span>
+										<strong>{marker.label}</strong>
+										<small>{marker.description}</small>
+									</span>
+								</div>
+							);
+						})}
+					</div>
 				</div>
-			</div>
 
-			<div className="dungeon-grid-inspector" data-testid="dungeon-grid-inspector">
-				{selectedTile ? (
-					<>
-						<p className="dungeon-grid-inspector-title">{selectedTile.node.name}</p>
-						<Badge data-marker-role={selectedMarker?.role}>{selectedMarker?.label}</Badge>
-						<Badge>{selectedTile.node.id === displayedNodeId ? 'Your position' : 'Explored tile'}</Badge>
-						<p className="dungeon-grid-inspector-description">{selectedMarker?.description}</p>
-					</>
-				) : null}
-			</div>
+				<div className="dungeon-grid-inspector" data-testid="dungeon-grid-inspector">
+					{selectedTile ? (
+						<>
+							<p className="dungeon-grid-inspector-title">{selectedTile.node.name}</p>
+							<Badge data-marker-role={selectedMarker?.role}>{selectedMarker?.label}</Badge>
+							<Badge>{selectedTile.node.id === displayedNodeId ? 'Your position' : 'Explored tile'}</Badge>
+							<p className="dungeon-grid-inspector-description">{selectedMarker?.description}</p>
+						</>
+					) : null}
+				</div>
+			</details>
 		</div>
 	);
 }

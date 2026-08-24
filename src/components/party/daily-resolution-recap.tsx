@@ -75,12 +75,33 @@ function navigationHaltLabel(reason: string) {
 			return 'waiting for the next daily signal';
 		case 'encounter':
 			return 'paused at an encounter for the party';
+		case 'event':
+			return 'paused at a landmark event';
+		case 'retreat':
+			return 'retreating toward safety';
 		case 'safe-boundary':
-			return 'exploring safe ground';
-		case 'risk':
-			return 'paused while the party recovers';
+			return 'at a safe checkpoint';
+		case 'insufficient-balance':
+			return 'waiting for more Explore energy';
 		default:
 			return label(reason);
+	}
+}
+
+type NavigationPolicy = NonNullable<PartyRecap['resolution']['navigation']>['policy'];
+
+function navigationPolicyLabel(policy: NavigationPolicy) {
+	switch (policy) {
+		case 'mission':
+			return 'Mission';
+		case 'explore':
+			return 'Explore';
+		case 'treasure':
+			return 'Treasure';
+		case 'rest':
+			return 'Rest';
+		default:
+			return 'Mission';
 	}
 }
 
@@ -185,7 +206,7 @@ export function DailyResolutionRecap({
 				{resolution.navigation?.mode === 'safe-autopilot' && (
 					<DetailRow
 						label="Automatic expedition"
-						value={`${resolution.navigation.steps} tile steps · ${navigationHaltLabel(resolution.navigation.haltedReason)}`}
+						value={`${navigationPolicyLabel(resolution.navigation.policy)} · ${resolution.navigation.steps} tile steps · ${resolution.navigation.retreating ? 'retreating to safety' : navigationHaltLabel(resolution.navigation.haltedReason)}`}
 					/>
 				)}
 

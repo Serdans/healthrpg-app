@@ -7,7 +7,10 @@ import type { InteriorMapLayout } from '#/lib/interior-map';
 import { createWorldMapLayout, createWorldMapTravel, getWorldMapTravelDirection } from '#/lib/world-map';
 
 type TestNode = Omit<PartyMap['nodes'][number], 'mapMetadata'>;
-type TestMap = Omit<PartyMap, 'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance'> & {
+type TestMap = Omit<
+	PartyMap,
+	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation'
+> & {
 	nodes: TestNode[];
 };
 
@@ -26,6 +29,7 @@ function withMapDefaults(value: TestMap): PartyMap {
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 12,
+		navigation: null,
 		nodes: value.nodes.map((item, index) => ({
 			...item,
 			discovered: true,
@@ -108,6 +112,7 @@ function interiorMap(mapType: 'village' | 'dungeon', currentNodeId: string, node
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 12,
+		navigation: null,
 	};
 }
 

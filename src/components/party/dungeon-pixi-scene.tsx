@@ -267,7 +267,6 @@ const PROP_MARKER_STYLE: Record<DungeonPropTextureName, { tint: number; baseAlph
 	'stairs-up': { tint: 0x65c6bd, baseAlpha: 0.085, yOffset: 0.1, scale: 1.08 },
 	'objective-beacon': { tint: 0xf1be4e, baseAlpha: 0.12, yOffset: 0.06, scale: 1.2 },
 	'entry-gate': { tint: 0x65c6bd, baseAlpha: 0.07, yOffset: 0.1, scale: 1.08 },
-	'exit-gate': { tint: 0xd5a44d, baseAlpha: 0.06, yOffset: 0.1, scale: 1.08 },
 	'rest-camp': { tint: 0xf1be4e, baseAlpha: 0.075, yOffset: 0.08, scale: 1.12 },
 	'combat-rune': { tint: 0xd0804a, baseAlpha: 0.06, yOffset: 0.1, scale: 1.08 },
 	'boss-rune': { tint: 0xb36d80, baseAlpha: 0.09, yOffset: 0.1, scale: 1.12 },

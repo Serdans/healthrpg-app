@@ -93,6 +93,7 @@ const map: PartyMap = {
 	objectives: [],
 	completedObjectiveIds: [],
 	tileBalance: 12,
+	navigation: null,
 };
 
 const votes: PartyVotes = {

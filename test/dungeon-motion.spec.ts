@@ -48,6 +48,7 @@ function motionLayout() {
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 0,
+		navigation: null,
 	});
 }
 

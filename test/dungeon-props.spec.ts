@@ -25,7 +25,7 @@ describe('dungeon prop atlas', () => {
 	});
 
 	it('publishes a 24px frame manifest for Pixi texture loading', () => {
-		expect(DUNGEON_PROP_TEXTURE_COUNT).toBe(9);
+		expect(DUNGEON_PROP_TEXTURE_COUNT).toBe(8);
 		expect(dungeonPropsArt.tileSize).toBe(DUNGEON_PROP_ART_SIZE);
 		expect(dungeonPropsArt.totalWidth).toBe(DUNGEON_PROP_TEXTURE_COUNT * DUNGEON_PROP_ART_SIZE);
 		expect(dungeonPropsArt.names).toEqual(DUNGEON_PROP_TEXTURE_NAMES);
