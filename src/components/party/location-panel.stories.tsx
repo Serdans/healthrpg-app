@@ -76,22 +76,10 @@ const dungeonMap: PartyMap = {
 			mapMetadata: metadata('map-ruins', 'dungeon-goal', 2, 'goal', 2),
 			discovered: true,
 		},
-		{
-			id: 'dungeon-exit',
-			chapterNo: 1,
-			regionNo: 4,
-			name: 'Road Back',
-			nodeType: 'travel',
-			templateKey: 'dungeon-exit-v1',
-			config: null,
-			mapMetadata: metadata('map-ruins', 'dungeon-exit', 2, 'exit', 3, false, true),
-			discovered: true,
-		},
 	],
 	edges: [
 		{ id: 'edge-puzzle', fromNodeId: 'dungeon-entry', toNodeId: 'dungeon-puzzle', optionKey: 'turning-stones', sortOrder: 0 },
 		{ id: 'edge-goal', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-goal', optionKey: 'memory-well', sortOrder: 1 },
-		{ id: 'edge-exit', fromNodeId: 'dungeon-goal', toNodeId: 'dungeon-exit', optionKey: 'road-back', sortOrder: 2 },
 	],
 	objectives: [
 		{

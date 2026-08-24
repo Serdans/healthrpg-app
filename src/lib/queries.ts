@@ -206,16 +206,13 @@ export function useWalkDungeon(partyId: string) {
 				left: [-1, 0],
 				right: [1, 0],
 			};
-			for (const step of input.steps) {
-				const current = nodesById.get(nodeId);
-				const metadata = current?.mapMetadata;
-				if (!metadata) break;
-				const { floorNo, tileX, tileY } = metadata;
-				if (tileX === null || tileY === null) break;
+			const current = nodesById.get(nodeId);
+			const metadata = current?.mapMetadata;
+			const step = input.steps[0];
+			if (metadata && metadata.tileX !== null && metadata.tileY !== null) {
 				const [dc, dr] = stepDelta[step];
-				const next = nodesByCoordinate.get(`${String(floorNo)}:${String(tileX + dc)}:${String(tileY + dr)}`);
-				if (!next) break;
-				nodeId = next.id;
+				const next = nodesByCoordinate.get(`${String(metadata.floorNo)}:${String(metadata.tileX + dc)}:${String(metadata.tileY + dr)}`);
+				if (next) nodeId = next.id;
 			}
 			if (nodeId !== previous.currentNodeId) {
 				queryClient.setQueryData<PartyMap>(queryKeys.map(partyId), { ...previous, currentNodeId: nodeId });
@@ -224,11 +221,15 @@ export function useWalkDungeon(partyId: string) {
 		},
 		onSuccess: (walk) => {
 			queryClient.setQueryData<PartyMap | undefined>(queryKeys.map(partyId), (map) =>
-				map ? { ...map, currentNodeId: walk.nodeId, navigation: walk.navigation } : map,
+				map ? { ...map, currentNodeId: walk.nodeId, tileBalance: walk.tileBalance, navigation: walk.navigation } : map,
 			);
 			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });
-			void queryClient.invalidateQueries({ queryKey: queryKeys.encounter(partyId) });
-			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
+			if (walk.encounterTriggeredNodeId) {
+				void queryClient.invalidateQueries({ queryKey: queryKeys.encounter(partyId) });
+			}
+			if (walk.haltedReason === 'event') {
+				void queryClient.invalidateQueries({ queryKey: queryKeys.event(partyId) });
+			}
 		},
 		onError: (_error, _input, context) => {
 			if (context?.previous) {
@@ -251,7 +252,6 @@ export function useClaimDungeonNavigator(partyId: string) {
 		mutationFn: () => claimDungeonNavigator(partyId),
 		onSuccess: (navigation) => {
 			updateDungeonNavigation(queryClient, partyId, navigation);
-			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
 		},
 	});
 }
@@ -262,7 +262,6 @@ export function useReleaseDungeonNavigator(partyId: string) {
 		mutationFn: () => releaseDungeonNavigator(partyId),
 		onSuccess: (navigation) => {
 			updateDungeonNavigation(queryClient, partyId, navigation);
-			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
 		},
 	});
 }
@@ -273,7 +272,6 @@ export function useTransferDungeonNavigator(partyId: string) {
 		mutationFn: (body: DungeonNavigatorTransferInput) => transferDungeonNavigator(partyId, body),
 		onSuccess: (navigation) => {
 			updateDungeonNavigation(queryClient, partyId, navigation);
-			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
 		},
 	});
 }
@@ -284,7 +282,6 @@ export function useVoteDungeonRoute(partyId: string) {
 		mutationFn: (policy: DungeonRoutePolicyInput) => voteDungeonRoute(partyId, policy),
 		onSuccess: (navigation) => {
 			updateDungeonNavigation(queryClient, partyId, navigation);
-			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
 		},
 	});
 }
@@ -295,7 +292,6 @@ export function useSetDungeonRouteIntent(partyId: string) {
 		mutationFn: (policy: DungeonRoutePolicyInput) => setDungeonRouteIntent(partyId, policy),
 		onSuccess: (navigation) => {
 			updateDungeonNavigation(queryClient, partyId, navigation);
-			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
 		},
 	});
@@ -307,7 +303,6 @@ export function useClearDungeonRouteIntent(partyId: string) {
 		mutationFn: () => clearDungeonRouteIntent(partyId),
 		onSuccess: (navigation) => {
 			updateDungeonNavigation(queryClient, partyId, navigation);
-			void queryClient.invalidateQueries({ queryKey: queryKeys.map(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
 		},
 	});

@@ -69,23 +69,32 @@ function signedHealth(value: number) {
 	return value > 0 ? `+${value}` : String(value);
 }
 
-function navigationHaltLabel(reason: string) {
+type NavigationHaltReason = NonNullable<PartyRecap['resolution']['navigation']>['haltedReason'];
+
+function navigationHaltLabel(reason: NavigationHaltReason) {
 	switch (reason) {
+		case 'pinned-encounter':
+			return 'waiting for the pinned encounter';
 		case 'checkpoint':
 			return 'waiting for the next daily signal';
 		case 'encounter':
 			return 'paused at an encounter for the party';
 		case 'event':
 			return 'paused at a landmark event';
+		case 'boss':
+			return 'waiting for the boss battle';
 		case 'retreat':
 			return 'retreating toward safety';
 		case 'safe-boundary':
 			return 'at a safe checkpoint';
 		case 'insufficient-balance':
 			return 'waiting for more Explore energy';
-		default:
-			return label(reason);
+		case 'wall':
+			return 'blocked by a wall';
+		case 'step-cap':
+			return 'at the movement limit for this resolution';
 	}
+	return exhaustive(reason);
 }
 
 type NavigationPolicy = NonNullable<PartyRecap['resolution']['navigation']>['policy'];
@@ -100,9 +109,12 @@ function navigationPolicyLabel(policy: NavigationPolicy) {
 			return 'Treasure';
 		case 'rest':
 			return 'Rest';
-		default:
-			return 'Mission';
 	}
+	return exhaustive(policy);
+}
+
+function exhaustive(value: never): never {
+	throw new Error('Unhandled dungeon navigation value: ' + String(value));
 }
 
 export function DailyResolutionRecap({
@@ -156,7 +168,6 @@ export function DailyResolutionRecap({
 	}
 
 	const resolution = recap.resolution;
-	const combat = resolution.combat;
 	const journeyValue = resolution.movement.cost > 0 ? `${resolution.movement.units} / ${resolution.movement.cost} Momentum` : 'Ready';
 
 	return (
@@ -224,11 +235,13 @@ export function DailyResolutionRecap({
 					/>
 				)}
 
-				{combat && (
-					<div className="game-inset game-inset-muted space-y-3 p-4">
+				{resolution.combats.map((combat, index) => (
+					<div key={'encounter-' + String(index)} className="game-inset game-inset-muted space-y-3 p-4">
 						<div className="flex items-center gap-2">
 							<Swords className="size-4 text-[var(--danger)]" aria-hidden="true" />
-							<p className="game-pixel-label text-[var(--ink-soft)]">Encounter recap</p>
+							<p className="game-pixel-label text-[var(--ink-soft)]">
+								{resolution.combats.length > 1 ? 'Encounter ' + String(index + 1) + ' recap' : 'Encounter recap'}
+							</p>
 						</div>
 						<div className="space-y-2">
 							{combat.members.map((member) => (
@@ -254,7 +267,7 @@ export function DailyResolutionRecap({
 							))}
 						</div>
 					</div>
-				)}
+				))}
 
 				{resolution.rewards.length > 0 && (
 					<div className="game-inset game-inset-teal p-4">

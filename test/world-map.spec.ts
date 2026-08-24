@@ -266,13 +266,11 @@ describe('interior map layout', () => {
 				interiorNode('dungeon-puzzle', 'Turning Stones', 'puzzle', 1, 0, 'narrative'),
 				interiorNode('dungeon-treasure', 'Sealed Reliquary', 'treasure', 1, 1, 'treasure'),
 				interiorNode('dungeon-combat', 'Mossbound Guard', 'combat', 2, 0, 'combat'),
-				interiorNode('dungeon-exit', 'Road Back', 'exit', 2, 1),
 			],
 			[
 				{ id: 'edge-puzzle', fromNodeId: 'dungeon-entry', toNodeId: 'dungeon-puzzle', optionKey: 'turning-stones', sortOrder: 0 },
 				{ id: 'edge-treasure', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-treasure', optionKey: 'reliquary', sortOrder: 1 },
 				{ id: 'edge-combat', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-combat', optionKey: 'mossbound-guard', sortOrder: 2 },
-				{ id: 'edge-exit', fromNodeId: 'dungeon-combat', toNodeId: 'dungeon-exit', optionKey: 'road-back', sortOrder: 3 },
 			],
 		);
 

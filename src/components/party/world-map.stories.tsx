@@ -392,23 +392,11 @@ const interiorDungeonMap: PartyMap = {
 			config: null,
 			mapMetadata: interiorMetadata('map-ruins', 'dungeon-reliquary', 2, 'treasure', 1),
 		},
-		{
-			discovered: true,
-			id: 'dungeon-exit',
-			chapterNo: 1,
-			regionNo: 3,
-			name: 'Road Back',
-			nodeType: 'travel',
-			templateKey: 'dungeon-exit-v1',
-			config: null,
-			mapMetadata: interiorMetadata('map-ruins', 'dungeon-exit', 3, 'exit', 0, false, true),
-		},
 	],
 	edges: [
 		{ id: 'dungeon-puzzle-edge', fromNodeId: 'dungeon-entry', toNodeId: 'dungeon-puzzle', optionKey: 'turning-stones', sortOrder: 0 },
 		{ id: 'dungeon-guard-edge', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-guard', optionKey: 'mossbound-guard', sortOrder: 0 },
 		{ id: 'dungeon-reliquary-edge', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-reliquary', optionKey: 'reliquary', sortOrder: 1 },
-		{ id: 'dungeon-exit-edge', fromNodeId: 'dungeon-guard', toNodeId: 'dungeon-exit', optionKey: 'road-back', sortOrder: 2 },
 	],
 	objectives: [
 		{

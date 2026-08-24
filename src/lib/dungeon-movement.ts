@@ -1,9 +1,10 @@
 import { adjacentGridTileId, directionBetween } from '#/lib/dungeon-grid';
 import type { DungeonGridLayout } from '#/lib/dungeon-grid';
+import type { DungeonWalk, DungeonWalkInput } from '#/lib/api';
 import type { PartyTravelerDirection } from '#/lib/game-art';
 import { DUNGEON_STEP_DURATION_MS } from '#/lib/dungeon-motion';
 
-export type DungeonMoveStep = 'up' | 'down' | 'left' | 'right';
+export type DungeonMoveStep = Extract<DungeonWalkInput, { mode: 'manual' }>['steps'][number];
 
 export interface DungeonMoveIntent {
 	fromNodeId: string;
@@ -26,7 +27,7 @@ export interface DungeonMotion extends DungeonVisualSegment {
 export interface DungeonMovementAck {
 	nodeId: string;
 	pathNodeIds: string[];
-	haltedReason: string | null;
+	haltedReason: DungeonWalk['haltedReason'];
 }
 
 export interface DungeonMovementSnapshot {
@@ -90,10 +91,6 @@ export class DungeonMovementController {
 
 	public get projectedNodeId(): string {
 		return this.requestQueue.at(-1)?.toNodeId ?? this.visualQueue.at(-1)?.toNodeId ?? this.motion?.toNodeId ?? this.visualNodeId;
-	}
-
-	public get currentVisualTargetId(): string {
-		return this.motion?.toNodeId ?? this.visualNodeId;
 	}
 
 	public get isBusy(): boolean {
@@ -206,10 +203,6 @@ export class DungeonMovementController {
 		this.visualNodeId = nodeId;
 		this.visualQueue = [];
 		this.motion = null;
-	}
-
-	public setConfirmedNode(nodeId: string): void {
-		this.confirmedNodeId = nodeId;
 	}
 
 	public queueServerPath(layout: DungeonGridLayout, pathNodeIds: readonly string[], targetNodeId: string, now: number): void {

@@ -15,7 +15,7 @@ that floor through one persistent PixiJS/WebGL scene and ticker loop.
 
 The dungeon is a Health-driven autoplay expedition rather than a second
 overworld branch graph. Daily Health projection adds clearly named **Explore
-energy** to the party's tile balance; manual arrows and Auto-explore spend that
+energy** to the party's tile balance; manual arrows and the **Advance once**
 balance one tile at a time.
 
 Daily resolution is also the party's default Navigator: newly accrued movement
@@ -105,7 +105,7 @@ one-tile manual nudge.
   `mutateAsync` request at a time.
 - Rejections still discard unconfirmed intents and slide the party back to the
   confirmed node.
-- Auto-explore consumes the returned path directly. A floor transition snaps
+- Automatic Advance consumes the returned path directly. A floor transition snaps
   the movement controller to the confirmed target before the new active-floor
   layout renders.
 

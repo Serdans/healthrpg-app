@@ -190,10 +190,8 @@ type DungeonNavigatorTransferBody = RequestBody<paths['/api/v1/parties/{partyId}
 type DungeonRoutePolicyBody = RequestBody<paths['/api/v1/parties/{partyId}/dungeon/route-votes']['put']>;
 type DungeonRouteNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/route-votes']['put']>;
 
-export const walkDungeon = (
-	partyId: string,
-	input: { mode: 'auto' } | { mode: 'manual'; steps: Array<'up' | 'down' | 'left' | 'right'> },
-) => requestJson<DungeonWalkResponse>(partyPath(partyId, '/dungeon/walk'), { method: 'post', json: input });
+export const walkDungeon = (partyId: string, input: RequestBody<paths['/api/v1/parties/{partyId}/dungeon/walk']['post']>) =>
+	requestJson<DungeonWalkResponse>(partyPath(partyId, '/dungeon/walk'), { method: 'post', json: input });
 
 export const claimDungeonNavigator = (partyId: string) =>
 	requestJson<DungeonNavigationResponse>(partyPath(partyId, '/dungeon/navigator/claim'), {

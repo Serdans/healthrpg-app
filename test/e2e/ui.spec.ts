@@ -181,7 +181,7 @@ test('enters a nested village map from the overworld', async ({ page, request })
 		});
 });
 
-test('walks a tile-based dungeon with auto-explore and manual steps', async ({ page, request }) => {
+test('walks a tile-based dungeon with automatic advance and manual steps', async ({ page, request }) => {
 	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'dungeon-grid' } });
 	await authenticate(page);
 	await page.goto('/parties/party-1');
@@ -194,6 +194,8 @@ test('walks a tile-based dungeon with auto-explore and manual steps', async ({ p
 	await expect(grid).toHaveAttribute('data-tile-balance', '9');
 	await expect(page.getByTestId('map-scene')).toHaveAttribute('data-map-type', 'dungeon');
 	await expect(page.locator('.game-panel-dungeon')).toBeVisible();
+	await expect(page.getByTestId('dungeon-navigator')).toContainText('You are the Navigator');
+	await expect(page.getByTestId('dungeon-advance')).toBeEnabled();
 	// The world renders to a single canvas now.
 	const canvas = page.getByTestId('dungeon-grid-canvas');
 	await expect(canvas).toBeVisible();
@@ -201,13 +203,15 @@ test('walks a tile-based dungeon with auto-explore and manual steps', async ({ p
 	// The live-region announces the party's tile.
 	await expect(page.getByTestId('dungeon-live-status')).toContainText(/Party is at/);
 
-	await page.getByTestId('dungeon-explore').click();
+	await page.getByTestId('dungeon-advance').click();
 	await expect
 		.poll(async () => lastMutation(request))
 		.toEqual({
 			path: '/api/v1/parties/party-1/dungeon/walk',
 			body: { mode: 'auto' },
 		});
+	await expect(page.getByTestId('dungeon-navigator')).toContainText('You are the Navigator');
+	await expect(page.getByTestId('dungeon-advance')).toBeEnabled();
 
 	// Manual stepping: arrow keys send single-tile walk requests.
 	const atEntry = await page.getByTestId('dungeon-live-status').textContent();

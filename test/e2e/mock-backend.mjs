@@ -66,6 +66,18 @@ function currentNodeType() {
 	return 'travel';
 }
 
+function dungeonNavigation() {
+	return {
+		navigatorUserId: 'user-1',
+		navigatorDisplayName: 'Hero',
+		claimedAt: '2030-01-01T00:00:00.000Z',
+		lastActiveAt: '2030-01-01T00:00:00.000Z',
+		leaseExpiresAt: '2030-01-01T00:05:00.000Z',
+		routeIntent: null,
+		routeVotes: [],
+	};
+}
+
 function party() {
 	const insideVillage = state.scenario === 'village-interior';
 	return {
@@ -214,6 +226,7 @@ function map() {
 			],
 			completedObjectiveIds: [],
 			tileBalance: 9,
+			navigation: dungeonNavigation(),
 			nodes: [
 				tile('tile-entry', 'entry', 2, 2, 'entrance'),
 				tile('tile-a', 'floor', 3, 2, 'room'),
@@ -262,6 +275,7 @@ function map() {
 			enterableLocation: null,
 			objectives: [],
 			completedObjectiveIds: [],
+			navigation: null,
 			nodes: [
 				{
 					id: 'village-entry',
@@ -340,6 +354,7 @@ function map() {
 				: null,
 		objectives: [],
 		completedObjectiveIds: [],
+		navigation: null,
 		nodes: [
 			{
 				id: 'node-1',
@@ -496,38 +511,41 @@ function dailyRecap() {
 			route: null,
 			event:
 				state.scenario === 'combat' ? { eventType: 'combat', outcome: 'ongoing', selectedChoiceKey: null, selectionReason: null } : null,
-			combat:
+			combats:
 				state.scenario === 'combat'
-					? {
-							completed: false,
-							members: [
-								{
-									userId: 'user-1',
-									displayName: 'Hero',
-									actionKey: null,
-									actionName: 'Basic attack',
-									healthBefore: 20,
-									recovery: 4,
-									actionHealing: 0,
-									damageTaken: 2,
-									healthAfter: 22,
-									maxHealth: 30,
-								},
-							],
-							enemies: [
-								{
-									id: 'enemy-1',
-									displayName: 'Wolf',
-									healthBefore: 12,
-									damageTaken: 8,
-									healthAfter: 4,
-									maxHealth: 12,
-									defeated: false,
-								},
-							],
-						}
-					: null,
+					? [
+							{
+								completed: false,
+								members: [
+									{
+										userId: 'user-1',
+										displayName: 'Hero',
+										actionKey: null,
+										actionName: 'Basic attack',
+										healthBefore: 20,
+										recovery: 4,
+										actionHealing: 0,
+										damageTaken: 2,
+										healthAfter: 22,
+										maxHealth: 30,
+									},
+								],
+								enemies: [
+									{
+										id: 'enemy-1',
+										displayName: 'Wolf',
+										healthBefore: 12,
+										damageTaken: 8,
+										healthAfter: 4,
+										maxHealth: 12,
+										defeated: false,
+									},
+								],
+							},
+						]
+					: [],
 			rewards: [],
+			navigation: null,
 		},
 	};
 }
@@ -873,6 +891,7 @@ async function handler(request) {
 				floorChanged: false,
 				encounterTriggeredNodeId: null,
 				haltedReason,
+				navigation: dungeonNavigation(),
 			});
 		}
 		// Auto-explore follows the fixture corridor: entry → a → b → c → d → spawn.
@@ -891,6 +910,7 @@ async function handler(request) {
 			floorChanged: false,
 			encounterTriggeredNodeId: null,
 			haltedReason: null,
+			navigation: dungeonNavigation(),
 		});
 	}
 	if (path === '/api/v1/parties/party-1/map' && request.method === 'GET') return json(map());

@@ -26,10 +26,10 @@ function tileNode(id: string, kind: string, floorNo: number, x: number, y: numbe
 			mapId: 'map-dungeon',
 			nodeId: id,
 			floorNo,
-			role: kind === 'spawn' ? 'combat' : kind === 'entry' ? 'entrance' : kind === 'exit' ? 'exit' : 'room',
+			role: kind === 'spawn' ? 'combat' : kind === 'entry' ? 'entrance' : 'room',
 			sortOrder: x * 10 + y,
 			isEntry: kind === 'entry',
-			isExit: kind === 'exit',
+			isExit: false,
 			tileX: x,
 			tileY: y,
 			spawnArchetype: kind === 'spawn' ? 'vermin' : null,
@@ -184,17 +184,6 @@ describe('pixel plane geometry', () => {
 		const corner = layout.cells.find((cell) => cell.col === DUNGEON_CONTEXT_CELLS + 1 && cell.row === DUNGEON_CONTEXT_CELLS + 1);
 		expect(corner?.edgeMask).toBeGreaterThan(0);
 		expect(corner?.terrain).toBe('floor');
-	});
-});
-
-describe('optimistic walk prediction parity', () => {
-	it('manual single-step reaches the same neighbor the planner would pick first', () => {
-		const layout = createDungeonGridLayout(corridor);
-		const plannerTargetFirstStep = adjacentGridTileId(layout, 'a', 'east');
-		expect(plannerTargetFirstStep).toBe('b');
-
-		const current = layout.tiles.find((item) => item.node.id === 'a');
-		expect(current?.state).toBe('current');
 	});
 });
 

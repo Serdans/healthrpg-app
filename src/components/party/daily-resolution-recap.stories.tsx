@@ -14,8 +14,9 @@ const baseResolution: PartyRecap['resolution'] = {
 	challenge: { progressBefore: 4, contribution: 8, progressAfter: 12, cost: 10, cleared: true },
 	route: null,
 	event: null,
-	combat: null,
+	combats: [],
 	rewards: [],
+	navigation: null,
 };
 
 const recap: PartyRecap = {
@@ -96,34 +97,36 @@ export const OngoingCombat: Story = {
 					selectedChoiceKey: null,
 					selectionReason: null,
 				},
-				combat: {
-					completed: false,
-					members: [
-						{
-							userId: 'user-1',
-							displayName: 'Hero',
-							actionKey: null,
-							actionName: 'Basic attack',
-							healthBefore: 20,
-							recovery: 4,
-							actionHealing: 0,
-							damageTaken: 2,
-							healthAfter: 22,
-							maxHealth: 30,
-						},
-					],
-					enemies: [
-						{
-							id: 'enemy-1',
-							displayName: 'Wolf',
-							healthBefore: 12,
-							damageTaken: 4,
-							healthAfter: 8,
-							maxHealth: 12,
-							defeated: false,
-						},
-					],
-				},
+				combats: [
+					{
+						completed: false,
+						members: [
+							{
+								userId: 'user-1',
+								displayName: 'Hero',
+								actionKey: null,
+								actionName: 'Basic attack',
+								healthBefore: 20,
+								recovery: 4,
+								actionHealing: 0,
+								damageTaken: 2,
+								healthAfter: 22,
+								maxHealth: 30,
+							},
+						],
+						enemies: [
+							{
+								id: 'enemy-1',
+								displayName: 'Wolf',
+								healthBefore: 12,
+								damageTaken: 4,
+								healthAfter: 8,
+								maxHealth: 12,
+								defeated: false,
+							},
+						],
+					},
+				],
 			},
 		},
 	},
@@ -141,24 +144,73 @@ export const CompletedCombat: Story = {
 					selectedChoiceKey: null,
 					selectionReason: null,
 				},
-				combat: {
-					completed: true,
-					members: [],
-					enemies: [
-						{
-							id: 'enemy-1',
-							displayName: 'Wolf',
-							healthBefore: 12,
-							damageTaken: 12,
-							healthAfter: 0,
-							maxHealth: 12,
-							defeated: true,
-						},
-					],
-				},
+				combats: [
+					{
+						completed: true,
+						members: [],
+						enemies: [
+							{
+								id: 'enemy-1',
+								displayName: 'Wolf',
+								healthBefore: 12,
+								damageTaken: 12,
+								healthAfter: 0,
+								maxHealth: 12,
+								defeated: true,
+							},
+						],
+					},
+				],
 				rewards: [{ experience: 100 }],
 			},
 		},
+	},
+};
+
+export const MultipleEncounters: Story = {
+	args: {
+		recap: {
+			...recap,
+			resolution: {
+				...baseResolution,
+				combats: [
+					{
+						completed: true,
+						members: [],
+						enemies: [
+							{
+								id: 'slime-1',
+								displayName: 'Slime',
+								healthBefore: 8,
+								damageTaken: 8,
+								healthAfter: 0,
+								maxHealth: 8,
+								defeated: true,
+							},
+						],
+					},
+					{
+						completed: true,
+						members: [],
+						enemies: [
+							{
+								id: 'bat-1',
+								displayName: 'Cave Bat',
+								healthBefore: 12,
+								damageTaken: 12,
+								healthAfter: 0,
+								maxHealth: 12,
+								defeated: true,
+							},
+						],
+					},
+				],
+			},
+		},
+	},
+	play: async ({ canvas }) => {
+		await expect(canvas.getByText('Encounter 1 recap')).toBeInTheDocument();
+		await expect(canvas.getByText('Encounter 2 recap')).toBeInTheDocument();
 	},
 };
 

@@ -17,11 +17,6 @@ import type { PartyTravelerDirection } from '#/lib/game-art';
 import { DungeonPixiScene } from './dungeon-pixi-scene';
 import { prefersReducedMotion } from '#/lib/gameplay-navigation';
 
-export interface DungeonWalkStep {
-	mode: 'manual';
-	steps: DungeonMoveStep[];
-}
-
 export interface DungeonWalkMutation {
 	isPending: boolean;
 	error: Error | null;
@@ -194,7 +189,6 @@ export function DungeonGridMap({
 	const heldGenerationRef = useRef(0);
 	const clearHeldRef = useRef<() => void>(() => undefined);
 	const pumpRequestsRef = useRef<() => void>(() => undefined);
-	const publishVisualStateRef = useRef<() => void>(() => undefined);
 
 	const publishVisualState = useCallback(() => {
 		const snapshot = movement.snapshot;
@@ -219,7 +213,6 @@ export function DungeonGridMap({
 		viewRef.current = { layout, selectedNodeId };
 		currentMapNodeRef.current = map.currentNodeId;
 		walkMutationRef.current = walkMutation;
-		publishVisualStateRef.current = publishVisualState;
 	}, [layout, map.currentNodeId, publishVisualState, selectedNodeId, walkMutation]);
 
 	useEffect(() => {
