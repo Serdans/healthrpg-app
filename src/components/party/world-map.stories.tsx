@@ -6,7 +6,8 @@ import { LocationPanel } from './location-panel';
 import { WorldMap } from './world-map';
 import type { PartyMap } from '#/lib/api';
 
-type StoryNode = Omit<PartyMap['nodes'][number], 'mapMetadata'>;
+type StoryNode = Omit<PartyMap['nodes'][number], 'mapMetadata' | 'encounterCleared'> &
+	Partial<Pick<PartyMap['nodes'][number], 'encounterCleared'>>;
 type StoryMap = Omit<
 	PartyMap,
 	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation'
@@ -32,6 +33,7 @@ function withMapDefaults(value: StoryMap): PartyMap {
 		navigation: null,
 		nodes: value.nodes.map((node, index) => ({
 			...node,
+			encounterCleared: false,
 			mapMetadata: {
 				mapId: 'overworld',
 				nodeId: node.id,
@@ -61,9 +63,11 @@ const map: PartyMap = withMapDefaults({
 			templateKey: 'travel-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			discovered: true,
+			encounterCleared: false,
 			id: 'crossing',
 			chapterNo: 1,
 			regionNo: 1,
@@ -85,6 +89,7 @@ const map: PartyMap = withMapDefaults({
 			templateKey: 'village-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'ruins',
@@ -95,6 +100,7 @@ const map: PartyMap = withMapDefaults({
 			templateKey: 'dungeon-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'challenge',
@@ -105,6 +111,7 @@ const map: PartyMap = withMapDefaults({
 			templateKey: 'challenge-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 	],
 	edges: [
@@ -129,6 +136,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			templateKey: 'rest-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'high-road',
@@ -139,6 +147,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			templateKey: 'travel-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'low-road',
@@ -149,6 +158,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			templateKey: 'combat-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'sunlit-grove',
@@ -159,6 +169,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			templateKey: 'village-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'mirror-cavern',
@@ -169,6 +180,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			templateKey: 'dungeon-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'mist-steps',
@@ -179,6 +191,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			templateKey: 'narrative-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'lantern-gate',
@@ -189,6 +202,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			templateKey: 'challenge-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'starfall-cache',
@@ -199,6 +213,7 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			templateKey: 'treasure-v1',
 			config: null,
 			discovered: true,
+			encounterCleared: false,
 		},
 	],
 	edges: [
@@ -271,6 +286,7 @@ const interiorVillageMap: PartyMap = {
 	nodes: [
 		{
 			discovered: true,
+			encounterCleared: false,
 			id: 'village-hub',
 			chapterNo: 1,
 			regionNo: 2,
@@ -282,6 +298,7 @@ const interiorVillageMap: PartyMap = {
 		},
 		{
 			discovered: true,
+			encounterCleared: false,
 			id: 'village-shop',
 			chapterNo: 1,
 			regionNo: 2,
@@ -293,6 +310,7 @@ const interiorVillageMap: PartyMap = {
 		},
 		{
 			discovered: true,
+			encounterCleared: false,
 			id: 'village-rest',
 			chapterNo: 1,
 			regionNo: 2,
@@ -304,6 +322,7 @@ const interiorVillageMap: PartyMap = {
 		},
 		{
 			discovered: true,
+			encounterCleared: false,
 			id: 'village-exit',
 			chapterNo: 1,
 			regionNo: 2,
@@ -350,6 +369,7 @@ const interiorDungeonMap: PartyMap = {
 	nodes: [
 		{
 			discovered: true,
+			encounterCleared: false,
 			id: 'dungeon-entry',
 			chapterNo: 1,
 			regionNo: 3,
@@ -361,6 +381,7 @@ const interiorDungeonMap: PartyMap = {
 		},
 		{
 			discovered: true,
+			encounterCleared: false,
 			id: 'dungeon-puzzle',
 			chapterNo: 1,
 			regionNo: 3,
@@ -372,6 +393,7 @@ const interiorDungeonMap: PartyMap = {
 		},
 		{
 			discovered: true,
+			encounterCleared: false,
 			id: 'dungeon-guard',
 			chapterNo: 1,
 			regionNo: 3,
@@ -383,6 +405,7 @@ const interiorDungeonMap: PartyMap = {
 		},
 		{
 			discovered: true,
+			encounterCleared: false,
 			id: 'dungeon-reliquary',
 			chapterNo: 1,
 			regionNo: 3,

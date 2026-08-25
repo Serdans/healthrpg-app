@@ -4,10 +4,13 @@ import { ArrowRight, HeartPulse, MapPinned, Shield, Sparkles, Swords } from 'luc
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { InventoryItemSprite } from '#/components/inventory/inventory-item-sprite';
+import { BattleArt } from '#/components/party/battle-art';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import type { PartyRecap } from '#/lib/api';
+import { battleArtVariant } from '#/lib/battle-art';
 import { formatDateTime } from '#/lib/dates';
+import { battleEnemyArtForArchetype, battlePartyArtForClass } from '#/lib/game-art';
 import type { InventoryItemKind } from '#/lib/game-art';
 
 function label(value: string) {
@@ -25,13 +28,13 @@ function outcomeLabel(outcome: PartyRecap['resolution']['outcome']) {
 
 function resolutionExplanation(resolution: PartyRecap['resolution']) {
 	if (!resolution.movement.satisfied) {
-		return `Needs ${Math.max(0, resolution.movement.cost - resolution.movement.units)} more Momentum for the Journey.`;
+		return `Needs ${Math.max(0, resolution.movement.cost - resolution.movement.units)} more Momentum for the Travel requirement.`;
 	}
 	if (resolution.challenge.cost > 0 && !resolution.challenge.cleared) {
 		return `The Challenge needs ${Math.max(0, resolution.challenge.cost - resolution.challenge.progressAfter)} more progress.`;
 	}
 	if (resolution.event?.outcome === 'failed') return 'The event choice did not succeed.';
-	return resolution.outcome === 'held' ? 'The party is ready for the next resolution.' : 'The Journey requirement was met.';
+	return resolution.outcome === 'held' ? 'The party is ready for the next resolution.' : 'The Travel requirement was met.';
 }
 
 function rewardSummary(reward: PartyRecap['resolution']['rewards'][number]) {
@@ -55,14 +58,14 @@ function rewardVisuals(reward: PartyRecap['resolution']['rewards'][number]) {
 }
 
 function rewardKey(reward: PartyRecap['resolution']['rewards'][number]) {
-	return [
-		reward.experience ?? '',
-		reward.currency ? `${reward.currency.key}:${reward.currency.amount}` : '',
-		reward.item ? `${reward.item.key}:${reward.item.quantity}` : '',
-		reward.equipment?.key ?? '',
-		reward.unlockKey ?? '',
-		reward.milestoneKey ?? '',
-	].join('|');
+	return JSON.stringify({
+		experience: reward.experience ?? null,
+		currency: reward.currency ? { key: reward.currency.key, amount: reward.currency.amount } : null,
+		item: reward.item ? { key: reward.item.key, quantity: reward.item.quantity } : null,
+		equipmentKey: reward.equipment?.key ?? null,
+		unlockKey: reward.unlockKey ?? null,
+		milestoneKey: reward.milestoneKey ?? null,
+	});
 }
 
 function signedHealth(value: number) {
@@ -168,7 +171,8 @@ export function DailyResolutionRecap({
 	}
 
 	const resolution = recap.resolution;
-	const journeyValue = resolution.movement.cost > 0 ? `${resolution.movement.units} / ${resolution.movement.cost} Momentum` : 'Ready';
+	const travelRequirementValue =
+		resolution.movement.cost > 0 ? `${resolution.movement.units} / ${resolution.movement.cost} Momentum` : 'Ready';
 
 	return (
 		<Card variant="game" tone="history" data-testid="daily-resolution-recap">
@@ -199,7 +203,7 @@ export function DailyResolutionRecap({
 				</div>
 
 				<div className="grid gap-3 sm:grid-cols-3">
-					<SummaryStat label="Journey" value={journeyValue} icon={<MapPinned className="size-4" />} />
+					<SummaryStat label="Travel requirement" value={travelRequirementValue} icon={<MapPinned className="size-4" />} />
 					<SummaryStat label="Recovery" value={`${resolution.recoveryPoints} points`} icon={<HeartPulse className="size-4" />} />
 					{resolution.challenge.cost > 0 && (
 						<SummaryStat
@@ -245,20 +249,39 @@ export function DailyResolutionRecap({
 						</div>
 						<div className="space-y-2">
 							{combat.members.map((member) => (
-								<div key={member.userId} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-									<span className="font-extrabold text-[var(--indigo)]">{member.displayName}</span>
+								<div key={member.userId} className="battle-recap-combatant flex flex-wrap items-center justify-between gap-2 text-sm">
+									<div className="flex min-w-0 items-center gap-2">
+										<BattleArt
+											art={battlePartyArtForClass(member.classKey)}
+											label={member.displayName}
+											variant={battleArtVariant(member.healthAfter, member.maxHealth)}
+											className="battle-recap-art battle-recap-party-art"
+											testId={`daily-recap-member-art-${member.userId}`}
+										/>
+										<span className="font-extrabold text-[var(--indigo)]">{member.displayName}</span>
+									</div>
 									<span className="text-[var(--ink-soft)]">
-										{member.actionName} · {signedHealth(member.recovery)} recovery
-										{member.actionHealing > 0 ? ` · +${member.actionHealing} healing` : ''}
-										{member.damageTaken > 0 ? ` · -${member.damageTaken} damage` : ''} · {member.healthAfter}/{member.maxHealth} HP
+										{member.cards.length > 0 ? member.cards.map((card) => card.displayName).join(', ') : 'No cards recorded'} ·{' '}
+										{signedHealth(member.recovery)} recovery
+										{member.cardHealing > 0 && <> · +{member.cardHealing} healing</>}
+										{member.damageTaken > 0 && <> · -{member.damageTaken} damage</>} · {member.healthAfter}/{member.maxHealth} HP
 									</span>
 								</div>
 							))}
 						</div>
 						<div className="border-t border-[var(--line)] pt-3">
 							{combat.enemies.map((enemy) => (
-								<div key={enemy.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-									<span className="font-extrabold text-[var(--indigo)]">{enemy.displayName}</span>
+								<div key={enemy.id} className="battle-recap-combatant flex flex-wrap items-center justify-between gap-2 text-sm">
+									<div className="flex min-w-0 items-center gap-2">
+										<BattleArt
+											art={battleEnemyArtForArchetype(enemy.archetypeKey)}
+											label={enemy.displayName}
+											variant={enemy.defeated ? 'defeated' : battleArtVariant(enemy.healthAfter, enemy.maxHealth)}
+											className="battle-recap-art battle-recap-enemy-art"
+											testId={`daily-recap-enemy-art-${enemy.id}`}
+										/>
+										<span className="font-extrabold text-[var(--indigo)]">{enemy.displayName}</span>
+									</div>
 									<span className="text-[var(--ink-soft)]">
 										{enemy.damageTaken > 0 ? `-${enemy.damageTaken} damage` : 'No damage'} · {enemy.healthAfter}/{enemy.maxHealth} HP
 										{enemy.defeated ? ' · defeated' : ''}

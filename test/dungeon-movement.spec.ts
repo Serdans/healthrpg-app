@@ -26,6 +26,7 @@ function node(id: string, x: number, y = 0, discovered = true): PartyMap['nodes'
 			spawnArchetype: null,
 		},
 		discovered,
+		encounterCleared: false,
 	};
 }
 

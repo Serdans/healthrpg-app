@@ -81,7 +81,6 @@ export function PartyActionSection({
 	userId,
 	timeZone,
 	party,
-	daily,
 	map,
 	readOnly,
 	isCombat,
@@ -101,7 +100,6 @@ export function PartyActionSection({
 	userId: string;
 	timeZone: string;
 	party: Party;
-	daily?: DailyProgress;
 	map: PartyMap;
 	readOnly: boolean;
 	isCombat: boolean;
@@ -123,7 +121,7 @@ export function PartyActionSection({
 			? 'The road divides'
 			: 'A choice waits in the trail';
 	const currentActionDescription = isCombat
-		? 'Set the party’s commands, read the field, and lock in the next move.'
+		? 'Set the party’s card plans, read the field, and lock in the next move.'
 		: hasBranchDecision
 			? 'The party’s next destination is decided together.'
 			: 'Read the scene and choose the response that carries the party forward.';
@@ -144,7 +142,6 @@ export function PartyActionSection({
 					partyId={partyId}
 					userId={userId}
 					party={party}
-					daily={daily}
 					encounter={encounterQuery.data}
 					readOnly={readOnly}
 				/>
@@ -301,6 +298,7 @@ export function PartyFieldSection({
 						navigatorControls={navigatorControls}
 						readOnly={readOnly}
 						actionHref={actionHref}
+						partyMemberCount={party.members.length}
 					/>
 				</CardContent>
 			</Card>

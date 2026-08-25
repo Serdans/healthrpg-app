@@ -35,6 +35,7 @@ function tileNode(id: string, kind: string, floorNo: number, x: number, y: numbe
 			spawnArchetype: kind === 'spawn' ? 'vermin' : null,
 		},
 		discovered: true,
+		encounterCleared: false,
 	};
 }
 

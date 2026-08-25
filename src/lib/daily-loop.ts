@@ -3,7 +3,7 @@ import { match } from 'ts-pattern';
 import type { DailyProgress, Encounter, PartyEvent, PartyVotes } from '#/lib/api';
 
 export type DailyLoopAction =
-	| { kind: 'combat'; data?: Encounter; isLoading: boolean; hasError: boolean }
+	| { kind: 'combat'; data?: Encounter; isLoading: boolean; hasError: boolean; isBoss: boolean }
 	| { kind: 'route'; data?: PartyVotes; isLoading: boolean; hasError: boolean }
 	| { kind: 'event'; data?: PartyEvent; isLoading: boolean; hasError: boolean }
 	| { kind: 'explore'; tileBalance: number }
@@ -67,7 +67,7 @@ function combatState(action: CombatAction): DailyLoopState {
 			tone: 'combat',
 			badge: 'Preparing encounter',
 			title: 'The field is taking shape.',
-			description: 'Reading the encounter before the party chooses its commands.',
+			description: 'Reading the encounter before the party builds its card plans.',
 			...actionLink(action, 'Open battle'),
 		};
 	}
@@ -95,10 +95,12 @@ function combatState(action: CombatAction): DailyLoopState {
 	return {
 		kind: 'command-required',
 		tone: 'combat',
-		badge: 'Your command is needed',
-		title: 'Choose one command for today’s encounter.',
-		description: 'Read the field, choose an action, and lock in your traveler’s move before the day closes.',
-		...actionLink(action, 'Choose a command'),
+		badge: action.isBoss ? 'Boss plan required' : 'Your card plan is needed',
+		title: action.isBoss ? 'Build a card plan to engage the boss.' : 'Queue cards for today’s encounter.',
+		description: action.isBoss
+			? 'The party will remain at the optional boss until a member explicitly saves a card plan.'
+			: 'Read the field, queue cards, and lock in your traveler’s plan before the day closes.',
+		...actionLink(action, 'Build card plan'),
 	};
 }
 

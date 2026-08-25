@@ -16,7 +16,7 @@ const state = {
 	selectedEdgeId: null,
 	selectedEventChoice: null,
 	eventResolved: false,
-	selectedAction: null,
+	selectedPlan: null,
 	lastMutation: { path: null, body: null },
 	healthLastSyncAt: initialHealthSync,
 	healthSyncReadyAt: null,
@@ -33,7 +33,7 @@ function resetState() {
 	state.selectedEdgeId = null;
 	state.selectedEventChoice = null;
 	state.eventResolved = false;
-	state.selectedAction = null;
+	state.selectedPlan = null;
 	state.lastMutation = { path: null, body: null };
 	state.healthLastSyncAt = initialHealthSync;
 	state.healthSyncReadyAt = null;
@@ -520,11 +520,10 @@ function dailyRecap() {
 									{
 										userId: 'user-1',
 										displayName: 'Hero',
-										actionKey: null,
-										actionName: 'Basic attack',
+										cards: [{ key: 'class:basic-attack', displayName: 'Basic Attack' }],
 										healthBefore: 20,
 										recovery: 4,
-										actionHealing: 0,
+										cardHealing: 0,
 										damageTaken: 2,
 										healthAfter: 22,
 										maxHealth: 30,
@@ -712,7 +711,99 @@ function loadout() {
 	return { weapon: null, body: null, head: null, arm: null, boots: null, ring: null, shirt: null };
 }
 
+function effectPreview(kind, baseAmount, overrides = {}) {
+	return {
+		effects: [
+			{
+				kind,
+				baseAmount,
+				manualTargetBonus: null,
+				rallyBonus: null,
+				targetCount: null,
+				distribution: null,
+				...overrides,
+			},
+		],
+	};
+}
+
 function encounter() {
+	const plan = state.selectedPlan ?? { itemLoadoutKeys: [], plays: [] };
+	const selectedCount = (cardKey) => plan.plays.filter((play) => play.cardKey === cardKey).length;
+	const warriorCards = [
+		{
+			key: 'class:basic-attack',
+			sourceKind: 'class',
+			sourceKey: 'basic-attack',
+			classKey: 'warrior',
+			unlockLevel: 1,
+			displayName: 'Basic Attack',
+			description: 'A reliable strike against one standing enemy.',
+			targetMode: 'enemy',
+			repeatable: true,
+			locked: false,
+			selectedCount: selectedCount('class:basic-attack'),
+			preview: effectPreview('damage', 5, { targetCount: 1, distribution: 'single' }),
+		},
+		{
+			key: 'class:shield-wall',
+			sourceKind: 'class',
+			sourceKey: 'shield-wall',
+			classKey: 'warrior',
+			unlockLevel: 2,
+			displayName: 'Shield Wall',
+			description: 'Brace against the next assault.',
+			targetMode: 'none',
+			repeatable: false,
+			locked: false,
+			selectedCount: selectedCount('class:shield-wall'),
+			preview: effectPreview('guard', 4),
+		},
+		{
+			key: 'item:herb',
+			sourceKind: 'item',
+			sourceKey: 'herb',
+			classKey: null,
+			unlockLevel: 1,
+			displayName: 'Herb',
+			description: 'Restore a small measure of health.',
+			targetMode: 'ally',
+			repeatable: true,
+			locked: false,
+			selectedCount: selectedCount('item:herb'),
+			preview: effectPreview('heal', 10),
+		},
+	];
+	const clericCards = [
+		{
+			key: 'class:basic-attack',
+			sourceKind: 'class',
+			sourceKey: 'basic-attack',
+			classKey: 'cleric',
+			unlockLevel: 1,
+			displayName: 'Basic Attack',
+			description: 'A reliable strike against one standing enemy.',
+			targetMode: 'enemy',
+			repeatable: true,
+			locked: false,
+			selectedCount: 0,
+			preview: effectPreview('damage', 4, { targetCount: 1, distribution: 'single' }),
+		},
+		{
+			key: 'class:mend',
+			sourceKind: 'class',
+			sourceKey: 'mend',
+			classKey: 'cleric',
+			unlockLevel: 2,
+			displayName: 'Mend',
+			description: 'Restore an ally’s health.',
+			targetMode: 'ally',
+			repeatable: false,
+			locked: true,
+			selectedCount: 0,
+			preview: effectPreview('heal', 4),
+		},
+	];
 	return {
 		partyId: 'party-1',
 		nodeId: 'node-1',
@@ -725,29 +816,22 @@ function encounter() {
 				currentHealth: 20,
 				maxHealth: 20,
 				classKey: 'warrior',
-				signatureAction: {
-					key: 'shield-wall',
-					displayName: 'Shield Wall',
-					description: 'Guard the party from incoming attacks.',
-					targetMode: 'enemy',
-				},
-				selectedActionKey: state.selectedAction?.actionKey ?? null,
-				actionMode: state.selectedAction?.actionKey ? 'ability' : 'basic',
-				targetEnemyId: state.selectedAction?.targetEnemyId ?? null,
-				targetUserId: state.selectedAction?.targetUserId ?? null,
-				targetMode: 'manual',
+				movementUnits: 8,
+				playSlots: 3,
+				cards: warriorCards,
+				plan,
+				reservedItems: [],
 			},
 			{
 				userId: 'user-2',
 				currentHealth: 18,
 				maxHealth: 20,
 				classKey: 'cleric',
-				signatureAction: { key: 'mend', displayName: 'Mend', description: 'Restore health to an ally.', targetMode: 'ally' },
-				selectedActionKey: null,
-				actionMode: 'basic',
-				targetEnemyId: null,
-				targetUserId: null,
-				targetMode: 'none',
+				movementUnits: 6,
+				playSlots: 3,
+				cards: clericCards,
+				plan: { itemLoadoutKeys: [], plays: [] },
+				reservedItems: [],
 			},
 		],
 	};
@@ -941,9 +1025,9 @@ async function handler(request) {
 		state.selectedEdgeId = payload.edgeId;
 		return json(voteState());
 	}
-	if (path === '/api/v1/parties/party-1/encounter/actions/me' && request.method === 'PUT') {
-		state.selectedAction = await body(request);
-		state.lastMutation = { path, body: state.selectedAction };
+	if (path === '/api/v1/parties/party-1/encounter/plan/me' && request.method === 'PUT') {
+		state.selectedPlan = await body(request);
+		state.lastMutation = { path, body: state.selectedPlan };
 		return json(encounter());
 	}
 	if (path === '/api/v1/parties/party-1/item-uses' && request.method === 'POST') {

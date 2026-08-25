@@ -8,7 +8,7 @@ import { cellAtScreen, followCamera, isInteractiveCell } from '#/lib/dungeon-cam
 import type { CameraState, StagePoint } from '#/lib/dungeon-camera';
 import { createDungeonGridLayout, directionBetween, tileCenter } from '#/lib/dungeon-grid';
 import type { DungeonGridLayout, DungeonGridTileKind } from '#/lib/dungeon-grid';
-import { DUNGEON_LEGEND_KINDS, dungeonMarkerPresentation } from '#/lib/dungeon-markers';
+import { DUNGEON_LEGEND_KINDS, dungeonMarkerPresentation, dungeonMarkerPresentationForTile } from '#/lib/dungeon-markers';
 import { DUNGEON_MANUAL_REPEAT_MS, DUNGEON_STEP_DURATION_MS, sampleDungeonMotion } from '#/lib/dungeon-motion';
 import type { DungeonRecoveryMotion } from '#/lib/dungeon-motion';
 import { DungeonMovementController } from '#/lib/dungeon-movement';
@@ -81,6 +81,8 @@ const ROUTE_POLICY_DESCRIPTIONS: Record<DungeonRoutePolicy, string> = {
 	rest: 'Recover at the nearest known campsite, then return to the mission.',
 };
 
+const ROUTE_POLICY_KEYS = ['mission', 'explore', 'treasure', 'rest'] as const satisfies readonly DungeonRoutePolicy[];
+
 interface DungeonView {
 	layout: DungeonGridLayout;
 	selectedNodeId: string;
@@ -93,6 +95,9 @@ function pointForNode(layout: DungeonGridLayout, nodeId: string, fallback: Stage
 
 function movementHintForTile(tile: DungeonGridLayout['tiles'][number] | null | undefined): string {
 	if (!tile) return 'Arrow keys step one tile at a time · Explore spends Explore energy';
+	if (tile.node.encounterCleared && (tile.kind === 'spawn' || tile.kind === 'boss')) {
+		return 'Encounter cleared · the passage is safe to cross';
+	}
 	switch (tile.kind) {
 		case 'goal':
 			return 'Mission landmark reached · resolve the event above to return to the overworld';
@@ -100,8 +105,9 @@ function movementHintForTile(tile: DungeonGridLayout['tiles'][number] | null | u
 		case 'treasure':
 			return `${dungeonMarkerPresentation(tile.kind).label} reached · resolve the event above before exploring again`;
 		case 'spawn':
-		case 'boss':
 			return 'Encounter reached · resolve the battle before exploring again';
+		case 'boss':
+			return 'Optional boss reached · save a card plan to engage it before exploring again';
 		default:
 			return 'Arrow keys step one tile at a time · Explore spends Explore energy';
 	}
@@ -109,6 +115,8 @@ function movementHintForTile(tile: DungeonGridLayout['tiles'][number] | null | u
 
 function dungeonLegendGlyph(kind: DungeonGridTileKind): string {
 	switch (kind) {
+		case 'entry':
+			return '↩';
 		case 'goal':
 			return '◆';
 		case 'stairs-down':
@@ -119,9 +127,17 @@ function dungeonLegendGlyph(kind: DungeonGridTileKind): string {
 			return '⌂';
 		case 'treasure':
 			return '◇';
-		default:
+		case 'boss':
+			return '☠';
+		case 'spawn':
 			return '!';
+		default:
+			return '·';
 	}
+}
+
+function isDungeonRoutePolicy(value: string): value is DungeonRoutePolicy {
+	return ROUTE_POLICY_KEYS.some((policy) => policy === value);
 }
 
 function navigatorHeading(isNavigator: boolean, canClaim: boolean, leaseExpired: boolean, activeName: string): string {
@@ -146,11 +162,13 @@ export function DungeonGridMap({
 	walkMutation,
 	navigatorControls,
 	readOnly = false,
+	partyMemberCount,
 }: {
 	map: PartyMap;
 	walkMutation?: DungeonWalkMutation;
 	navigatorControls?: DungeonNavigatorControls;
 	readOnly?: boolean;
+	partyMemberCount?: number;
 }) {
 	const layout = useMemo(() => createDungeonGridLayout(map), [map]);
 	const viewportRef = useRef<HTMLDivElement>(null);
@@ -167,7 +185,7 @@ export function DungeonGridMap({
 	const [pixiReady, setPixiReady] = useState(false);
 	const [pixiError, setPixiError] = useState<string | null>(null);
 	const [now, setNow] = useState(() => Date.now());
-	const [transferTargetUserId, setTransferTargetUserId] = useState('');
+	const [transferTargetUserId, setTransferTargetUserId] = useState<string | null>(null);
 	const [routePolicy, setRoutePolicy] = useState<DungeonRoutePolicy>('mission');
 
 	const leaseExpired = Boolean(map.navigation?.leaseExpiresAt && Date.parse(map.navigation.leaseExpiresAt) <= now);
@@ -231,7 +249,7 @@ export function DungeonGridMap({
 	useEffect(() => {
 		const otherMember = navigatorControls?.members.find((member) => member.userId !== navigatorControls.userId);
 		setTransferTargetUserId((current) =>
-			current && navigatorControls?.members.some((member) => member.userId === current) ? current : (otherMember?.userId ?? ''),
+			current && navigatorControls?.members.some((member) => member.userId === current) ? current : (otherMember?.userId ?? null),
 		);
 	}, [map.navigation?.navigatorUserId, navigatorControls?.members, navigatorControls?.userId]);
 
@@ -482,7 +500,7 @@ export function DungeonGridMap({
 
 	const selectedTile = layout.tiles.find((tile) => tile.node.id === selectedNodeId) ?? layout.currentTile;
 	const displayedTile = layout.tiles.find((tile) => tile.node.id === displayedNodeId) ?? layout.currentTile;
-	const selectedMarker = selectedTile ? dungeonMarkerPresentation(selectedTile.kind) : null;
+	const selectedMarker = selectedTile ? dungeonMarkerPresentationForTile(selectedTile) : null;
 	const completedObjectiveIds = useMemo(() => new Set(map.completedObjectiveIds), [map.completedObjectiveIds]);
 	const activeObjective = map.objectives.find((objective) => objective.required && !completedObjectiveIds.has(objective.id));
 	const floorLabel = layout.activeFloorNo === null ? 'Uncharted floor' : `Floor ${layout.activeFloorNo + 1}`;
@@ -501,6 +519,7 @@ export function DungeonGridMap({
 	const currentUserRouteVote = routeVotes.find((vote) => vote.userId === navigatorControls?.userId);
 	const routeActionsAvailable = Boolean(navigatorControls?.voteRouteMutation && !readOnly);
 	const routeIntentLabel = routeIntent ? ROUTE_POLICY_LABELS[routeIntent.policy] : ROUTE_POLICY_LABELS.mission;
+	const partySize = Math.max(1, partyMemberCount ?? navigatorControls?.members.length ?? 1);
 
 	if (!layout.currentTile) {
 		return (
@@ -517,8 +536,9 @@ export function DungeonGridMap({
 			data-testid="dungeon-grid"
 			data-party-node-id={displayedNodeId}
 			data-party-traveling={traveling ? 'true' : 'false'}
+			data-party-size={partySize}
 			data-party-recovery-count={recoveryCount}
-			data-dungeon-floor={layout.activeFloorNo ?? ''}
+			data-dungeon-floor={layout.activeFloorNo}
 			data-tile-balance={map.tileBalance}
 			data-dungeon-theme="atmospheric"
 			data-dungeon-renderer="pixi"
@@ -541,6 +561,7 @@ export function DungeonGridMap({
 					layout={layout}
 					movement={movement}
 					direction={spriteDirection}
+					partyMemberCount={partySize}
 					recovery={recoveryRef.current}
 					viewportRef={viewportRef}
 					cameraRef={cameraRef}
@@ -612,7 +633,7 @@ export function DungeonGridMap({
 										<label htmlFor="dungeon-navigator-target">Pass lead</label>
 										<select
 											id="dungeon-navigator-target"
-											value={transferTargetUserId}
+											value={transferTargetUserId ?? undefined}
 											onChange={(event) => setTransferTargetUserId(event.target.value)}
 										>
 											{transferMembers.map((member) => (
@@ -624,8 +645,11 @@ export function DungeonGridMap({
 										<button
 											type="button"
 											className="dungeon-grid-navigator-button"
-											disabled={navigatorControls.transferMutation.isPending || !transferTargetUserId}
-											onClick={() => void navigatorControls.transferMutation.mutateAsync({ targetUserId: transferTargetUserId })}
+											disabled={navigatorControls.transferMutation.isPending || transferTargetUserId === null}
+											onClick={() => {
+												if (transferTargetUserId === null) return;
+												void navigatorControls.transferMutation.mutateAsync({ targetUserId: transferTargetUserId });
+											}}
 											data-testid="dungeon-navigator-transfer"
 										>
 											<ArrowRightLeft className="size-4" aria-hidden="true" />
@@ -670,9 +694,11 @@ export function DungeonGridMap({
 							<select
 								id="dungeon-route-policy"
 								value={routePolicy}
-								onChange={(event) => setRoutePolicy(event.target.value as DungeonRoutePolicy)}
+								onChange={(event) => {
+									if (isDungeonRoutePolicy(event.currentTarget.value)) setRoutePolicy(event.currentTarget.value);
+								}}
 							>
-								{(Object.keys(ROUTE_POLICY_LABELS) as DungeonRoutePolicy[]).map((policy) => (
+								{ROUTE_POLICY_KEYS.map((policy) => (
 									<option key={policy} value={policy}>
 										{ROUTE_POLICY_LABELS[policy]}
 									</option>

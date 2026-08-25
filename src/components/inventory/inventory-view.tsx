@@ -71,6 +71,7 @@ export function InventoryView({
 	const [unequipSlot, setUnequipSlot] = useState<EquipmentSlot | null>(null);
 	const [useItemKey, setUseItemKey] = useState<string | null>(null);
 	const useItem = inventory.items.find((item) => item.key === useItemKey) ?? null;
+	const selectedParty = activeParties.find((party) => party.id === selectedPartyId) ?? activeParties.at(0) ?? null;
 	const canUseItems = Boolean(onUseItem && selectedPartyId && roster && !partyLoading);
 	const defense = Object.values(loadout).reduce((total, item) => total + modifierFor(item, 'defense'), 0);
 
@@ -105,7 +106,7 @@ export function InventoryView({
 					<CardContent>
 						<LabelledSelect
 							label="Active expedition"
-							value={selectedPartyId ?? activeParties.at(0)?.id ?? ''}
+							value={selectedParty?.id ?? null}
 							options={activeParties.map((party) => ({ value: party.id, label: party.name }))}
 							onChange={(partyId) => onPartyChange?.(partyId)}
 						/>

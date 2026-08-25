@@ -2,34 +2,182 @@ import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { expect } from 'storybook/test';
 
-import type { DailyProgress, Encounter, Inventory, Party, PartyItemUse } from '#/lib/api';
+import type { Encounter, Inventory } from '#/lib/api';
 import { combatCommandState } from '#/lib/combat-command-state';
 
 import { BattleScene } from './battle-scene';
 
-const party: Party = {
-	id: 'party-1',
-	name: 'Lantern Walkers',
-	status: 'active',
-	memberCapacity: 6,
-	currentNode: {
-		id: 'node-1',
-		chapterNo: 1,
-		regionNo: 1,
-		name: 'Mossway Crossing',
-		nodeType: 'combat',
-		templateKey: 'combat-v1',
-		config: { movementCost: 10, challengeCost: 0, event: { eventType: 'combat' } },
-	},
-	challengeProgress: 12,
-	tileBalance: 12,
-	decisionStartedAt: '2026-08-20T00:00:00.000Z',
-	members: [
-		{ userId: 'user-1', role: 'leader', displayName: 'Hero' },
-		{ userId: 'user-2', role: 'member', displayName: 'Mira' },
-		{ userId: 'user-3', role: 'member', displayName: 'Rook' },
-	],
+type EncounterCard = Encounter['members'][number]['cards'][number];
+type CardPlay = Encounter['members'][number]['plan']['plays'][number];
+type PreviewEffect = NonNullable<EncounterCard['preview']>['effects'][number];
+
+const partyNames: Record<string, string> = {
+	'user-1': 'Hero',
+	'user-2': 'Mira',
+	'user-3': 'Rook',
 };
+
+function effectPreview(
+	kind: PreviewEffect['kind'],
+	baseAmount: number,
+	options: Partial<Omit<PreviewEffect, 'kind' | 'baseAmount'>> = {},
+): EncounterCard['preview'] {
+	return {
+		effects: [
+			{
+				kind,
+				baseAmount,
+				manualTargetBonus: null,
+				rallyBonus: null,
+				targetCount: null,
+				distribution: null,
+				...options,
+			},
+		],
+	};
+}
+
+function card({
+	key,
+	sourceKind,
+	sourceKey,
+	classKey = null,
+	displayName,
+	description,
+	targetMode,
+	locked = false,
+	repeatable = false,
+	unlockLevel = 1,
+	preview = null,
+}: {
+	key: string;
+	sourceKind: EncounterCard['sourceKind'];
+	sourceKey: string;
+	classKey?: EncounterCard['classKey'];
+	displayName: string;
+	description: string;
+	targetMode: EncounterCard['targetMode'];
+	locked?: boolean;
+	repeatable?: boolean;
+	unlockLevel?: number;
+	preview?: EncounterCard['preview'];
+}): EncounterCard {
+	return {
+		key,
+		sourceKind,
+		sourceKey,
+		classKey,
+		unlockLevel,
+		displayName,
+		description,
+		targetMode,
+		repeatable,
+		locked,
+		selectedCount: 0,
+		preview,
+	};
+}
+
+const warriorCards: EncounterCard[] = [
+	card({
+		key: 'class:basic-attack',
+		sourceKind: 'class',
+		sourceKey: 'basic-attack',
+		classKey: 'warrior',
+		displayName: 'Basic Attack',
+		description: 'A reliable strike against one standing enemy.',
+		targetMode: 'enemy',
+		repeatable: true,
+		preview: effectPreview('damage', 5, { targetCount: 1, distribution: 'single' }),
+	}),
+	card({
+		key: 'class:shield-wall',
+		sourceKind: 'class',
+		sourceKey: 'shield-wall',
+		classKey: 'warrior',
+		displayName: 'Shield Wall',
+		description: 'Brace against the next assault.',
+		targetMode: 'none',
+		locked: false,
+		unlockLevel: 2,
+		preview: effectPreview('guard', 5),
+	}),
+	card({
+		key: 'class:iron-guard',
+		sourceKind: 'class',
+		sourceKey: 'iron-guard',
+		classKey: 'warrior',
+		displayName: 'Iron Guard',
+		description: 'A stronger practiced stance.',
+		targetMode: 'none',
+		locked: true,
+		unlockLevel: 4,
+		preview: effectPreview('guard', 10),
+	}),
+	card({
+		key: 'weapon:short-sword',
+		sourceKind: 'weapon',
+		sourceKey: 'short-sword',
+		displayName: 'Short Sword Strike',
+		description: 'Use your sword for a focused attack.',
+		targetMode: 'enemy',
+		preview: effectPreview('damage', 6, { targetCount: 1, distribution: 'single' }),
+	}),
+];
+
+const clericCards: EncounterCard[] = [
+	card({
+		key: 'class:basic-attack',
+		sourceKind: 'class',
+		sourceKey: 'basic-attack',
+		classKey: 'cleric',
+		displayName: 'Basic Attack',
+		description: 'A reliable strike against one standing enemy.',
+		targetMode: 'enemy',
+		repeatable: true,
+		preview: effectPreview('damage', 5, { targetCount: 1, distribution: 'single' }),
+	}),
+	card({
+		key: 'class:mend',
+		sourceKind: 'class',
+		sourceKey: 'mend',
+		classKey: 'cleric',
+		displayName: 'Mend',
+		description: 'Restore an ally’s health.',
+		targetMode: 'ally',
+		unlockLevel: 2,
+		preview: effectPreview('heal', 10),
+	}),
+];
+
+const rogueCards: EncounterCard[] = [
+	card({
+		key: 'class:basic-attack',
+		sourceKind: 'class',
+		sourceKey: 'basic-attack',
+		classKey: 'rogue',
+		displayName: 'Basic Attack',
+		description: 'A reliable strike against one standing enemy.',
+		targetMode: 'enemy',
+		repeatable: true,
+		preview: effectPreview('damage', 5, { targetCount: 1, distribution: 'single' }),
+	}),
+	card({
+		key: 'class:ambush',
+		sourceKind: 'class',
+		sourceKey: 'ambush',
+		classKey: 'rogue',
+		displayName: 'Ambush',
+		description: 'Strike from the shadows.',
+		targetMode: 'enemy',
+		unlockLevel: 2,
+		preview: effectPreview('damage', 10, {
+			manualTargetBonus: 2,
+			targetCount: 1,
+			distribution: 'single',
+		}),
+	}),
+];
 
 const activeEncounter: Encounter = {
 	partyId: 'party-1',
@@ -46,122 +194,45 @@ const activeEncounter: Encounter = {
 			currentHealth: 20,
 			maxHealth: 20,
 			classKey: 'warrior',
-			signatureAction: {
-				key: 'shield-wall',
-				displayName: 'Shield Wall',
-				description: 'Guard the party from incoming attacks.',
-				targetMode: 'enemy',
-			},
-			selectedActionKey: null,
-			actionMode: 'basic',
-			targetEnemyId: null,
-			targetUserId: null,
-			targetMode: 'none',
+			movementUnits: 8,
+			playSlots: 3,
+			cards: warriorCards,
+			plan: { itemLoadoutKeys: [], plays: [{ cardKey: 'class:basic-attack', targetEnemyId: 'enemy-1', targetUserId: null }] },
+			reservedItems: [],
 		},
 		{
 			userId: 'user-2',
 			currentHealth: 18,
 			maxHealth: 20,
 			classKey: 'cleric',
-			signatureAction: { key: 'mend', displayName: 'Mend', description: 'Restore health to an ally.', targetMode: 'ally' },
-			selectedActionKey: 'mend',
-			actionMode: 'ability',
-			targetEnemyId: null,
-			targetUserId: 'user-1',
-			targetMode: 'manual',
+			movementUnits: 6,
+			playSlots: 3,
+			cards: clericCards,
+			plan: { itemLoadoutKeys: [], plays: [{ cardKey: 'class:mend', targetEnemyId: null, targetUserId: 'user-1' }] },
+			reservedItems: [],
 		},
 		{
 			userId: 'user-3',
 			currentHealth: 12,
 			maxHealth: 24,
 			classKey: 'rogue',
-			signatureAction: {
-				key: 'ambush',
-				displayName: 'Ambush',
-				description: 'Slip behind a foe and strike where it is weakest.',
-				targetMode: 'enemy',
-			},
-			selectedActionKey: null,
-			actionMode: 'basic',
-			targetEnemyId: null,
-			targetUserId: null,
-			targetMode: 'none',
+			movementUnits: 0,
+			playSlots: 1,
+			cards: rogueCards,
+			plan: { itemLoadoutKeys: [], plays: [] },
+			reservedItems: [],
 		},
-	],
-};
-
-const daily: DailyProgress = {
-	partyId: 'party-1',
-	nodeId: 'node-1',
-	worldDate: '2026-08-21',
-	movementUnits: 8,
-	movementCost: 10,
-	movementSatisfied: false,
-	recoveryPoints: 4,
-	challengeContribution: 0,
-	challengeProgress: 0,
-	challengeCost: 0,
-	challengeCleared: true,
-	status: 'provisional',
-	members: [
-		{ userId: 'user-1', movementUnits: 8, recoveryPoints: 4, status: 'provisional' },
-		{ userId: 'user-2', movementUnits: 6, recoveryPoints: 3, status: 'provisional' },
-		{ userId: 'user-3', movementUnits: 0, recoveryPoints: 2, status: 'provisional' },
-	],
-};
-
-const completedEncounter: Encounter = {
-	...activeEncounter,
-	status: 'completed',
-	enemies: activeEncounter.enemies.map((enemy, index) => ({ ...enemy, currentHealth: index === 0 ? 0 : enemy.currentHealth })),
-};
-
-const noStandingFoeEncounter: Encounter = {
-	...activeEncounter,
-	enemies: activeEncounter.enemies.map((enemy) => ({ ...enemy, currentHealth: 0 })),
-};
-
-const starterRosterEncounter: Encounter = {
-	...activeEncounter,
-	enemies: [
-		{ id: 'enemy-vermin', archetypeKey: 'vermin', displayName: 'Vermin', maxHealth: 6, currentHealth: 6 },
-		{ id: 'enemy-bat', archetypeKey: 'bat', displayName: 'Bat', maxHealth: 7, currentHealth: 7 },
-		{
-			id: 'enemy-mushroom',
-			archetypeKey: 'wild-mushroom',
-			displayName: 'Wild Mushroom',
-			maxHealth: 8,
-			currentHealth: 8,
-		},
-		{ id: 'enemy-slime', archetypeKey: 'slime', displayName: 'Slime', maxHealth: 10, currentHealth: 10 },
-		{ id: 'enemy-wolf', archetypeKey: 'wolf', displayName: 'Wolf', maxHealth: 12, currentHealth: 12 },
 	],
 };
 
 const inventory: Inventory = {
-	currencies: [
-		{
-			key: 'gold',
-			kind: 'currency',
-			displayName: 'Gold',
-			details: {
-				description: 'The common coin of every road, market, and waystation.',
-				equipmentSlot: null,
-				effect: null,
-			},
-			quantity: 120,
-		},
-	],
+	currencies: [],
 	items: [
 		{
 			key: 'herb',
 			kind: 'item',
 			displayName: 'Herb',
-			details: {
-				description: 'A fresh bundle of restorative leaves gathered along the trail.',
-				equipmentSlot: null,
-				effect: { kind: 'heal', amount: 10 },
-			},
+			details: { description: 'Restore a small measure of health.', equipmentSlot: null, effect: { kind: 'heal', amount: 10 } },
 			quantity: 2,
 		},
 	],
@@ -171,7 +242,7 @@ const inventory: Inventory = {
 			kind: 'equipment',
 			displayName: 'Short Sword',
 			details: {
-				description: 'A dependable light blade made for a traveler’s first real battles.',
+				description: 'A dependable light blade.',
 				equipmentSlot: 'weapon',
 				effect: { kind: 'stat-modifiers', modifiers: { strength: 1 } },
 			},
@@ -180,187 +251,256 @@ const inventory: Inventory = {
 	],
 };
 
-const extendedFieldKit = [
-	...inventory.items,
-	{
-		key: 'moon-seed',
-		kind: 'item' as const,
-		displayName: 'Moon Seed',
-		details: { description: 'An uncatalogued seed.', equipmentSlot: null, effect: null },
-		quantity: 1,
-	},
-];
-
-type ActionKey = Encounter['members'][number]['signatureAction']['key'];
-
-interface BattlePreviewProps {
-	encounter?: Encounter;
-	userId?: string;
-	initialActionKey?: ActionKey | null;
-	initialActionTargetUserId?: string;
-	initialItemTargetUserId?: string;
-	initialActionSaved?: boolean;
-	initialCommandDirty?: boolean;
-	readOnly?: boolean;
-	usableItems?: Inventory['items'];
-	actionErrorMessage?: string;
-}
-
 function BattlePreview({
 	encounter = activeEncounter,
 	userId = 'user-1',
-	initialActionKey,
-	initialActionTargetUserId,
-	initialItemTargetUserId,
-	initialActionSaved = false,
-	initialCommandDirty = false,
 	readOnly = false,
-	usableItems = inventory.items,
-	actionErrorMessage,
-}: BattlePreviewProps) {
+}: {
+	encounter?: Encounter;
+	userId?: string;
+	readOnly?: boolean;
+}) {
 	const currentMember = encounter.members.find((member) => member.userId === userId) ?? encounter.members[0];
-	const [actionKey, setActionKey] = useState<ActionKey | null>(initialActionKey ?? currentMember.selectedActionKey);
-	const [targetEnemyId, setTargetEnemyId] = useState(encounter.enemies.find((enemy) => enemy.currentHealth > 0)?.id ?? '');
-	const [actionTargetUserId, setActionTargetUserId] = useState(initialActionTargetUserId ?? currentMember.targetUserId ?? userId);
-	const [itemTargetUserId, setItemTargetUserId] = useState(initialItemTargetUserId ?? userId);
-	const [itemKey, setItemKey] = useState('');
-	const [actionSaved, setActionSaved] = useState(initialActionSaved);
-	const [commandDirty, setCommandDirty] = useState(initialCommandDirty);
-	const [itemResult, setItemResult] = useState<PartyItemUse>();
-	const selectedAction = actionKey ? currentMember.signatureAction : null;
-	const targetMode = selectedAction?.targetMode ?? 'enemy';
-	const selectedActionTargetUserId = actionTargetUserId || userId;
-	const selectedItemTargetUserId = itemTargetUserId || userId;
+	const activeMember = currentMember;
+	const [plays, setPlays] = useState<CardPlay[]>(activeMember.plan.plays);
+	const initialCardKey = activeMember.plan.plays[0]?.cardKey ?? null;
+	const [selectedCardKey, setSelectedCardKey] = useState<string | null>(initialCardKey);
+	const [selectedPlayIndex, setSelectedPlayIndex] = useState<number | null>(activeMember.plan.plays.length > 0 ? 0 : null);
+	const [saved, setSaved] = useState(false);
+	const [dirty, setDirty] = useState(false);
+
+	const draftCards = [
+		...new Map(
+			[
+				...activeMember.cards,
+				...inventory.items
+					.filter((item) => item.quantity > 0)
+					.map((item) =>
+						card({
+							key: `item:${item.key}`,
+							sourceKind: 'item',
+							sourceKey: item.key,
+							displayName: item.displayName,
+							description: item.details.description,
+							targetMode: 'ally',
+							repeatable: true,
+						}),
+					),
+			].map((candidate) => [candidate.key, candidate]),
+		).values(),
+	];
+	const selectedPlay = selectedPlayIndex === null ? undefined : plays[selectedPlayIndex];
+	const selectedCard = draftCards.find((candidate) => candidate.key === selectedCardKey);
+	const update = (nextPlays: CardPlay[]) => {
+		setPlays(nextPlays);
+		setDirty(true);
+		setSaved(false);
+	};
 
 	return (
 		<div className="gameplay-surface mx-auto max-w-[1280px] p-4 sm:p-8">
 			<BattleScene
 				encounter={encounter}
-				currentMember={currentMember}
-				daily={daily}
+				currentMember={{ ...activeMember, cards: draftCards }}
 				userId={userId}
 				readOnly={readOnly}
-				actionKey={actionKey}
-				targetEnemyId={targetEnemyId}
-				selectedActionTargetUserId={selectedActionTargetUserId}
-				selectedItemTargetUserId={selectedItemTargetUserId}
-				targetMode={targetMode}
-				usableItems={usableItems}
-				itemKey={itemKey}
+				plays={plays}
+				inventory={inventory}
+				selectedCardKey={selectedCardKey}
+				selectedPlayIndex={selectedPlayIndex}
+				targetEnemyId={selectedPlay?.targetEnemyId ?? null}
+				selectedTargetUserId={selectedPlay?.targetUserId ?? null}
 				actionPending={false}
-				itemPending={false}
 				actionBusy={false}
-				actionError={actionErrorMessage ? new Error(actionErrorMessage) : null}
+				actionError={null}
 				commandState={combatCommandState({
 					readOnly,
 					encounterCompleted: encounter.status === 'completed',
 					actionPending: false,
-					actionSuccess: actionSaved,
-					commandDirty,
+					actionSuccess: saved,
+					commandDirty: dirty,
 				})}
-				itemResult={itemResult}
-				partyMemberName={(memberUserId) => party.members.find((member) => member.userId === memberUserId)?.displayName ?? 'Traveler'}
-				onActionKeyChange={(nextActionKey) => {
-					setActionKey(nextActionKey);
-					setActionSaved(false);
-					setCommandDirty(true);
+				partyMemberName={(memberUserId) => partyNames[memberUserId] ?? 'Traveler'}
+				onCardActivate={(cardKey) => {
+					const selectedEncounterCard = draftCards.find((candidate) => candidate.key === cardKey);
+					if (!selectedEncounterCard || selectedEncounterCard.locked) return;
+					const existingIndex = plays.findIndex((play) => play.cardKey === cardKey);
+					if (existingIndex >= 0 && !selectedEncounterCard.repeatable) {
+						setSelectedCardKey(cardKey);
+						setSelectedPlayIndex(existingIndex);
+						return;
+					}
+					if (plays.length >= activeMember.playSlots) {
+						if (existingIndex >= 0) {
+							setSelectedCardKey(cardKey);
+							setSelectedPlayIndex(existingIndex);
+						}
+						return;
+					}
+					const itemQuantity = inventory.items.find((item) => item.key === selectedEncounterCard.sourceKey)?.quantity;
+					if (
+						selectedEncounterCard.sourceKind === 'item' &&
+						itemQuantity !== undefined &&
+						plays.filter((play) => play.cardKey === cardKey).length >= itemQuantity
+					)
+						return;
+					const queuedItemKeys = new Set(
+						plays.flatMap((play) => {
+							const queuedCard = draftCards.find((candidate) => candidate.key === play.cardKey);
+							return queuedCard?.sourceKind === 'item' ? [queuedCard.sourceKey] : [];
+						}),
+					);
+					if (
+						selectedEncounterCard.sourceKind === 'item' &&
+						!queuedItemKeys.has(selectedEncounterCard.sourceKey) &&
+						queuedItemKeys.size >= 2
+					)
+						return;
+					setSelectedCardKey(cardKey);
+					const nextPlay = {
+						cardKey,
+						targetEnemyId:
+							selectedEncounterCard.targetMode === 'enemy'
+								? (encounter.enemies.find((enemy) => enemy.currentHealth > 0)?.id ?? null)
+								: null,
+						targetUserId: selectedEncounterCard.targetMode === 'ally' ? userId : null,
+					};
+					setSelectedPlayIndex(plays.length);
+					update([...plays, nextPlay]);
+				}}
+				onPlayActivate={(playIndex) => {
+					if (selectedPlayIndex !== playIndex) {
+						setSelectedPlayIndex(playIndex);
+						setSelectedCardKey(plays[playIndex]?.cardKey ?? null);
+						return;
+					}
+					const next = plays.filter((_, index) => index !== playIndex);
+					setSelectedPlayIndex(next[playIndex] ? playIndex : null);
+					setSelectedCardKey(next[playIndex]?.cardKey ?? null);
+					update(next);
+				}}
+				onPlayReorder={(fromIndex, toIndex) => {
+					const next = [...plays];
+					const [moved] = next.splice(fromIndex, 1);
+					next.splice(toIndex, 0, moved);
+					setSelectedPlayIndex(toIndex);
+					update(next);
 				}}
 				onEnemySelect={(enemyId) => {
-					setTargetEnemyId(enemyId);
-					setCommandDirty(true);
+					if (selectedPlayIndex === null || selectedCard?.targetMode !== 'enemy') return;
+					update(
+						plays.map((play, index) => (index === selectedPlayIndex ? { ...play, targetEnemyId: enemyId, targetUserId: null } : play)),
+					);
 				}}
 				onAllySelect={(memberUserId) => {
-					setActionTargetUserId(memberUserId);
-					setCommandDirty(true);
+					if (selectedPlayIndex === null || selectedCard?.targetMode !== 'ally') return;
+					update(
+						plays.map((play, index) => (index === selectedPlayIndex ? { ...play, targetEnemyId: null, targetUserId: memberUserId } : play)),
+					);
 				}}
-				onItemKeyChange={setItemKey}
-				onItemTargetChange={setItemTargetUserId}
-				onSubmitAction={() => {
-					setActionSaved(true);
-					setCommandDirty(false);
+				onSubmitPlan={() => {
+					setSaved(true);
+					setDirty(false);
 				}}
-				onUseItem={() =>
-					setItemResult({
-						itemKey: itemKey || usableItems[0]?.key || inventory.items[0].key,
-						targetUserId: selectedItemTargetUserId,
-						healedAmount: 10,
-						currentHealth: 20,
-						maxHealth: 20,
-						remainingQuantity: 1,
-					})
-				}
 			/>
 		</div>
 	);
 }
 
-const meta = {
-	title: 'Party/BattleScene',
-	parameters: { layout: 'fullscreen' },
-} satisfies Meta;
-
+const meta = { title: 'Party/BattleScene', parameters: { layout: 'fullscreen' } } satisfies Meta;
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const ActiveEncounter: Story = {
 	render: () => <BattlePreview />,
 	play: async ({ canvas, userEvent }) => {
-		await expect(canvas.getByTestId('battle-selected-item')).toHaveTextContent('Herb');
-		await expect(canvas.getByTestId('inventory-item-sprite-herb')).toBeInTheDocument();
-		await userEvent.click(canvas.getByTestId('battle-action-signature'));
-		await userEvent.click(canvas.getByTestId('battle-save-command'));
+		await expect(canvas.getByRole('heading', { name: 'Battle encounter' })).toBeInTheDocument();
+		await expect(canvas.getByTestId('battle-status')).toHaveTextContent('1/3');
+		await expect(canvas.getByTestId('battle-command-tray')).toHaveTextContent('1/3');
+		await expect(canvas.getByTestId('battle-play-queue')).toHaveTextContent('Plan');
+		await expect(canvas.getByTestId('battle-play-queue')).toHaveAttribute('data-queue-state', 'expanded');
+		await expect(canvas.getByTestId('battle-save-plan')).toHaveTextContent('Lock plan');
+		await expect(canvas.getByTestId('battle-queued-card-1')).toHaveAttribute('data-play-order', '1');
+		await expect(canvas.queryByTestId('battle-deck-toggle')).not.toBeInTheDocument();
+		await expect(canvas.queryByTestId('battle-card-class-iron-guard')).not.toBeInTheDocument();
+		await expect(canvas.queryByTestId('gameplay-mechanics')).not.toBeInTheDocument();
+		await expect(canvas.getByTestId('battle-card-fan')).toBeInTheDocument();
+		await expect(canvas.getByTestId('battle-card-preview-detail')).toHaveTextContent('Damage 5');
+		await expect(canvas.getByTestId('battle-card-filter-all')).toHaveAttribute('aria-selected', 'true');
+		await userEvent.click(canvas.getByTestId('battle-card-filter-all'));
+		await userEvent.keyboard('{ArrowRight}');
+		await expect(canvas.getByTestId('battle-card-filter-class')).toHaveAttribute('aria-selected', 'true');
+		await userEvent.keyboard('{Home}');
+		await expect(canvas.getByTestId('battle-card-filter-all')).toHaveAttribute('aria-selected', 'true');
+		expect(canvas.getAllByTestId('battle-enemy').some((enemy) => enemy.classList.contains('battle-targetable'))).toBe(true);
+		await expect(canvas.getByTestId('battle-target-ellipse')).toBeInTheDocument();
+		const wolf = canvas.getAllByTestId('battle-enemy').find((enemy) => enemy.getAttribute('data-enemy-id') === 'enemy-2');
+		await expect(wolf).toBeDefined();
+		await userEvent.click(wolf!);
+		await expect(canvas.getByTestId('battle-enemy-art-wolf')).toHaveClass('battle-art-selected');
+		await userEvent.click(canvas.getByTestId('battle-card-class-shield-wall'));
+		await expect(canvas.getByTestId('battle-card-preview-detail')).toHaveTextContent('Guard 5');
+		await expect(canvas.getByTestId('battle-card-class-shield-wall')).toHaveAttribute('data-queued', 'true');
+		await expect(canvas.getByTestId('battle-card-class-shield-wall')).toHaveAttribute('data-queued-order', '2');
+		await expect(canvas.getByTestId('battle-card-class-shield-wall').querySelector('.battle-fan-card-queued-badge')).toHaveTextContent('2');
+		await expect(canvas.getByTestId('battle-card-class-shield-wall')).toHaveAttribute('data-category', 'class');
+		await userEvent.click(canvas.getByRole('button', { name: 'Move Shield Wall earlier' }));
+		await expect(canvas.getByTestId('battle-queued-card-1')).toHaveAttribute('data-card-key', 'class:shield-wall');
+		await expect(canvas.getByTestId('battle-queued-card-1')).toHaveAttribute('data-category', 'class');
+		await expect(canvas.getByTestId('battle-queued-card-1')).toHaveAttribute('data-focused', 'true');
+		await expect(canvas.getByTestId('battle-queued-card-1')).toHaveAttribute('data-play-order', '1');
+		await expect(canvas.getByTestId('battle-card-class-shield-wall')).toHaveAttribute('data-queued-order', '1');
+		await userEvent.click(canvas.getByTestId('battle-queued-card-2'));
+		await expect(canvas.getByTestId('battle-queued-card-2')).toHaveAttribute('data-card-key', 'class:basic-attack');
+		await expect(canvas.getByTestId('battle-queued-card-2')).toHaveAttribute('data-focused', 'true');
+		await userEvent.click(canvas.getByTestId('battle-queued-card-2'));
+		await expect(canvas.getByTestId('battle-queued-card-1')).toHaveAttribute('data-card-key', 'class:shield-wall');
+		await expect(canvas.getByTestId('battle-queued-card-1')).toHaveAttribute('data-focused', 'false');
+		await userEvent.click(canvas.getByTestId('battle-card-class-basic-attack'));
+		await expect(canvas.getByTestId('battle-queued-card-2')).toHaveAttribute('data-card-key', 'class:basic-attack');
+		await userEvent.click(canvas.getByTestId('battle-save-plan'));
 		await expect(canvas.getByTestId('battle-status')).toHaveTextContent('locked in');
 	},
 };
 
-export const FieldKitSelection: Story = {
-	render: () => <BattlePreview usableItems={extendedFieldKit} />,
+export const ItemLoadout: Story = {
+	render: () => (
+		<BattlePreview
+			encounter={{
+				...activeEncounter,
+				members: activeEncounter.members.map((member) =>
+					member.userId === 'user-1' ? { ...member, plan: { itemLoadoutKeys: [], plays: [] } } : member,
+				),
+			}}
+		/>
+	),
 	play: async ({ canvas, userEvent }) => {
-		await userEvent.selectOptions(canvas.getByTestId('battle-item-select'), 'moon-seed');
-		await expect(canvas.getByTestId('battle-selected-item')).toHaveTextContent('Moon Seed');
-		await expect(canvas.getByTestId('inventory-item-sprite-moon-seed')).toHaveAttribute('data-fallback', 'true');
+		await expect(canvas.getByTestId('battle-play-queue')).toHaveAttribute('data-queue-state', 'collapsed');
+		await expect(canvas.queryByTestId('battle-queued-card-1')).not.toBeInTheDocument();
+		await expect(canvas.queryByTestId('battle-deck-toggle')).not.toBeInTheDocument();
+		await expect(canvas.getByTestId('battle-card-item-herb')).toBeInTheDocument();
+		await userEvent.click(canvas.getByTestId('battle-card-item-herb'));
+		await expect(canvas.getByTestId('battle-play-queue')).toHaveAttribute('data-queue-state', 'expanded');
+		await expect(canvas.getByTestId('battle-queued-card-1')).toHaveAttribute('data-card-key', 'item:herb');
+		await expect(canvas.getByTestId('battle-queued-card-1')).toHaveAttribute('data-category', 'item');
+		await expect(canvas.getByTestId('battle-card-item-herb')).toHaveAttribute('data-queued-count', '1');
+		await expect(canvas.getByTestId('battle-card-item-herb')).toHaveAttribute('data-queued-order', '1');
+		await expect(canvas.getByTestId('battle-card-item-herb').querySelector('[data-testid="inventory-item-sprite-herb"]')).not.toBeNull();
 	},
 };
 
-export const StarterMonsterRoster: Story = {
-	render: () => <BattlePreview encounter={starterRosterEncounter} />,
+export const AllyTargeting: Story = {
+	render: () => <BattlePreview userId="user-2" />,
 	play: async ({ canvas }) => {
-		for (const archetypeKey of ['vermin', 'bat', 'wild-mushroom', 'slime', 'wolf']) {
-			await expect(canvas.getByTestId(`battle-enemy-art-${archetypeKey}`)).toBeInTheDocument();
-		}
+		const selectedMember = canvas
+			.getAllByTestId('battle-party-member')
+			.find((member) => member.getAttribute('data-member-id') === 'user-1');
+		await expect(selectedMember).toBeDefined();
+		await expect(selectedMember?.querySelector('.battle-art')).toHaveClass('battle-art-selected');
+		await expect(canvas.getAllByText('Ally target', { exact: true })).not.toHaveLength(0);
 	},
 };
 
 export const ResolvedEncounter: Story = {
-	render: () => <BattlePreview encounter={completedEncounter} initialActionKey="shield-wall" />,
-};
-
-export const AllyTargeting: Story = {
-	render: () => (
-		<BattlePreview userId="user-2" initialActionKey="mend" initialActionTargetUserId="user-1" initialItemTargetUserId="user-3" />
-	),
-};
-
-export const ReadOnlyEncounter: Story = {
-	render: () => <BattlePreview readOnly />,
-};
-
-export const WithoutFieldKit: Story = {
-	render: () => <BattlePreview usableItems={[]} />,
-};
-
-export const SavedCommand: Story = {
-	render: () => <BattlePreview initialActionKey="shield-wall" initialActionSaved />,
-};
-
-export const EditedCommand: Story = {
-	render: () => <BattlePreview initialActionKey="shield-wall" initialActionSaved initialCommandDirty />,
-};
-
-export const CommandError: Story = {
-	render: () => <BattlePreview actionErrorMessage="The chronicle could not record this command." />,
-};
-
-export const WithoutStandingFoe: Story = {
-	render: () => <BattlePreview encounter={noStandingFoeEncounter} />,
+	render: () => <BattlePreview encounter={{ ...activeEncounter, status: 'completed' }} readOnly />,
 };

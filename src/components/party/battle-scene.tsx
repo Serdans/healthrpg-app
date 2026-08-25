@@ -1,47 +1,44 @@
-import { Check, Crosshair, HeartPulse, PackageOpen, Shield, Sparkles, Swords, Target } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, HeartPulse, LockKeyhole, Shield, Sparkles, Swords, Target } from 'lucide-react';
+import { useState } from 'react';
+import type { CSSProperties, DragEvent } from 'react';
 
-import { Badge } from '#/components/ui/badge';
 import { Button } from '#/components/ui/button';
 import { Progress } from '#/components/ui/progress';
 import { InventoryItemSprite } from '#/components/inventory/inventory-item-sprite';
-import type { DailyProgress, Encounter, Inventory, PartyItemUse } from '#/lib/api';
+import type { Encounter, Inventory } from '#/lib/api';
 import type { CombatCommandState } from '#/lib/combat-command-state';
 import { battleEnemyArtForArchetype, battlePartyArtForClass, gameplayBackgroundArt } from '#/lib/game-art';
-import type { CSSProperties } from 'react';
-import { GameplayMechanics } from './gameplay-mechanics';
+import { BattleArt } from './battle-art';
 
 type EncounterMember = Encounter['members'][number];
-type ActionKey = EncounterMember['signatureAction']['key'];
-type TargetMode = EncounterMember['signatureAction']['targetMode'];
-type InventoryItem = Inventory['items'][number];
+type EncounterCard = EncounterMember['cards'][number];
+type CardPlay = EncounterMember['plan']['plays'][number];
+type TargetMode = EncounterCard['targetMode'];
+const CARD_CATEGORIES = ['all', 'class', 'equipment', 'item'] as const;
+type CardCategory = (typeof CARD_CATEGORIES)[number];
 
 export interface BattleSceneProps {
 	encounter: Encounter;
 	currentMember: EncounterMember;
-	daily?: DailyProgress;
 	userId: string;
 	readOnly: boolean;
-	actionKey: ActionKey | null;
-	targetEnemyId: string;
-	selectedActionTargetUserId: string;
-	selectedItemTargetUserId: string;
-	targetMode: TargetMode;
-	usableItems: InventoryItem[];
-	itemKey: string;
+	plays: CardPlay[];
+	inventory: Inventory;
+	selectedCardKey: string | null;
+	selectedPlayIndex: number | null;
+	targetEnemyId: string | null;
+	selectedTargetUserId: string | null;
 	actionPending: boolean;
-	itemPending: boolean;
 	actionBusy: boolean;
 	actionError: Error | null;
 	commandState: CombatCommandState;
-	itemResult: PartyItemUse | undefined;
 	partyMemberName: (memberUserId: string) => string;
-	onActionKeyChange: (actionKey: ActionKey | null) => void;
+	onCardActivate: (cardKey: string) => void;
+	onPlayActivate: (playIndex: number) => void;
+	onPlayReorder: (fromIndex: number, toIndex: number) => void;
 	onEnemySelect: (enemyId: string) => void;
 	onAllySelect: (userId: string) => void;
-	onItemKeyChange: (itemKey: string) => void;
-	onItemTargetChange: (userId: string) => void;
-	onSubmitAction: () => void;
-	onUseItem: () => void;
+	onSubmitPlan: () => void;
 }
 
 interface BattlefieldProps {
@@ -49,9 +46,9 @@ interface BattlefieldProps {
 	userId: string;
 	readOnly: boolean;
 	actionBusy: boolean;
-	targetEnemyId: string;
-	selectedActionTargetUserId: string;
-	targetMode: TargetMode;
+	targetEnemyId: string | null;
+	selectedTargetUserId: string | null;
+	targetMode: TargetMode | null;
 	partyMemberName: (memberUserId: string) => string;
 	onEnemySelect: (enemyId: string) => void;
 	onAllySelect: (userId: string) => void;
@@ -61,23 +58,16 @@ interface BattleCommandTrayProps {
 	encounter: Encounter;
 	currentMember: EncounterMember;
 	readOnly: boolean;
-	actionKey: ActionKey | null;
-	targetEnemyId: string;
-	selectedActionTargetUserId: string;
-	selectedItemTargetUserId: string;
-	targetMode: TargetMode;
-	usableItems: InventoryItem[];
-	itemKey: string;
+	plays: CardPlay[];
+	inventory: Inventory;
+	selectedCardKey: string | null;
+	selectedPlayIndex: number | null;
 	actionPending: boolean;
-	itemPending: boolean;
 	actionBusy: boolean;
-	commandState: CombatCommandState;
-	partyMemberName: (memberUserId: string) => string;
-	onActionKeyChange: (actionKey: ActionKey | null) => void;
-	onItemKeyChange: (itemKey: string) => void;
-	onItemTargetChange: (userId: string) => void;
-	onSubmitAction: () => void;
-	onUseItem: () => void;
+	onCardActivate: (cardKey: string) => void;
+	onPlayActivate: (playIndex: number) => void;
+	onPlayReorder: (fromIndex: number, toIndex: number) => void;
+	onSubmitPlan: () => void;
 }
 
 function label(value: string) {
@@ -87,18 +77,229 @@ function label(value: string) {
 		.join(' ');
 }
 
+function classNames(...values: Array<string | false | null>): string {
+	return values.filter((value): value is string => Boolean(value)).join(' ');
+}
+
 function healthPercent(currentHealth: number, maxHealth: number) {
 	return maxHealth > 0 ? (currentHealth / maxHealth) * 100 : 0;
 }
 
-function actionName(member: EncounterMember) {
-	return member.selectedActionKey ? member.signatureAction.displayName : 'Basic attack';
-}
-
-function targetLabel(targetMode: TargetMode) {
+function targetLabel(targetMode: TargetMode | null) {
 	if (targetMode === 'enemy') return 'Enemy target';
 	if (targetMode === 'ally') return 'Ally target';
 	return 'No target';
+}
+
+function cardForPlay(member: EncounterMember, play: CardPlay | undefined) {
+	return play ? member.cards.find((card) => card.key === play.cardKey) : undefined;
+}
+
+function plannedCardName(member: EncounterMember) {
+	return cardForPlay(member, member.plan.plays[0])?.displayName ?? 'Basic Attack';
+}
+
+function CardSourceIcon({ card }: { card: EncounterCard }) {
+	if (card.sourceKind === 'item') return <HeartPulse className="size-4" />;
+	if (card.sourceKind === 'class') return <Sparkles className="size-4" />;
+	return <Swords className="size-4" />;
+}
+
+function cardCategory(card: EncounterCard): Exclude<CardCategory, 'all'> {
+	if (card.sourceKind === 'class') return 'class';
+	if (card.sourceKind === 'item') return 'item';
+	return 'equipment';
+}
+
+function cardCategoryLabel(category: CardCategory): string {
+	if (category === 'class') return 'Skills';
+	if (category === 'equipment') return 'Equipment';
+	if (category === 'item') return 'Items';
+	return 'All';
+}
+
+function categoryAfterKey(category: CardCategory, key: string): CardCategory | null {
+	const currentIndex = CARD_CATEGORIES.indexOf(category);
+	if (currentIndex < 0) return null;
+
+	switch (key) {
+		case 'ArrowRight':
+		case 'ArrowDown':
+			return CARD_CATEGORIES[(currentIndex + 1) % CARD_CATEGORIES.length];
+		case 'ArrowLeft':
+		case 'ArrowUp':
+			return CARD_CATEGORIES[(currentIndex - 1 + CARD_CATEGORIES.length) % CARD_CATEGORIES.length];
+		case 'Home':
+			return CARD_CATEGORIES[0];
+		case 'End':
+			return CARD_CATEGORIES.at(-1) ?? null;
+		default:
+			return null;
+	}
+}
+
+type PreviewEffect = NonNullable<EncounterCard['preview']>['effects'][number];
+
+function previewEffectBaseLabel(effect: PreviewEffect): string {
+	switch (effect.kind) {
+		case 'damage':
+			return `Damage ${effect.baseAmount}`;
+		case 'heal':
+			return `Heal up to ${effect.baseAmount}`;
+		case 'guard':
+			return `Guard ${effect.baseAmount}`;
+		case 'rally':
+			return `Rally +${effect.baseAmount}`;
+	}
+}
+
+function previewDamageTargetSummary(effect: PreviewEffect): string | null {
+	if (effect.kind !== 'damage' || effect.distribution !== 'split' || effect.targetCount === null) return null;
+	const targetWord = effect.targetCount === 1 ? 'target' : 'targets';
+	return `total · ${effect.targetCount} ${targetWord}`;
+}
+
+function previewEffectLabel(effect: PreviewEffect): string {
+	const targetSummary = previewDamageTargetSummary(effect);
+	const conditionalLabels = [
+		effect.manualTargetBonus !== null ? `+${effect.manualTargetBonus} manual` : null,
+		effect.rallyBonus !== null ? `+${effect.rallyBonus} rally` : null,
+	].filter((value): value is string => value !== null);
+
+	return [previewEffectBaseLabel(effect), targetSummary, ...conditionalLabels].filter((value): value is string => value !== null).join(' ');
+}
+
+function previewEffectAnnouncement(card: EncounterCard): string | null {
+	const effects = card.preview?.effects ?? [];
+	return effects.length > 0 ? effects.map(previewEffectLabel).join(', ') : null;
+}
+
+function inventoryEntryForCard(card: EncounterCard, inventory: Inventory) {
+	if (card.sourceKind === 'item') return inventory.items.find((item) => item.key === card.sourceKey);
+	if (card.sourceKind === 'weapon' || card.sourceKind === 'gear') {
+		return inventory.equipment.find((item) => item.key === card.sourceKey);
+	}
+	return undefined;
+}
+
+function CardArtwork({ card, inventory }: { card: EncounterCard; inventory: Inventory }) {
+	const inventoryEntry = inventoryEntryForCard(card, inventory);
+	if (card.sourceKind === 'class' || !inventoryEntry) {
+		return (
+			<span className="battle-card-art battle-card-art-icon" aria-hidden="true">
+				<CardSourceIcon card={card} />
+			</span>
+		);
+	}
+
+	return (
+		<span className="battle-card-art" aria-hidden="true">
+			<InventoryItemSprite
+				itemKey={card.sourceKey}
+				kind={card.sourceKind === 'item' ? 'item' : 'equipment'}
+				size="md"
+				className="battle-card-art-sprite"
+			/>
+		</span>
+	);
+}
+
+function BattleCardFace({ card, inventory, playOrder = null }: { card: EncounterCard; inventory: Inventory; playOrder?: number | null }) {
+	const inventoryEntry = inventoryEntryForCard(card, inventory);
+	const sourceDetail = inventoryEntry ? `${cardSourceLabel(card)} · ${inventoryEntry.displayName}` : `${cardSourceLabel(card)} card`;
+	const cardMeta = [
+		card.sourceKind === 'item' && inventoryEntry ? `${inventoryEntry.quantity} owned` : targetLabel(card.targetMode),
+		card.repeatable ? 'repeatable' : null,
+	]
+		.filter((value): value is string => value !== null)
+		.join(' · ');
+	const previewEffects = card.preview?.effects ?? [];
+
+	return (
+		<span className="battle-card-face">
+			<span className="battle-card-face-topline">
+				<span>{sourceDetail}</span>
+				{playOrder !== null ? <span className="battle-card-play-number">{playOrder}</span> : null}
+			</span>
+			<CardArtwork card={card} inventory={inventory} />
+			<span className="battle-card-copy">
+				<strong>{card.displayName}</strong>
+				{previewEffects.length > 0 ? (
+					<span className="battle-card-effect-list" aria-label="Projected effects">
+						{previewEffects.map((effect, index) => (
+							<span
+								key={`${effect.kind}-${index}`}
+								className={`battle-card-effect-chip battle-card-effect-${effect.kind}`}
+								data-effect-kind={effect.kind}
+							>
+								{previewEffectLabel(effect)}
+							</span>
+						))}
+					</span>
+				) : null}
+				<small>{card.description}</small>
+				<span>{cardMeta}</span>
+			</span>
+		</span>
+	);
+}
+
+function cardSourceLabel(card: EncounterCard): string {
+	if (card.sourceKind === 'class') return 'Skill';
+	if (card.sourceKind === 'item') return 'Item';
+	return 'Equipped';
+}
+
+function targetInstruction(card: EncounterCard | undefined): string {
+	if (!card) return 'Choose a card from your hand to begin.';
+	if (card.targetMode === 'none') return 'This card resolves without a target.';
+	if (card.targetMode === 'enemy') {
+		return 'Highlighted foes can receive this card. Leave the target untouched to use auto-targeting.';
+	}
+	return 'Highlighted travelers can receive this card. Leave the target untouched to use the lowest-health ally.';
+}
+
+function hasAvailableTarget(card: EncounterCard | undefined, standingEnemies: boolean, partyMemberCount: number): boolean {
+	if (!card || card.targetMode === 'none') return true;
+	if (card.targetMode === 'enemy') return standingEnemies;
+	return partyMemberCount > 0;
+}
+
+function centeredFanPosition(index: number, cardCount: number, maxRotation: number, horizontalStep: number, verticalStep: number) {
+	const centeredIndex = index - (cardCount - 1) / 2;
+	const maxIndex = Math.max((cardCount - 1) / 2, 1);
+	const normalizedIndex = centeredIndex / maxIndex;
+
+	return {
+		centeredIndex,
+		rotation: cardCount > 1 ? normalizedIndex * maxRotation : 0,
+		offset: cardCount > 1 ? centeredIndex * horizontalStep : 0,
+		drop: cardCount > 1 ? Math.abs(centeredIndex) * verticalStep : 0,
+	};
+}
+
+function fanCardStyle(index: number, cardCount: number, queued: boolean): CSSProperties {
+	const { centeredIndex, rotation, offset, drop } = centeredFanPosition(index, cardCount, cardCount === 2 ? 5 : 7, 1.35, 0.55);
+	const baseZIndex = Math.max(1, cardCount - Math.round(Math.abs(centeredIndex)));
+
+	return {
+		'--fan-offset': `${offset}rem`,
+		'--fan-rotation': `${rotation}deg`,
+		'--fan-drop': `${drop}rem`,
+		zIndex: queued ? cardCount + 10 : baseZIndex,
+	} as CSSProperties;
+}
+
+function queueCardStyle(index: number, cardCount: number, focused: boolean): CSSProperties {
+	const { centeredIndex, rotation, offset, drop } = centeredFanPosition(index, cardCount, cardCount === 2 ? 3 : 4, 0.22, 0.12);
+	const baseZIndex = Math.max(1, cardCount - Math.round(Math.abs(centeredIndex)));
+
+	return {
+		'--queue-fan-offset': `${offset}rem`,
+		'--queue-fan-rotation': `${rotation}deg`,
+		'--queue-fan-drop': `${drop}rem`,
+		zIndex: focused ? cardCount + 1 : baseZIndex,
+	} as CSSProperties;
 }
 
 function Battlefield({
@@ -107,7 +308,7 @@ function Battlefield({
 	readOnly,
 	actionBusy,
 	targetEnemyId,
-	selectedActionTargetUserId,
+	selectedTargetUserId,
 	targetMode,
 	partyMemberName,
 	onEnemySelect,
@@ -126,30 +327,38 @@ function Battlefield({
 					{encounter.enemies.map((enemy) => {
 						const selected = targetEnemyId === enemy.id && targetMode === 'enemy';
 						const defeated = enemy.currentHealth === 0;
+						const targetable = !interactionDisabled && targetMode === 'enemy' && !defeated;
 						const enemyArt = battleEnemyArtForArchetype(enemy.archetypeKey);
 						return (
 							<button
 								key={enemy.id}
 								type="button"
-								className={`battle-enemy ${selected ? 'battle-enemy-selected' : ''} ${defeated ? 'battle-enemy-defeated' : ''}`}
+								className={classNames('battle-enemy', defeated && 'battle-enemy-defeated', targetable && 'battle-targetable')}
 								data-testid="battle-enemy"
 								data-enemy-id={enemy.id}
 								data-selected={selected}
-								aria-label={`${enemy.displayName}, ${defeated ? 'defeated' : 'standing'}, ${enemy.currentHealth} of ${enemy.maxHealth} health`}
+								aria-label={[
+									enemy.displayName,
+									defeated ? 'defeated' : 'standing',
+									`${enemy.currentHealth} of ${enemy.maxHealth} health`,
+									targetable ? 'targetable' : null,
+								]
+									.filter((value): value is string => value !== null)
+									.join(', ')}
 								aria-pressed={selected}
-								disabled={interactionDisabled || defeated}
+								disabled={interactionDisabled || defeated || targetMode !== 'enemy'}
 								onClick={() => onEnemySelect(enemy.id)}
 							>
-								<span
-									className="battle-enemy-art"
-									aria-hidden="true"
-									data-testid={`battle-enemy-art-${enemy.archetypeKey}`}
-									style={{
-										backgroundImage: `url('${enemyArt.src}')`,
-										backgroundPosition: enemyArt.position,
-										backgroundSize: enemyArt.backgroundSize,
-									}}
-								/>
+								<span className="battle-entity-stage battle-entity-stage-enemy">
+									<BattleArt
+										art={enemyArt}
+										label={enemy.displayName}
+										selected={selected}
+										className="battle-enemy-art"
+										testId={`battle-enemy-art-${enemy.archetypeKey}`}
+									/>
+									{selected ? <span className="battle-target-ellipse" data-testid="battle-target-ellipse" aria-hidden="true" /> : null}
+								</span>
 								<span className="battle-enemy-nameplate">
 									<strong>{enemy.displayName}</strong>
 									{defeated && <span>Defeated</span>}
@@ -158,9 +367,8 @@ function Battlefield({
 									<span>
 										{enemy.currentHealth}/{enemy.maxHealth} HP
 									</span>
-									<Progress value={healthPercent(enemy.currentHealth, enemy.maxHealth)} />
+									<Progress value={healthPercent(enemy.currentHealth, enemy.maxHealth)} aria-label={`${enemy.displayName} health`} />
 								</span>
-								{selected && <Crosshair className="battle-target-reticle" aria-hidden="true" />}
 							</button>
 						);
 					})}
@@ -174,47 +382,51 @@ function Battlefield({
 				<div className="battle-party-formation">
 					{encounter.members.map((member) => {
 						const memberName = partyMemberName(member.userId);
-						const selected = selectedActionTargetUserId === member.userId && targetMode === 'ally';
+						const selected = selectedTargetUserId === member.userId && targetMode === 'ally';
+						const targetable = !interactionDisabled && targetMode === 'ally';
 						const memberArt = battlePartyArtForClass(member.classKey);
 						const isCurrentUser = member.userId === userId;
 						return (
 							<button
 								key={member.userId}
 								type="button"
-								className={`battle-party-member ${selected ? 'battle-party-member-selected' : ''} ${isCurrentUser ? 'battle-party-member-current' : ''}`}
+								className={classNames('battle-party-member', targetable && 'battle-targetable')}
 								data-testid="battle-party-member"
 								data-member-id={member.userId}
 								data-selected={selected}
-								aria-label={`${memberName}${isCurrentUser ? ', you' : ''}, ${label(member.classKey)}, ${member.currentHealth} of ${member.maxHealth} health, ${actionName(member)}`}
+								aria-label={[
+									memberName,
+									isCurrentUser ? 'you' : null,
+									label(member.classKey),
+									`${member.currentHealth} of ${member.maxHealth} health`,
+									plannedCardName(member),
+									targetable ? 'targetable' : null,
+								]
+									.filter((value): value is string => value !== null)
+									.join(', ')}
 								aria-pressed={selected}
 								disabled={interactionDisabled || targetMode !== 'ally'}
 								onClick={() => onAllySelect(member.userId)}
 							>
-								<span
-									className="battle-party-art"
-									aria-hidden="true"
-									style={{
-										backgroundImage: `url('${memberArt.src}')`,
-										backgroundPosition: memberArt.position,
-										backgroundSize: memberArt.backgroundSize,
-									}}
-								/>
+								<span className="battle-entity-stage battle-entity-stage-party">
+									<BattleArt art={memberArt} label={memberName} selected={selected} className="battle-party-art" />
+									{selected ? <span className="battle-target-ellipse" data-testid="battle-target-ellipse" aria-hidden="true" /> : null}
+								</span>
 								<span className="battle-party-nameplate">
 									<strong>
 										{memberName}
 										{isCurrentUser ? <small>YOU</small> : null}
 									</strong>
 									<span>
-										{label(member.classKey)} · {actionName(member)}
+										{label(member.classKey)} · {plannedCardName(member)}
 									</span>
 								</span>
 								<span className="battle-combatant-health">
 									<span>
 										{member.currentHealth}/{member.maxHealth} HP
 									</span>
-									<Progress value={healthPercent(member.currentHealth, member.maxHealth)} />
+									<Progress value={healthPercent(member.currentHealth, member.maxHealth)} aria-label={`${memberName} health`} />
 								</span>
-								{selected && <Target className="battle-target-reticle" aria-hidden="true" />}
 							</button>
 						);
 					})}
@@ -231,191 +443,260 @@ function BattleCommandTray({
 	encounter,
 	currentMember,
 	readOnly,
-	actionKey,
-	targetEnemyId,
-	selectedActionTargetUserId,
-	selectedItemTargetUserId,
-	targetMode,
-	usableItems,
-	itemKey,
+	plays,
+	inventory,
+	selectedCardKey,
+	selectedPlayIndex,
 	actionPending,
-	itemPending,
 	actionBusy,
-	commandState,
-	partyMemberName,
-	onActionKeyChange,
-	onItemKeyChange,
-	onItemTargetChange,
-	onSubmitAction,
-	onUseItem,
+	onCardActivate,
+	onPlayActivate,
+	onPlayReorder,
+	onSubmitPlan,
 }: BattleCommandTrayProps) {
-	const signature = currentMember.signatureAction;
-	const selectedEnemy = encounter.enemies.find((enemy) => enemy.id === targetEnemyId);
-	const selectedAlly = encounter.members.find((member) => member.userId === selectedActionTargetUserId);
-	const selectedTargetName =
-		targetMode === 'enemy'
-			? (selectedEnemy?.displayName ?? 'Choose an enemy')
-			: targetMode === 'ally'
-				? selectedAlly
-					? partyMemberName(selectedAlly.userId)
-					: 'Choose an ally'
-				: 'No target required';
-	const commandName = actionKey ? signature.displayName : 'Basic attack';
-	const commandDescription = actionKey ? signature.description : 'A reliable strike against a selected enemy.';
+	const [category, setCategory] = useState<CardCategory>('all');
+	const selectedCard = currentMember.cards.find((card) => card.key === selectedCardKey);
+	const playableCards = currentMember.cards.filter((card) => !card.locked);
+	const handCards = playableCards.filter((card) => category === 'all' || cardCategory(card) === category);
 	const interactionDisabled = readOnly || encounter.status === 'completed' || actionBusy;
-	const selectedItem = usableItems.find((item) => item.key === itemKey) ?? usableItems[0];
-	const hasRequiredTarget = targetMode !== 'enemy' || Boolean(targetEnemyId);
-	const targetNote =
-		targetMode === 'enemy'
-			? hasRequiredTarget
-				? 'Select a foe on the battlefield.'
-				: 'No standing foe is available for this command.'
-			: targetMode === 'ally'
-				? 'Select an ally on the battlefield.'
-				: 'This ability needs no target.';
-	const commandStepState = 'complete';
-	const targetStepState = hasRequiredTarget ? 'complete' : 'current';
-	const saveStepState = commandState === 'saved' ? 'complete' : 'current';
+	const standingEnemies = encounter.enemies.some((enemy) => enemy.currentHealth > 0);
+	const hasTarget = hasAvailableTarget(selectedCard, standingEnemies, encounter.members.length);
+	const targetNote = targetInstruction(selectedCard);
+	const selectedPreview = selectedCard?.preview?.effects ?? [];
+	const selectedPreviewLabel = selectedPreview.length > 0 ? selectedPreview.map(previewEffectLabel).join(' · ') : null;
+	const queuedItemKeys = new Set(
+		plays.flatMap((play) => {
+			const card = cardForPlay(currentMember, play);
+			return card?.sourceKind === 'item' ? [card.sourceKey] : [];
+		}),
+	);
+	const categoryCounts = playableCards.reduce<Record<Exclude<CardCategory, 'all'>, number>>(
+		(counts, card) => ({ ...counts, [cardCategory(card)]: counts[cardCategory(card)] + 1 }),
+		{ class: 0, equipment: 0, item: 0 },
+	);
+	const reorderFromDrop = (event: DragEvent<HTMLElement>, targetIndex: number) => {
+		event.preventDefault();
+		const fromIndex = Number(event.dataTransfer.getData('text/plain'));
+		if (!Number.isInteger(fromIndex) || fromIndex < 0 || fromIndex >= plays.length) return;
+		if (fromIndex !== targetIndex) onPlayReorder(fromIndex, targetIndex);
+	};
 
 	return (
 		<div className="battle-command-tray" data-testid="battle-command-tray">
-			<ol className="battle-command-steps" aria-label="Battle command steps">
-				<li className={`battle-command-step-${commandStepState}`}>
-					<span>1</span> Choose command
-				</li>
-				<li className={`battle-command-step-${targetStepState}`}>
-					<span>2</span> Choose target
-				</li>
-				<li className={`battle-command-step-${saveStepState}`}>
-					<span>3</span> Save command
-				</li>
-			</ol>
-			<div className="battle-command-summary">
-				<div className="battle-command-heading">
-					<div>
-						<p className="game-pixel-label">Your command</p>
-						<h3>{partyMemberName(currentMember.userId)}</h3>
-					</div>
-					<Badge className="battle-command-target-badge">{targetLabel(targetMode)}</Badge>
-				</div>
-				<div className="battle-command-selected">
-					<div>
-						<span>Command</span>
-						<strong>{commandName}</strong>
-					</div>
-					<div>
-						<span>Target</span>
-						<strong>{selectedTargetName}</strong>
-					</div>
-				</div>
-				<p className="battle-command-description">{commandDescription}</p>
-			</div>
-
-			<div className="battle-command-options">
-				<p className="game-pixel-label">Choose command</p>
-				<div className="battle-action-options">
-					<button
-						type="button"
-						className={`battle-action-option ${actionKey === null ? 'battle-action-option-selected' : ''}`}
-						data-testid="battle-action-basic"
-						aria-pressed={actionKey === null}
-						disabled={interactionDisabled}
-						onClick={() => onActionKeyChange(null)}
+			<div className="battle-command-center" data-testid="battle-command-center">
+				<div className="battle-card-command-layout" data-queue-state={plays.length === 0 ? 'collapsed' : 'expanded'}>
+					<aside
+						className="battle-play-queue"
+						data-testid="battle-play-queue"
+						data-queue-state={plays.length === 0 ? 'collapsed' : 'expanded'}
+						aria-label="Planned cards to play"
 					>
-						<Swords className="size-5" aria-hidden="true" />
-						<span>
-							<strong>Attack</strong>
-							<small>Basic strike</small>
-						</span>
-						{actionKey === null && <Check className="battle-action-check size-4" aria-hidden="true" />}
-					</button>
-					<button
-						type="button"
-						className={`battle-action-option ${actionKey === signature.key ? 'battle-action-option-selected' : ''}`}
-						data-testid="battle-action-signature"
-						aria-pressed={actionKey === signature.key}
-						disabled={interactionDisabled}
-						onClick={() => onActionKeyChange(signature.key)}
-					>
-						<Shield className="size-5" aria-hidden="true" />
-						<span>
-							<strong>Ability</strong>
-							<small>{signature.displayName}</small>
-						</span>
-						{actionKey === signature.key && <Check className="battle-action-check size-4" aria-hidden="true" />}
-					</button>
-				</div>
-			</div>
-
-			<div className="battle-field-kit">
-				<div className="battle-command-heading">
-					<div>
-						<p className="game-pixel-label">Field kit</p>
-						<h3>Keep someone standing</h3>
-					</div>
-					<PackageOpen className="size-5 text-[var(--game-gold)]" aria-hidden="true" />
-				</div>
-				{usableItems.length > 0 ? (
-					<div className="battle-item-controls">
-						<div className="battle-selected-item" data-testid="battle-selected-item">
-							<InventoryItemSprite itemKey={selectedItem.key} kind={selectedItem.kind} size="sm" />
-							<span>
-								<strong>{selectedItem.displayName}</strong>
-								<small>{selectedItem.quantity} available</small>
-							</span>
+						<div className="battle-play-queue-heading">
+							<div className="battle-play-queue-title">
+								<Check className="battle-play-queue-title-icon size-3" aria-hidden="true" />
+								<span className="game-pixel-label">
+									Plan · {plays.length}/{currentMember.playSlots}
+								</span>
+							</div>
+							<div className="battle-queue-controls">
+								{selectedPlayIndex !== null && selectedCard ? (
+									<div className="battle-queue-order-controls" aria-label="Focused card order controls">
+										<button
+											type="button"
+											className="battle-queue-control"
+											aria-label={'Move ' + selectedCard.displayName + ' earlier'}
+											disabled={interactionDisabled || selectedPlayIndex === 0}
+											onClick={() => onPlayReorder(selectedPlayIndex, selectedPlayIndex - 1)}
+										>
+											<ChevronLeft className="size-4" aria-hidden="true" />
+										</button>
+										<button
+											type="button"
+											className="battle-queue-control"
+											aria-label={'Move ' + selectedCard.displayName + ' later'}
+											disabled={interactionDisabled || selectedPlayIndex === plays.length - 1}
+											onClick={() => onPlayReorder(selectedPlayIndex, selectedPlayIndex + 1)}
+										>
+											<ChevronRight className="size-4" aria-hidden="true" />
+										</button>
+									</div>
+								) : null}
+							</div>
 						</div>
-						<label>
-							<span>Item</span>
-							<select
-								data-testid="battle-item-select"
-								value={itemKey || usableItems[0]?.key}
-								disabled={interactionDisabled}
-								onChange={(event) => onItemKeyChange(event.target.value)}
-							>
-								{usableItems.map((item) => (
-									<option key={item.key} value={item.key}>
-										{item.displayName} ×{item.quantity}
-									</option>
-								))}
-							</select>
-						</label>
-						<label>
-							<span>Target</span>
-							<select
-								data-testid="battle-item-target"
-								value={selectedItemTargetUserId}
-								disabled={interactionDisabled}
-								onChange={(event) => onItemTargetChange(event.target.value)}
-							>
-								{encounter.members.map((member) => (
-									<option key={member.userId} value={member.userId}>
-										{partyMemberName(member.userId)}
-									</option>
-								))}
-							</select>
-						</label>
-						<Button game disabled={interactionDisabled || itemPending} onClick={onUseItem}>
-							<HeartPulse className="size-4" aria-hidden="true" /> {itemPending ? 'Using…' : 'Use item'}
+						{plays.length > 0 ? (
+							<div className="battle-play-queue-list" tabIndex={0} aria-label="Planned play order">
+								{plays.map((play, index) => {
+									const card = cardForPlay(currentMember, play);
+									if (!card) return null;
+									const focused = selectedPlayIndex === index;
+									return (
+										<div key={`${play.cardKey}-${index}`} style={queueCardStyle(index, plays.length, focused)}>
+											<button
+												type="button"
+												className={classNames('battle-queued-card', focused && 'battle-queued-card-focused')}
+												data-testid={`battle-queued-card-${index + 1}`}
+												data-card-key={card.key}
+												data-category={cardCategory(card)}
+												data-focused={focused}
+												data-play-order={index + 1}
+												aria-label={[
+													`${focused ? 'Remove' : 'Focus'} queued ${card.displayName}`,
+													previewEffectAnnouncement(card),
+													`play ${index + 1}`,
+												]
+													.filter((value): value is string => value !== null)
+													.join(', ')}
+												aria-pressed={focused}
+												disabled={interactionDisabled}
+												draggable={!interactionDisabled}
+												onDragStart={(event) => event.dataTransfer.setData('text/plain', String(index))}
+												onDragOver={(event) => event.preventDefault()}
+												onDrop={(event) => reorderFromDrop(event, index)}
+												onClick={() => onPlayActivate(index)}
+											>
+												<BattleCardFace card={card} inventory={inventory} playOrder={index + 1} />
+											</button>
+										</div>
+									);
+								})}
+							</div>
+						) : null}
+					</aside>
+
+					<div className="battle-hand-column">
+						<div className="battle-hand-header">
+							<div className="battle-hand-heading">
+								<span className="game-pixel-label">Your hand</span>
+								<span>{handCards.length} available</span>
+							</div>
+							<div className="battle-card-filter-bar" role="tablist" aria-label="Card categories">
+								{CARD_CATEGORIES.map((option) => {
+									const count = option === 'all' ? playableCards.length : categoryCounts[option];
+									const active = category === option;
+									return (
+										<button
+											key={option}
+											type="button"
+											role="tab"
+											className={classNames('battle-card-filter', active && 'battle-card-filter-active')}
+											data-category={option}
+											data-testid={`battle-card-filter-${option}`}
+											aria-selected={active}
+											tabIndex={active ? 0 : -1}
+											onKeyDown={(event) => {
+												const nextCategory = categoryAfterKey(option, event.key);
+												if (nextCategory === null) return;
+												event.preventDefault();
+												setCategory(nextCategory);
+												requestAnimationFrame(() => {
+													document.querySelector<HTMLButtonElement>(`[data-testid="battle-card-filter-${nextCategory}"]`)?.focus();
+												});
+											}}
+											onClick={() => setCategory(option)}
+										>
+											<span>{cardCategoryLabel(option)}</span>
+											<span>{count}</span>
+										</button>
+									);
+								})}
+							</div>
+						</div>
+
+						<div className="battle-card-hand-viewport" tabIndex={0} aria-label="Available card hand">
+							<div className="battle-card-hand" data-testid="battle-card-fan" aria-label={`${cardCategoryLabel(category)} cards in hand`}>
+								{handCards.length > 0 ? (
+									handCards.map((card, index) => {
+										const queuedCount = plays.filter((play) => play.cardKey === card.key).length;
+										const queuedOrders = plays.flatMap((play, playIndex) => (play.cardKey === card.key ? [playIndex + 1] : []));
+										const queuedOrderLabel = queuedOrders.length > 0 ? queuedOrders.join(',') : null;
+										const itemEntry = card.sourceKind === 'item' ? inventoryEntryForCard(card, inventory) : undefined;
+										const itemTypeBlocked = card.sourceKind === 'item' && !queuedItemKeys.has(card.sourceKey) && queuedItemKeys.size >= 2;
+										const quantityBlocked = card.sourceKind === 'item' && itemEntry !== undefined && queuedCount >= itemEntry.quantity;
+										const capacityBlocked = plays.length >= currentMember.playSlots && queuedCount === 0;
+										const alreadyQueued = queuedCount > 0;
+										const disabled = interactionDisabled || capacityBlocked || itemTypeBlocked || quantityBlocked;
+										const cardMeta = [targetLabel(card.targetMode), card.repeatable ? 'add again' : null]
+											.filter((value): value is string => value !== null)
+											.join(' · ');
+										const effectAnnouncement = previewEffectAnnouncement(card);
+										const disabledReason = itemTypeBlocked
+											? 'Two item types are already queued.'
+											: quantityBlocked
+												? 'You do not have another copy of this item.'
+												: capacityBlocked
+													? 'All play slots are full.'
+													: null;
+										const ariaLabel = [
+											card.displayName,
+											effectAnnouncement,
+											card.description,
+											cardMeta,
+											queuedOrderLabel ? `selected for play ${queuedOrderLabel}` : null,
+											disabledReason,
+										]
+											.filter((value): value is string => value !== null)
+											.join(', ');
+										return (
+											<button
+												key={card.key}
+												type="button"
+												className="battle-fan-card"
+												data-testid={'battle-card-' + card.key.replaceAll(':', '-')}
+												data-category={cardCategory(card)}
+												data-queued={alreadyQueued}
+												data-queued-count={queuedCount > 0 ? queuedCount : null}
+												data-queued-order={queuedOrderLabel}
+												aria-label={ariaLabel}
+												disabled={disabled}
+												title={disabledReason ?? undefined}
+												style={fanCardStyle(index, handCards.length, alreadyQueued)}
+												onMouseDown={(event) => event.preventDefault()}
+												onClick={() => onCardActivate(card.key)}
+											>
+												{alreadyQueued ? (
+													<span className="battle-fan-card-queued-badge" aria-hidden="true">
+														<Check className="size-3" />
+														<span>{queuedOrderLabel}</span>
+													</span>
+												) : null}
+												<BattleCardFace card={card} inventory={inventory} />
+											</button>
+										);
+									})
+								) : (
+									<p className="battle-card-hand-empty">No cards in this category yet.</p>
+								)}
+							</div>
+						</div>
+
+						<p className={classNames('battle-fan-target-note', !hasTarget && 'battle-command-target-note-missing')}>
+							<Target className="size-3.5" aria-hidden="true" />
+							<span className="battle-fan-target-note-copy">
+								{selectedPreviewLabel ? <strong data-testid="battle-card-preview-detail">{selectedPreviewLabel}</strong> : null}
+								<span>
+									{plays.length === 0
+										? 'Click cards to build your plan. Saving without selections still resolves a Basic Attack.'
+										: targetNote}
+								</span>
+							</span>
+						</p>
+					</div>
+				</div>
+
+				<div className="battle-plan-footer">
+					<div className="battle-plan-action">
+						<Button
+							game
+							size="sm"
+							className="battle-save-plan-button"
+							data-testid="battle-save-plan"
+							disabled={interactionDisabled || actionPending || !hasTarget}
+							onClick={onSubmitPlan}
+						>
+							<LockKeyhole className="size-3.5" aria-hidden="true" /> {actionPending ? 'Locking…' : 'Lock plan'}
 						</Button>
 					</div>
-				) : (
-					<p className="battle-empty-kit">No usable items are currently in your field kit.</p>
-				)}
-			</div>
-
-			<div className="battle-command-footer">
-				<div className={`battle-command-target-note ${hasRequiredTarget ? '' : 'battle-command-target-note-missing'}`}>
-					<Target className="size-4" aria-hidden="true" />
-					<span>{targetNote}</span>
 				</div>
-				<Button
-					game
-					data-testid="battle-save-command"
-					disabled={interactionDisabled || actionPending || !hasRequiredTarget}
-					onClick={onSubmitAction}
-				>
-					<Sparkles className="size-4" aria-hidden="true" /> {actionPending ? 'Saving command…' : 'Save command'}
-				</Button>
 			</div>
 		</div>
 	);
@@ -424,31 +705,28 @@ function BattleCommandTray({
 export function BattleScene({
 	encounter,
 	currentMember,
-	daily,
 	userId,
 	readOnly,
-	actionKey,
+	plays,
+	inventory,
+	selectedCardKey,
+	selectedPlayIndex,
 	targetEnemyId,
-	selectedActionTargetUserId,
-	selectedItemTargetUserId,
-	targetMode,
-	usableItems,
-	itemKey,
+	selectedTargetUserId,
 	actionPending,
-	itemPending,
 	actionBusy,
 	actionError,
 	commandState,
-	itemResult,
 	partyMemberName,
-	onActionKeyChange,
+	onCardActivate,
+	onPlayActivate,
+	onPlayReorder,
 	onEnemySelect,
 	onAllySelect,
-	onItemKeyChange,
-	onItemTargetChange,
-	onSubmitAction,
-	onUseItem,
+	onSubmitPlan,
 }: BattleSceneProps) {
+	const selectedCard = currentMember.cards.find((card) => card.key === selectedCardKey);
+
 	return (
 		<section
 			className="battle-scene"
@@ -456,23 +734,9 @@ export function BattleScene({
 			aria-labelledby="battle-scene-heading"
 			style={{ '--battlefield-art': `url('${gameplayBackgroundArt.battlefield}')` } as CSSProperties}
 		>
-			<div className="battle-scene-header">
-				<div>
-					<div className="flex flex-wrap items-center gap-2">
-						<Badge className="battle-scene-badge">
-							<Swords className="size-3" aria-hidden="true" /> Encounter · {encounter.worldDate}
-						</Badge>
-						<Badge className={encounter.status === 'completed' ? 'battle-scene-status-complete' : 'battle-scene-status-active'}>
-							{encounter.status === 'completed' ? 'Resolved' : 'Active'}
-						</Badge>
-					</div>
-					<h2 id="battle-scene-heading">Hold the line together.</h2>
-					<p>Each traveler chooses one command before the day closes. The chronicle resolves the clash together.</p>
-				</div>
-				<div className="battle-scene-sigil" aria-hidden="true">
-					<Swords className="size-7" />
-				</div>
-			</div>
+			<h2 id="battle-scene-heading" className="sr-only">
+				Battle encounter
+			</h2>
 
 			<div className={`battle-status battle-status-${commandState}`} data-state={commandState} data-testid="battle-status" role="status">
 				{commandState === 'readonly' ? (
@@ -485,78 +749,57 @@ export function BattleScene({
 					</>
 				) : commandState === 'saving' ? (
 					<>
-						<Sparkles className="size-4" aria-hidden="true" /> Saving your command for today’s resolution…
+						<Sparkles className="size-4" aria-hidden="true" /> Saving your daily card plan…
 					</>
 				) : commandState === 'edited' ? (
 					<>
-						<Sparkles className="size-4" aria-hidden="true" /> Review your changes and save this command for today’s resolution.
+						<Sparkles className="size-4" aria-hidden="true" /> Review your cards and save the updated plan.
 					</>
 				) : commandState === 'saved' ? (
 					<>
-						<Check className="size-4" aria-hidden="true" /> Your command is locked in for today’s resolution.
+						<Check className="size-4" aria-hidden="true" /> Your daily plan is locked in for resolution.
 					</>
 				) : (
 					<>
-						<Sparkles className="size-4" aria-hidden="true" /> Daily command phase ·{' '}
-						{encounter.members.filter((member) => member.selectedActionKey).length}/{encounter.members.length} signature commands chosen
+						<Sparkles className="size-4" aria-hidden="true" /> Card hand phase · {plays.length}/{currentMember.playSlots} card slots queued
 					</>
 				)}
 			</div>
 
-			<GameplayMechanics daily={daily} currentMemberUserId={currentMember.userId} compact />
+			<div className="battle-stage">
+				<Battlefield
+					encounter={encounter}
+					userId={userId}
+					readOnly={readOnly}
+					actionBusy={actionBusy}
+					targetEnemyId={targetEnemyId}
+					selectedTargetUserId={selectedTargetUserId}
+					targetMode={selectedPlayIndex === null ? null : (selectedCard?.targetMode ?? null)}
+					partyMemberName={partyMemberName}
+					onEnemySelect={onEnemySelect}
+					onAllySelect={onAllySelect}
+				/>
 
-			<div className={`battle-command-ribbon battle-command-ribbon-${commandState}`} aria-label="Current battle command">
-				<span className="game-pixel-label">Commanding</span>
-				<strong>{partyMemberName(currentMember.userId)}</strong>
-				<span>
-					{actionKey ? currentMember.signatureAction.displayName : 'Basic attack'} · {targetLabel(targetMode)}
-				</span>
+				<BattleCommandTray
+					encounter={encounter}
+					currentMember={currentMember}
+					readOnly={readOnly}
+					plays={plays}
+					inventory={inventory}
+					selectedCardKey={selectedCardKey}
+					selectedPlayIndex={selectedPlayIndex}
+					actionPending={actionPending}
+					actionBusy={actionBusy}
+					onCardActivate={onCardActivate}
+					onPlayActivate={onPlayActivate}
+					onPlayReorder={onPlayReorder}
+					onSubmitPlan={onSubmitPlan}
+				/>
 			</div>
-
-			<Battlefield
-				encounter={encounter}
-				userId={userId}
-				readOnly={readOnly}
-				actionBusy={actionBusy}
-				targetEnemyId={targetEnemyId}
-				selectedActionTargetUserId={selectedActionTargetUserId}
-				targetMode={targetMode}
-				partyMemberName={partyMemberName}
-				onEnemySelect={onEnemySelect}
-				onAllySelect={onAllySelect}
-			/>
-
-			<BattleCommandTray
-				encounter={encounter}
-				currentMember={currentMember}
-				readOnly={readOnly}
-				actionKey={actionKey}
-				targetEnemyId={targetEnemyId}
-				selectedActionTargetUserId={selectedActionTargetUserId}
-				selectedItemTargetUserId={selectedItemTargetUserId}
-				targetMode={targetMode}
-				usableItems={usableItems}
-				itemKey={itemKey}
-				actionPending={actionPending}
-				itemPending={itemPending}
-				actionBusy={actionBusy}
-				commandState={commandState}
-				partyMemberName={partyMemberName}
-				onActionKeyChange={onActionKeyChange}
-				onItemKeyChange={onItemKeyChange}
-				onItemTargetChange={onItemTargetChange}
-				onSubmitAction={onSubmitAction}
-				onUseItem={onUseItem}
-			/>
 
 			{actionError && (
 				<p className="battle-error" role="alert">
 					{actionError.message}
-				</p>
-			)}
-			{itemResult && (
-				<p className="battle-success" role="status">
-					Restored {itemResult.healedAmount} health for {partyMemberName(itemResult.targetUserId)}.
 				</p>
 			)}
 		</section>

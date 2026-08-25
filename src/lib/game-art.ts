@@ -3,9 +3,11 @@ import interiorDungeonUrl from '#/assets/game/backgrounds/interior-dungeon.webp'
 import interiorVillageUrl from '#/assets/game/backgrounds/interior-village.webp';
 import overworldAtlasUrl from '#/assets/game/backgrounds/overworld-atlas.webp';
 import partyClassSpritesUrl from '#/assets/game/characters/party-class-sprites.webp';
+import dungeonMapPartyUrl from '#/assets/game/characters/dungeon-map-party.png';
 import partyTravelerSpriteUrl from '#/assets/game/characters/party-traveler-sprite.png';
 import landmarkSpritesUrl from '#/assets/game/landmarks/landmark-sprites.webp';
 import monsterSpritesUrl from '#/assets/game/monsters/monster-sprites.webp';
+import dungeonMapMonsterUrl from '#/assets/game/monsters/dungeon-map-monsters.png';
 import itemSpritesUrl from '#/assets/game/items/item-sprites.webp';
 import weaponSpritesUrl from '#/assets/game/weapons/weapon-sprites.webp';
 import armorSpritesUrl from '#/assets/game/armor/armor-sprites.webp';
@@ -223,6 +225,14 @@ export const partyTravelerArt = {
 	backgroundSize: '200% 400%',
 } as const;
 
+/** Dedicated low-density actor sheet for the 24px dungeon plane. */
+export const dungeonMapPartyArt = {
+	src: dungeonMapPartyUrl,
+	columns: 2,
+	rows: 4,
+	backgroundSize: '200% 400%',
+} as const;
+
 export const gameplayBackgroundArt = {
 	overworld: overworldAtlasUrl,
 	dungeon: interiorDungeonUrl,
@@ -251,6 +261,23 @@ export type BattleEnemyArchetype =
 export const battleEnemySpriteArt = {
 	src: monsterSpritesUrl,
 	backgroundSize: '300% 300%',
+} as const;
+
+export const dungeonMapMonsterArt = {
+	src: dungeonMapMonsterUrl,
+	columns: 3,
+	rows: 3,
+	positions: {
+		vermin: [0, 0],
+		bat: [1, 0],
+		'wild-mushroom': [2, 0],
+		slime: [0, 1],
+		wolf: [1, 1],
+		'grotto-mite': [2, 1],
+		'thorn-wolf': [0, 2],
+		'ruin-sentinel': [1, 2],
+		unknown: [2, 2],
+	} satisfies Record<BattleEnemyArchetype, readonly [number, number]>,
 } as const;
 
 /** Baked 24px dungeon chunk strip, consumed by the canvas world renderer. */
@@ -300,5 +327,13 @@ export function battleEnemyArtForArchetype(archetypeKey: string) {
 	return {
 		...battleEnemySpriteArt,
 		position: battleEnemyPositions[key],
+	};
+}
+
+export function dungeonMapMonsterArtForArchetype(archetypeKey: string) {
+	const key = isBattleEnemyArchetype(archetypeKey) ? archetypeKey : 'unknown';
+	return {
+		...dungeonMapMonsterArt,
+		position: dungeonMapMonsterArt.positions[key],
 	};
 }

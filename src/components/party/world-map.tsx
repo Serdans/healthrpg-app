@@ -284,6 +284,7 @@ export function WorldMap(props: {
 	navigatorControls?: DungeonNavigatorControls;
 	readOnly?: boolean;
 	actionHref?: '#party-action';
+	partyMemberCount?: number;
 }) {
 	const isTileDungeon = props.map.currentMap.mapType === 'dungeon' && props.map.nodes.some((node) => node.mapMetadata.tileX !== null);
 	return (
@@ -300,6 +301,7 @@ export function WorldMap(props: {
 					walkMutation={props.walkMutation}
 					navigatorControls={props.navigatorControls}
 					readOnly={props.readOnly}
+					partyMemberCount={props.partyMemberCount ?? props.navigatorControls?.members.length ?? 1}
 				/>
 			) : props.map.currentMap.mapType !== 'overworld' ? (
 				<InteriorMap map={props.map} />

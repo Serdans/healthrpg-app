@@ -78,7 +78,7 @@ type PartyProgressionResponse = SuccessBody<paths['/api/v1/parties/{partyId}/pro
 type HealthSyncBody = RequestBody<paths['/api/v1/me/health/sync']['post']>;
 type PreferencesBody = RequestBody<paths['/api/v1/me']['patch']>;
 type VillagePurchaseBody = RequestBody<paths['/api/v1/parties/{partyId}/village/purchases']['post']>;
-type EncounterActionBody = RequestBody<paths['/api/v1/parties/{partyId}/encounter/actions/me']['put']>;
+type EncounterPlanBody = RequestBody<paths['/api/v1/parties/{partyId}/encounter/plan/me']['put']>;
 type PartyItemUseBody = RequestBody<paths['/api/v1/parties/{partyId}/item-uses']['post']>;
 type LeaderTransferBody = RequestBody<paths['/api/v1/parties/{partyId}/leader']['put']>;
 type LoadoutSlot = paths['/api/v1/me/loadout/{slot}']['put']['parameters']['path']['slot'];
@@ -297,8 +297,8 @@ export const startVillageDeparture = (partyId: string) =>
 
 export const getEncounter = (partyId: string) => requestJson<EncounterResponse>(partyPath(partyId, '/encounter'));
 
-export const setEncounterAction = (partyId: string, body: EncounterActionBody) =>
-	requestJson<EncounterResponse>(partyPath(partyId, '/encounter/actions/me'), {
+export const setEncounterPlan = (partyId: string, body: EncounterPlanBody) =>
+	requestJson<EncounterResponse>(partyPath(partyId, '/encounter/plan/me'), {
 		method: 'put',
 		json: body,
 	});
@@ -368,7 +368,7 @@ export type VillagePurchase = VillagePurchaseResponse;
 export type VillagePurchaseInput = VillagePurchaseBody;
 export type VillageDeparture = VillageDepartureResponse;
 export type Encounter = EncounterResponse;
-export type EncounterActionInput = EncounterActionBody;
+export type EncounterPlanInput = EncounterPlanBody;
 export type PartyItemUse = PartyItemUseResponse;
 export type PartyItemUseInput = PartyItemUseBody;
 export type PartyProgression = PartyProgressionResponse;

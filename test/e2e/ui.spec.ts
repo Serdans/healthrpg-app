@@ -87,7 +87,7 @@ test('inspects a revealed branch on the party atlas', async ({ page }) => {
 		.toBe(75);
 	await expect(page.getByTestId('party-roster')).toBeVisible();
 	await expect(page.getByTestId('gameplay-mechanics').first()).toContainText('Momentum');
-	await expect(page.getByTestId('gameplay-mechanics').first()).toContainText('Journey');
+	await expect(page.getByTestId('gameplay-mechanics').first()).toContainText('Travel requirement');
 	await expect(page.getByTestId('gameplay-mechanics').first()).not.toContainText('Challenge');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('Daily resolution');
 	await expect(page.getByTestId('daily-resolution-recap')).toContainText('The trail held');
@@ -223,7 +223,7 @@ test('walks a tile-based dungeon with automatic advance and manual steps', async
 			path: '/api/v1/parties/party-1/dungeon/walk',
 			body: { mode: 'manual', steps: ['right'] },
 		});
-	await expect(page.getByTestId('dungeon-live-status')).not.toHaveText(atEntry ?? '');
+	if (atEntry !== null) await expect(page.getByTestId('dungeon-live-status')).not.toHaveText(atEntry);
 
 	// Holding a direction chains steps at hop cadence, PMD style.
 	const before = await walkCount(request);
@@ -319,13 +319,106 @@ test('snaps a rejected dungeon step back and discards queued input', async ({ pa
 	await expect.poll(async () => walkCount(request)).toBe(0);
 });
 
-test('submits a combat action and uses a field item', async ({ page, request }) => {
+test('builds and saves a daily card plan', async ({ page, request }) => {
 	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'combat' } });
 	await authenticate(page);
 	await page.goto('/parties/party-1');
 
-	await expect(page.getByTestId('combat-scene')).toBeVisible();
+	const combatScene = page.getByTestId('combat-scene');
+	await expect(combatScene).toBeVisible();
 	await expect(page.getByTestId('battlefield')).toBeVisible();
+	await combatScene.scrollIntoViewIfNeeded();
+	const cardFan = page.getByTestId('battle-card-fan');
+	await cardFan.scrollIntoViewIfNeeded();
+	const viewportMetrics = await cardFan.evaluate((fan) => {
+		const cards = [...fan.querySelectorAll<HTMLElement>('.battle-fan-card')];
+		const cardRects = cards.map((card) => card.getBoundingClientRect());
+		const fanRect = fan.getBoundingClientRect();
+		const overlaps = cardRects.slice(1).some((rect, index) => rect.left < cardRects[index].right - 4);
+		const queueRect = document.querySelector<HTMLElement>('[data-testid="battle-play-queue"]')?.getBoundingClientRect();
+		const handColumnRect = document.querySelector<HTMLElement>('.battle-hand-column')?.getBoundingClientRect();
+		const sceneElement = document.querySelector<HTMLElement>('[data-testid="combat-scene"]');
+		const categoryRects = [...document.querySelectorAll<HTMLElement>('[data-testid^="battle-card-filter-"]')].map((filter) =>
+			filter.getBoundingClientRect(),
+		);
+		const battlefieldRect = document.querySelector<HTMLElement>('[data-testid="battlefield"]')?.getBoundingClientRect();
+		const statusRect = document.querySelector<HTMLElement>('[data-testid="battle-status"]')?.getBoundingClientRect();
+		const partyAndEnemyRects = [...document.querySelectorAll<HTMLElement>('.battle-party-member, .battle-enemy')].map((entity) =>
+			entity.getBoundingClientRect(),
+		);
+		const enemyRects = [...document.querySelectorAll<HTMLElement>('.battle-enemy')].map((enemy) => enemy.getBoundingClientRect());
+		const partyRects = [...document.querySelectorAll<HTMLElement>('.battle-party-member')].map((partyMember) =>
+			partyMember.getBoundingClientRect(),
+		);
+		const fanOffsets = cards.map((card) => Number.parseFloat(card.style.getPropertyValue('--fan-offset')));
+		const fanRotations = cards.map((card) => Number.parseFloat(card.style.getPropertyValue('--fan-rotation')));
+		const fanDrops = cards.map((card) => Number.parseFloat(card.style.getPropertyValue('--fan-drop')));
+		const intersectsSideFormation = partyAndEnemyRects.some((entityRect) =>
+			cardRects.some(
+				(cardRect) =>
+					cardRect.left < entityRect.right &&
+					cardRect.right > entityRect.left &&
+					cardRect.top < entityRect.bottom &&
+					cardRect.bottom > entityRect.top,
+			),
+		);
+		const intersectsEnemy = (rectA: DOMRect, rectB: DOMRect) =>
+			rectA.left < rectB.right && rectA.right > rectB.left && rectA.top < rectB.bottom && rectA.bottom > rectB.top;
+		const categoriesIntersectEnemies = categoryRects.some((categoryRect) =>
+			enemyRects.some((enemyRect) => intersectsEnemy(categoryRect, enemyRect)),
+		);
+		const categoriesStayInsideHand = categoryRects.every(
+			(categoryRect) =>
+				handColumnRect !== undefined && categoryRect.left >= handColumnRect.left - 1 && categoryRect.right <= handColumnRect.right + 1,
+		);
+		return {
+			fanTop: Math.round(Math.min(...cardRects.map((rect) => rect.top))),
+			fanBottom: Math.round(Math.max(...cardRects.map((rect) => rect.bottom))),
+			overlaps,
+			intersectsSideFormation,
+			queueLeft: queueRect ? Math.round(queueRect.left) : null,
+			queueRight: queueRect ? Math.round(queueRect.right) : null,
+			queueCenter: queueRect ? Math.round((queueRect.left + queueRect.right) / 2) : null,
+			handCenter: handColumnRect ? Math.round((handColumnRect.left + handColumnRect.right) / 2) : null,
+			categoriesIntersectEnemies,
+			categoriesStayInsideHand,
+			innerFrameRemoved: sceneElement ? getComputedStyle(sceneElement, '::before').content === 'none' : false,
+			handLeft: Math.round(fanRect.left),
+			fanWidth: Math.round(fanRect.width),
+			battlefieldTop: battlefieldRect ? Math.round(battlefieldRect.top) : null,
+			battlefieldBottom: battlefieldRect ? Math.round(battlefieldRect.bottom) : null,
+			statusBottom: statusRect ? Math.round(statusRect.bottom) : null,
+			partyTop: partyRects.length > 0 ? Math.round(Math.min(...partyRects.map((rect) => rect.top))) : null,
+			partyBottom: partyRects.length > 0 ? Math.round(Math.max(...partyRects.map((rect) => rect.bottom))) : null,
+			viewportHeight: window.innerHeight,
+			fanCardCount: cards.length,
+			firstFanOffset: fanOffsets[0] ?? 0,
+			lastFanOffset: fanOffsets.at(-1) ?? 0,
+			firstFanRotation: fanRotations[0] ?? 0,
+			lastFanRotation: fanRotations.at(-1) ?? 0,
+			firstFanDrop: fanDrops[0] ?? 0,
+			centerFanDrop: fanDrops[Math.floor((fanDrops.length - 1) / 2)] ?? 0,
+			lastFanDrop: fanDrops.at(-1) ?? 0,
+		};
+	});
+	expect(viewportMetrics.fanTop).toBeGreaterThanOrEqual(0);
+	expect(viewportMetrics.fanBottom).toBeLessThanOrEqual(viewportMetrics.viewportHeight);
+	expect(viewportMetrics.overlaps).toBe(true);
+	expect(viewportMetrics.intersectsSideFormation).toBe(false);
+	expect(viewportMetrics.queueCenter).toBe(viewportMetrics.handCenter);
+	expect(viewportMetrics.categoriesIntersectEnemies).toBe(false);
+	expect(viewportMetrics.categoriesStayInsideHand).toBe(true);
+	expect(viewportMetrics.innerFrameRemoved).toBe(true);
+	expect(viewportMetrics.fanWidth).toBeGreaterThan(0);
+	if (viewportMetrics.fanCardCount > 2) {
+		expect(viewportMetrics.firstFanDrop).toBeCloseTo(viewportMetrics.lastFanDrop, 5);
+		expect(viewportMetrics.firstFanDrop).toBeGreaterThan(viewportMetrics.centerFanDrop);
+	}
+	expect(viewportMetrics.partyTop).toBeGreaterThanOrEqual((viewportMetrics.battlefieldTop ?? 0) - 1);
+	expect(viewportMetrics.partyTop).toBeGreaterThanOrEqual((viewportMetrics.statusBottom ?? 0) - 1);
+	expect(viewportMetrics.partyBottom).toBeLessThanOrEqual((viewportMetrics.battlefieldBottom ?? Number.POSITIVE_INFINITY) + 1);
+	expect(viewportMetrics.firstFanOffset + viewportMetrics.lastFanOffset).toBeCloseTo(0, 5);
+	expect(viewportMetrics.firstFanRotation + viewportMetrics.lastFanRotation).toBeCloseTo(0, 5);
 	await expect(page.getByTestId('battle-enemy').first()).toContainText('Wolf');
 	await expect(page.getByTestId('battle-party-member').first()).toContainText('Hero');
 	await expect
@@ -341,25 +434,237 @@ test('submits a combat action and uses a field item', async ({ page, request }) 
 		)
 		.toBe(1);
 	await expect(page.getByTestId('battle-enemy').first().locator('.battle-enemy-art')).toHaveCSS('background-size', '300% 300%');
-	await expect(page.getByTestId('combat-scene').locator('.battle-command-ribbon')).toContainText('Commanding');
-	await expect(page.getByTestId('daily-command-center')).toContainText('Your command is needed');
-	await expect(page.getByTestId('combat-scene').getByTestId('gameplay-mechanics')).toContainText('Momentum');
-	await page.getByTestId('battle-action-signature').click();
-	await page.getByTestId('battle-item-target').selectOption('user-2');
-	await page.getByTestId('battle-save-command').click();
+	await expect(page.getByTestId('combat-scene').getByRole('heading', { name: 'Battle encounter' })).toBeAttached();
+	await expect(page.getByTestId('combat-scene').getByText('Hold the line together.')).toHaveCount(0);
+	await expect(page.getByTestId('daily-command-center')).toContainText('Your card plan is needed');
+	await expect(page.getByTestId('combat-scene').getByTestId('gameplay-mechanics')).toHaveCount(0);
+	await expect(page.getByTestId('battle-deck-toggle')).toHaveCount(0);
+	await expect(page.getByTestId('battle-play-queue')).toHaveAttribute('data-queue-state', 'collapsed');
+	await expect(page.getByTestId('battle-command-tray')).toContainText('0/3');
+	await expect(page.getByTestId('battle-card-class-basic-attack')).toContainText('Damage 5');
+	await page.getByTestId('battle-card-filter-class').click();
+	await expect(page.getByTestId('battle-card-filter-class')).toHaveAttribute('aria-selected', 'true');
+	await expect(page.getByTestId('battle-card-item-herb')).toHaveCount(0);
+	await page.getByTestId('battle-card-filter-all').click();
+	await cardFan.scrollIntoViewIfNeeded();
+	const scrollBeforeCardSelect = await page.evaluate(() => window.scrollY);
+	const shieldWall = page.getByTestId('battle-card-class-shield-wall');
+	await shieldWall.evaluate((card) => (card as HTMLButtonElement).click());
+	await expect(shieldWall).toContainText('Guard 4');
+	await expect(page.getByTestId('battle-card-preview-detail')).toContainText('Guard 4');
+	await expect(shieldWall).toHaveAttribute('data-queued', 'true');
+	await expect(shieldWall).toHaveAttribute('data-queued-order', '1');
+	await expect(shieldWall.locator('.battle-fan-card-queued-badge')).toContainText('1');
+	await expect(page.getByTestId('battle-queued-card-1')).toHaveAttribute('data-card-key', 'class:shield-wall');
+	await expect(page.getByTestId('battle-queued-card-1')).toHaveAttribute('data-category', 'class');
+	await expect(page.getByTestId('battle-play-queue')).toHaveAttribute('data-queue-state', 'expanded');
+	expect(await page.evaluate(() => window.scrollY)).toBe(scrollBeforeCardSelect);
+	await page.getByTestId('battle-queued-card-1').evaluate((card) => (card as HTMLButtonElement).click());
+	await expect(page.getByTestId('battle-play-queue')).toContainText('Plan · 0/3');
+	expect(await page.evaluate(() => window.scrollY)).toBe(scrollBeforeCardSelect);
+	await page.getByTestId('battle-card-item-herb').evaluate((card) => (card as HTMLButtonElement).click());
+	const herbCard = page.getByTestId('battle-card-item-herb');
+	await expect(herbCard).toHaveAttribute('data-queued-count', '1');
+	await expect(page.getByTestId('battle-queued-card-1')).toHaveAttribute('data-category', 'item');
+	await page.getByTestId('battle-card-class-basic-attack').evaluate((card) => (card as HTMLButtonElement).click());
+	await page.getByTestId('battle-card-class-basic-attack').evaluate((card) => (card as HTMLButtonElement).click());
+	await expect(page.getByTestId('battle-card-class-basic-attack')).toHaveAttribute('data-queued-count', '2');
+	const queueFanMetrics = await page.evaluate(() => {
+		const scene = document.querySelector<HTMLElement>('[data-testid="combat-scene"]')?.getBoundingClientRect();
+		const queue = document.querySelector<HTMLElement>('[data-testid="battle-play-queue"]')?.getBoundingClientRect();
+		const handColumn = document.querySelector<HTMLElement>('.battle-hand-column')?.getBoundingClientRect();
+		const queueListElement = document.querySelector<HTMLElement>('.battle-play-queue-list');
+		const queueList = queueListElement?.getBoundingClientRect();
+		const lockPlan = document.querySelector<HTMLElement>('[data-testid="battle-save-plan"]')?.getBoundingClientRect();
+		const lockAction = document.querySelector<HTMLElement>('.battle-plan-action')?.getBoundingClientRect();
+		const queueListStyles = queueListElement ? getComputedStyle(queueListElement).overflow : null;
+		const cards = [...document.querySelectorAll<HTMLElement>('[data-testid^="battle-queued-card-"]')].map((card) =>
+			card.getBoundingClientRect(),
+		);
+		const cardWrappers = [...document.querySelectorAll<HTMLElement>('.battle-play-queue-list > div')];
+		const queueOffsets = cardWrappers.map((wrapper) => Number.parseFloat(getComputedStyle(wrapper).getPropertyValue('--queue-fan-offset')));
+		const queueRotations = cardWrappers.map((wrapper) =>
+			Number.parseFloat(getComputedStyle(wrapper).getPropertyValue('--queue-fan-rotation')),
+		);
+		const queueDrops = cardWrappers.map((wrapper) => Number.parseFloat(getComputedStyle(wrapper).getPropertyValue('--queue-fan-drop')));
+		return {
+			sceneLeft: scene?.left ?? 0,
+			queueWidth: queue?.width ?? 0,
+			queueCenter: queue ? (queue.left + queue.right) / 2 : 0,
+			handCenter: handColumn ? (handColumn.left + handColumn.right) / 2 : 0,
+			queueBottom: queue?.bottom ?? 0,
+			handTop: handColumn?.top ?? 0,
+			queueListTop: queueList?.top ?? 0,
+			queueListBottom: queueList?.bottom ?? 0,
+			lockWidth: lockPlan?.width ?? 0,
+			lockActionWidth: lockAction?.width ?? 0,
+			lockHeight: lockPlan?.height ?? 0,
+			queueListOverflow: queueListStyles,
+			cardsInsideScene:
+				Boolean(scene) && cards.every((card) => card.top >= (scene?.top ?? 0) + 1 && card.bottom <= (scene?.bottom ?? 0) - 1),
+			lockActionRight: lockAction?.right ?? 0,
+			firstCardLeft: cards[0]?.left ?? 0,
+			cardBottom: cards.length > 0 ? Math.max(...cards.map((card) => card.bottom)) : 0,
+			overlaps: cards.slice(1).some((card, index) => card.left < cards[index].right - 2),
+			firstOffset: queueOffsets[0] ?? 0,
+			lastOffset: queueOffsets.at(-1) ?? 0,
+			firstRotation: queueRotations[0] ?? 0,
+			lastRotation: queueRotations.at(-1) ?? 0,
+			queueCardCount: cardWrappers.length,
+			firstDrop: queueDrops[0] ?? 0,
+			centerDrop: queueDrops[Math.floor((queueDrops.length - 1) / 2)] ?? 0,
+			lastDrop: queueDrops.at(-1) ?? 0,
+		};
+	});
+	expect(queueFanMetrics.overlaps).toBe(true);
+	expect(queueFanMetrics.queueCenter).toBeCloseTo(queueFanMetrics.handCenter, 0);
+	expect(queueFanMetrics.queueBottom).toBeLessThanOrEqual(queueFanMetrics.handTop + 1);
+	expect(queueFanMetrics.firstOffset + queueFanMetrics.lastOffset).toBeCloseTo(0, 5);
+	expect(queueFanMetrics.firstRotation + queueFanMetrics.lastRotation).toBeCloseTo(0, 5);
+	if (queueFanMetrics.queueCardCount > 2) {
+		expect(queueFanMetrics.firstDrop).toBeCloseTo(queueFanMetrics.lastDrop, 5);
+		expect(queueFanMetrics.firstDrop).toBeGreaterThan(queueFanMetrics.centerDrop);
+	}
+	expect(queueFanMetrics.firstCardLeft).toBeGreaterThanOrEqual(queueFanMetrics.sceneLeft + 12);
+	expect(queueFanMetrics.lockWidth).toBeLessThan(queueFanMetrics.queueWidth);
+	expect(queueFanMetrics.lockActionWidth - queueFanMetrics.lockWidth).toBeLessThan(32);
+	expect(queueFanMetrics.lockHeight).toBeLessThan(40);
+	expect(queueFanMetrics.queueListOverflow).toBe('visible');
+	expect(queueFanMetrics.cardsInsideScene).toBe(true);
+	expect(queueFanMetrics.queueBottom - queueFanMetrics.cardBottom).toBeLessThan(48);
+	expect(queueFanMetrics.lockActionRight).toBeGreaterThan(0);
+	expect(await page.evaluate(() => window.scrollY)).toBe(scrollBeforeCardSelect);
+	await page.getByTestId('battle-save-plan').click();
 	await expect
 		.poll(async () => lastMutation(request))
 		.toEqual({
-			path: '/api/v1/parties/party-1/encounter/actions/me',
-			body: { actionKey: 'shield-wall', targetEnemyId: 'enemy-1', targetUserId: null },
+			path: '/api/v1/parties/party-1/encounter/plan/me',
+			body: {
+				itemLoadoutKeys: ['herb'],
+				plays: [
+					{ cardKey: 'item:herb', targetEnemyId: null, targetUserId: 'user-1' },
+					{ cardKey: 'class:basic-attack', targetEnemyId: 'enemy-1', targetUserId: null },
+					{ cardKey: 'class:basic-attack', targetEnemyId: 'enemy-1', targetUserId: null },
+				],
+			},
 		});
-	await expect(page.getByTestId('battle-status')).toContainText(/command is locked in/i);
+	await expect(page.getByTestId('battle-status')).toContainText(/plan is locked in/i);
 
-	await page.getByTestId('battle-action-basic').click();
-	await expect(page.getByTestId('battle-status')).toContainText(/review your changes and save/i);
+	await page.getByTestId('battle-queued-card-1').click();
+	await expect(page.getByTestId('battle-status')).toContainText(/review your cards and save/i);
+});
 
-	await page.getByRole('button', { name: /Use item/i }).click();
-	await expect(page.getByText(/Restored 10 health for Mira/i)).toBeVisible();
+test('keeps the selected fan and lock action inside a phone battle viewport', async ({ page, request }) => {
+	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'combat' } });
+	await page.setViewportSize({ width: 390, height: 844 });
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	const combatScene = page.getByTestId('combat-scene');
+	await combatScene.scrollIntoViewIfNeeded();
+	await page.getByTestId('battle-card-class-shield-wall').click();
+	await page.getByTestId('battle-card-item-herb').click();
+	await page.getByTestId('battle-card-class-basic-attack').click();
+
+	const metrics = await page.evaluate(() => {
+		const scene = document.querySelector<HTMLElement>('[data-testid="combat-scene"]')?.getBoundingClientRect();
+		const queue = document.querySelector<HTMLElement>('[data-testid="battle-play-queue"]')?.getBoundingClientRect();
+		const handColumn = document.querySelector<HTMLElement>('.battle-hand-column')?.getBoundingClientRect();
+		const queueHeadingElement = document.querySelector<HTMLElement>('.battle-play-queue-heading');
+		const queueHeading = queueHeadingElement?.getBoundingClientRect();
+		const queueHeadingPaddingLeft = queueHeadingElement ? Number.parseFloat(getComputedStyle(queueHeadingElement).paddingLeft) : 0;
+		const action = document.querySelector<HTMLElement>('.battle-plan-action')?.getBoundingClientRect();
+		const lock = document.querySelector<HTMLElement>('[data-testid="battle-save-plan"]')?.getBoundingClientRect();
+		const sceneElement = document.querySelector<HTMLElement>('[data-testid="combat-scene"]');
+		const handViewport = document.querySelector<HTMLElement>('.battle-card-hand-viewport')?.getBoundingClientRect();
+		const queueListElement = document.querySelector<HTMLElement>('.battle-play-queue-list');
+		const queueList = queueListElement?.getBoundingClientRect();
+		const targetNote = document.querySelector<HTMLElement>('.battle-fan-target-note')?.getBoundingClientRect();
+		const cards = [...document.querySelectorAll<HTMLElement>('[data-testid^="battle-queued-card-"]')].map((card) =>
+			card.getBoundingClientRect(),
+		);
+		const handCards = [...document.querySelectorAll<HTMLElement>('.battle-fan-card')].map((card) => card.getBoundingClientRect());
+		const badges = [...document.querySelectorAll<HTMLElement>('.battle-fan-card-queued-badge')].map((badge) =>
+			badge.getBoundingClientRect(),
+		);
+		const queueListOverflow = queueListElement ? getComputedStyle(queueListElement).overflow : null;
+		const categoryRects = [...document.querySelectorAll<HTMLElement>('[data-testid^="battle-card-filter-"]')].map((filter) =>
+			filter.getBoundingClientRect(),
+		);
+		const enemyRects = [...document.querySelectorAll<HTMLElement>('.battle-enemy')].map((enemy) => enemy.getBoundingClientRect());
+		const intersects = (rectA: DOMRect, rectB: DOMRect) =>
+			rectA.left < rectB.right && rectA.right > rectB.left && rectA.top < rectB.bottom && rectA.bottom > rectB.top;
+		return {
+			viewportWidth: window.innerWidth,
+			documentWidth: document.documentElement.scrollWidth,
+			sceneLeft: scene?.left ?? 0,
+			sceneRight: scene?.right ?? 0,
+			sceneBottom: scene?.bottom ?? 0,
+			queueLeft: queue?.left ?? 0,
+			queueRight: queue?.right ?? 0,
+			queueCenter: queue ? (queue.left + queue.right) / 2 : 0,
+			handCenter: handColumn ? (handColumn.left + handColumn.right) / 2 : 0,
+			queueTop: queue?.top ?? 0,
+			queueBottom: queue?.bottom ?? 0,
+			handColumnTop: handColumn?.top ?? 0,
+			queueHeadingLeft: (queueHeading?.left ?? 0) + queueHeadingPaddingLeft,
+			actionRight: action?.right ?? 0,
+			actionTop: action?.top ?? 0,
+			actionBottom: action?.bottom ?? 0,
+			lockLeft: lock?.left ?? 0,
+			lockRight: lock?.right ?? 0,
+			lockWidth: lock?.width ?? 0,
+			actionWidth: action?.width ?? 0,
+			lockBottom: lock?.bottom ?? 0,
+			innerFrameRemoved: sceneElement ? getComputedStyle(sceneElement, '::before').content === 'none' : false,
+			queueListOverflow,
+			cardsInsideScene:
+				Boolean(scene) && cards.every((card) => card.top >= (scene?.top ?? 0) + 1 && card.bottom <= (scene?.bottom ?? 0) - 1),
+			handViewportLeft: handViewport?.left ?? 0,
+			handViewportTop: handViewport?.top ?? 0,
+			handViewportBottom: handViewport?.bottom ?? 0,
+			queueListTop: queueList?.top ?? 0,
+			queueListBottom: queueList?.bottom ?? 0,
+			targetNoteBottom: targetNote?.bottom ?? 0,
+			cards,
+			handCards,
+			badges,
+			categoriesIntersectEnemies: categoryRects.some((categoryRect) => enemyRects.some((enemyRect) => intersects(categoryRect, enemyRect))),
+		};
+	});
+	expect(metrics.documentWidth).toBeLessThanOrEqual(metrics.viewportWidth);
+	expect(metrics.queueLeft).toBeGreaterThanOrEqual(metrics.sceneLeft - 1);
+	expect(metrics.queueRight).toBeLessThanOrEqual(metrics.sceneRight + 1);
+	expect(metrics.actionRight).toBeLessThanOrEqual(metrics.sceneRight - 6);
+	expect(metrics.actionBottom).toBeLessThanOrEqual(metrics.sceneBottom - 6);
+	expect(metrics.lockLeft).toBeGreaterThanOrEqual(metrics.sceneLeft - 1);
+	expect(metrics.lockRight).toBeLessThanOrEqual(metrics.actionRight - 4);
+	expect(metrics.actionWidth - metrics.lockWidth).toBeLessThan(32);
+	expect(metrics.actionRight - metrics.lockRight).toBeGreaterThanOrEqual(0);
+	expect(metrics.actionRight - metrics.lockRight).toBeLessThan(32);
+	expect(metrics.lockBottom).toBeLessThanOrEqual(metrics.actionBottom - 4);
+	expect(metrics.innerFrameRemoved).toBe(true);
+	expect(metrics.queueListOverflow).toBe('visible');
+	expect(metrics.cardsInsideScene).toBe(true);
+	expect(metrics.queueCenter).toBeCloseTo(metrics.handCenter, 0);
+	expect(metrics.queueBottom).toBeLessThanOrEqual(metrics.handColumnTop + 1);
+	expect(metrics.categoriesIntersectEnemies).toBe(false);
+	expect(metrics.targetNoteBottom).toBeLessThanOrEqual(metrics.actionTop + 1);
+	for (const card of metrics.cards) {
+		expect(card.left).toBeGreaterThanOrEqual(metrics.sceneLeft + 12);
+		expect(card.right).toBeLessThanOrEqual(metrics.sceneRight - 7);
+		expect(card.top).toBeGreaterThanOrEqual(metrics.queueTop - 1);
+		expect(card.bottom).toBeLessThanOrEqual(metrics.queueBottom + 2);
+	}
+	for (const card of metrics.handCards) {
+		expect(card.top).toBeGreaterThanOrEqual(metrics.handViewportTop - 1);
+		expect(card.bottom).toBeLessThanOrEqual(metrics.handViewportBottom + 1);
+	}
+	for (const badge of metrics.badges) {
+		expect(badge.top).toBeGreaterThanOrEqual(metrics.handViewportTop - 1);
+		expect(badge.bottom).toBeLessThanOrEqual(metrics.handViewportBottom + 1);
+	}
+	expect(metrics.queueHeadingLeft).toBeGreaterThanOrEqual(metrics.sceneLeft + 12);
 });
 
 test('uses a consumable from the kit on a selected party member', async ({ page, request }) => {

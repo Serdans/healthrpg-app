@@ -29,9 +29,9 @@ function InventoryPage() {
 	const unequipMutation = useUnequipLoadout();
 	const activeParties = partiesQuery.data?.filter((party) => party.status === 'active') ?? [];
 	const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null);
-	const activeParty = activeParties.find((party) => party.id === selectedPartyId) ?? activeParties.at(0);
-	const activePartyId = activeParty?.id ?? '';
-	const rosterQuery = usePartyRoster(activePartyId, Boolean(activePartyId));
+	const activeParty = activeParties.find((party) => party.id === selectedPartyId) ?? activeParties.at(0) ?? null;
+	const activePartyId = activeParty?.id ?? null;
+	const rosterQuery = usePartyRoster(activePartyId);
 	const itemUseMutation = useUsePartyItem(activePartyId);
 	const [status, setStatus] = useState<string | null>(null);
 
@@ -77,7 +77,7 @@ function InventoryPage() {
 			inventory={inventory}
 			loadout={loadout}
 			activeParties={activeParties.map((party) => ({ id: party.id, name: party.name }))}
-			selectedPartyId={activePartyId || null}
+			selectedPartyId={activePartyId}
 			roster={rosterQuery.data ?? null}
 			partyLoading={rosterQuery.isPending}
 			partyError={rosterQuery.error}

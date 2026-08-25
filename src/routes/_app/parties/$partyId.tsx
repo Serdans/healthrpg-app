@@ -62,7 +62,7 @@ function PartyDashboard() {
 	const dailyQuery = useDailyProgress(partyId);
 	const rosterQuery = usePartyRoster(partyId);
 	const recapQuery = usePartyRecap(partyId);
-	const currentNodeId = partyQuery.data?.currentNode.id ?? '';
+	const currentNodeId = partyQuery.data?.currentNode.id ?? null;
 	const currentEventType = partyQuery.data?.currentNode.config.event?.eventType;
 	const isCombat = currentEventType === 'combat';
 	const isVillage = currentEventType === 'village';
@@ -136,6 +136,7 @@ function PartyDashboard() {
 				data: encounterQuery.data,
 				isLoading: encounterQuery.isPending,
 				hasError: encounterQuery.isError,
+				isBoss: currentMapNode?.mapMetadata.role === 'boss',
 			}
 		: hasBranchDecision
 			? {
@@ -233,7 +234,6 @@ function PartyDashboard() {
 					userId={user.id}
 					timeZone={user.timezone}
 					party={party}
-					daily={daily}
 					map={map}
 					readOnly={readOnly}
 					isCombat={isCombat}

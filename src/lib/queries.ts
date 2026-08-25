@@ -38,7 +38,7 @@ import {
 	revokeInvite,
 	releaseDungeonNavigator,
 	setDungeonRouteIntent,
-	setEncounterAction,
+	setEncounterPlan,
 	startVillageDeparture,
 	syncHealth,
 	transferLeadership,
@@ -67,13 +67,13 @@ export const queryKeys = {
 	inventory: ['inventory'] as const,
 	loadout: ['loadout'] as const,
 	party: (partyId: string) => ['party', partyId] as const,
-	partyRoster: (partyId: string) => ['party-roster', partyId] as const,
+	partyRoster: (partyId: string | null) => ['party-roster', partyId] as const,
 	partyRecap: (partyId: string) => ['party-recap', partyId] as const,
 	map: (partyId: string) => ['party-map', partyId] as const,
 	adventure: (partyId: string) => ['party-adventure', partyId] as const,
 	dailyRoot: ['party-daily'] as const,
 	daily: (partyId: string) => ['party-daily', partyId] as const,
-	votes: (partyId: string, nodeId: string) => ['party-votes', partyId, nodeId] as const,
+	votes: (partyId: string, nodeId: string | null) => ['party-votes', partyId, nodeId] as const,
 	event: (partyId: string) => ['party-event', partyId] as const,
 	village: (partyId: string) => ['party-village', partyId] as const,
 	encounter: (partyId: string) => ['party-encounter', partyId] as const,
@@ -133,11 +133,16 @@ export function useParty(partyId: string) {
 	});
 }
 
-export function usePartyRoster(partyId: string, enabled = true) {
+function requirePartyId(partyId: string | null): string {
+	if (partyId === null) throw new Error('An active party is required.');
+	return partyId;
+}
+
+export function usePartyRoster(partyId: string | null, enabled = true) {
 	return useQuery({
 		queryKey: queryKeys.partyRoster(partyId),
-		queryFn: () => getPartyRoster(partyId),
-		enabled: enabled && Boolean(partyId),
+		queryFn: () => getPartyRoster(requirePartyId(partyId)),
+		enabled: enabled && partyId !== null,
 		refetchInterval: partyRefreshInterval,
 		refetchIntervalInBackground: false,
 	});
@@ -326,11 +331,14 @@ export function useDailyProgress(partyId: string) {
 	});
 }
 
-export function usePartyVotes(partyId: string, nodeId: string, enabled: boolean) {
+export function usePartyVotes(partyId: string, nodeId: string | null, enabled: boolean) {
 	return useQuery({
 		queryKey: queryKeys.votes(partyId, nodeId),
-		queryFn: () => getVotes(partyId, nodeId),
-		enabled,
+		queryFn: () => {
+			if (nodeId === null) throw new Error('A current node is required.');
+			return getVotes(partyId, nodeId);
+		},
+		enabled: enabled && nodeId !== null,
 		retry: false,
 		refetchInterval: enabled ? decisionRefreshInterval : false,
 		refetchIntervalInBackground: false,
@@ -487,10 +495,10 @@ export function useStartVillageDeparture(partyId: string) {
 	});
 }
 
-export function useSetEncounterAction(partyId: string) {
+export function useSetEncounterPlan(partyId: string) {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: setEncounterAction.bind(null, partyId),
+		mutationFn: setEncounterPlan.bind(null, partyId),
 		onSuccess: (encounter) => {
 			queryClient.setQueryData(queryKeys.encounter(partyId), encounter);
 			void queryClient.invalidateQueries({ queryKey: queryKeys.inventory });
@@ -502,11 +510,12 @@ export function useSetEncounterAction(partyId: string) {
 	});
 }
 
-export function useUsePartyItem(partyId: string) {
+export function useUsePartyItem(partyId: string | null) {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: usePartyItem.bind(null, partyId),
+		mutationFn: (input: Parameters<typeof usePartyItem>[1]) => usePartyItem(requirePartyId(partyId), input),
 		onSuccess: () => {
+			if (partyId === null) return;
 			void queryClient.invalidateQueries({ queryKey: queryKeys.inventory });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.encounter(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });
@@ -581,10 +590,13 @@ export function useRevokeInvite(partyId: string) {
 	});
 }
 
-export function useCastVote(partyId: string, nodeId: string) {
+export function useCastVote(partyId: string, nodeId: string | null) {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: (edgeId: string) => castVote(partyId, nodeId, edgeId),
+		mutationFn: (edgeId: string) => {
+			if (nodeId === null) throw new Error('A current node is required.');
+			return castVote(partyId, nodeId, edgeId);
+		},
 		onSuccess: (vote) => {
 			queryClient.setQueryData(queryKeys.votes(partyId, nodeId), vote);
 			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });

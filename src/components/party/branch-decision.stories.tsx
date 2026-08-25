@@ -40,6 +40,7 @@ const map: PartyMap = {
 				spawnArchetype: null,
 			},
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'lantern-road',
@@ -62,6 +63,7 @@ const map: PartyMap = {
 				spawnArchetype: null,
 			},
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'old-ruins',
@@ -84,6 +86,7 @@ const map: PartyMap = {
 				spawnArchetype: null,
 			},
 			discovered: true,
+			encounterCleared: false,
 		},
 	],
 	edges: [

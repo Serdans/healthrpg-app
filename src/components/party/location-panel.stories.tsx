@@ -53,6 +53,7 @@ const dungeonMap: PartyMap = {
 			config: null,
 			mapMetadata: metadata('map-ruins', 'dungeon-entry', 0, 'entrance', 0, true),
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'dungeon-puzzle',
@@ -64,6 +65,7 @@ const dungeonMap: PartyMap = {
 			config: null,
 			mapMetadata: metadata('map-ruins', 'dungeon-puzzle', 1, 'puzzle', 1),
 			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'dungeon-goal',
@@ -75,6 +77,7 @@ const dungeonMap: PartyMap = {
 			config: null,
 			mapMetadata: metadata('map-ruins', 'dungeon-goal', 2, 'goal', 2),
 			discovered: true,
+			encounterCleared: false,
 		},
 	],
 	edges: [
@@ -131,6 +134,7 @@ const villageInteriorMap: PartyMap = {
 			config: null,
 			mapMetadata: metadata('map-village', 'village-hub', 0, 'hub', 0, true),
 			discovered: true,
+			encounterCleared: false,
 		},
 	],
 	edges: [],

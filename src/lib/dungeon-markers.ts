@@ -1,4 +1,5 @@
-import type { DungeonGridTileKind } from './dungeon-grid';
+import { DUNGEON_TILE_KINDS } from './dungeon-grid';
+import type { DungeonGridTile, DungeonGridTileKind } from './dungeon-grid';
 import type { DungeonPropTextureName } from './dungeon-props';
 
 export type DungeonMarkerRole = 'navigation' | 'objective' | 'resource' | 'recovery' | 'encounter' | 'entrance' | 'passage';
@@ -14,7 +15,7 @@ export interface DungeonMarkerPresentation {
 const PRESENTATION: Record<DungeonGridTileKind, DungeonMarkerPresentation> = {
 	entry: {
 		label: 'Dungeon entrance',
-		description: 'The route back to the overworld when the party is ready to leave.',
+		description: 'The expedition’s starting landmark and route back to the overworld.',
 		role: 'entrance',
 		propName: 'entry-gate',
 		visible: true,
@@ -62,15 +63,15 @@ const PRESENTATION: Record<DungeonGridTileKind, DungeonMarkerPresentation> = {
 		visible: true,
 	},
 	goal: {
-		label: 'Mission objective',
-		description: 'Reach this landmark to resolve the current dungeon mission.',
+		label: 'Mission exit',
+		description: 'Reach this landmark to complete the mission and return to the overworld after resolution.',
 		role: 'objective',
 		propName: 'objective-beacon',
 		visible: true,
 	},
 	boss: {
-		label: 'Boss encounter',
-		description: 'A powerful optional enemy guards this tile.',
+		label: 'Optional boss',
+		description: 'A powerful optional enemy waits here. Save a card plan to engage it.',
 		role: 'encounter',
 		propName: 'boss-rune',
 		visible: true,
@@ -81,4 +82,16 @@ export function dungeonMarkerPresentation(kind: DungeonGridTileKind): DungeonMar
 	return PRESENTATION[kind];
 }
 
-export const DUNGEON_LEGEND_KINDS: readonly DungeonGridTileKind[] = ['goal', 'stairs-down', 'stairs-up', 'rest', 'treasure', 'spawn'];
+export function dungeonMarkerPresentationForTile(tile: Pick<DungeonGridTile, 'kind' | 'node'>): DungeonMarkerPresentation {
+	const presentation = dungeonMarkerPresentation(tile.kind);
+	if (!tile.node.encounterCleared || (tile.kind !== 'spawn' && tile.kind !== 'boss')) return presentation;
+	return {
+		...presentation,
+		label: 'Cleared encounter',
+		description: 'The party has already cleared this encounter. The passage is safe to cross.',
+		propName: null,
+		visible: false,
+	};
+}
+
+export const DUNGEON_LEGEND_KINDS: readonly DungeonGridTileKind[] = DUNGEON_TILE_KINDS.filter((kind) => PRESENTATION[kind].visible);

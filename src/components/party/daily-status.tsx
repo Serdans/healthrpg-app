@@ -45,7 +45,7 @@ export function DailyStatus({ daily, roster }: { daily: DailyProgress; roster?: 
 					<div className="daily-readiness-heading">
 						<div>
 							<p className="game-pixel-label">Traveler readiness</p>
-							<p>Momentum is shown per traveler; the Journey requirement is calculated for the party as a whole.</p>
+							<p>Momentum is shown per traveler; the Travel requirement is calculated for the party as a whole.</p>
 						</div>
 						<Sparkles className="size-4" aria-hidden="true" />
 					</div>

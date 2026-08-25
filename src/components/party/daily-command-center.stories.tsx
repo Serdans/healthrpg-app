@@ -27,11 +27,11 @@ const daily: DailyProgress = {
 const state = (overrides: Partial<DailyLoopState>): DailyLoopState => ({
 	kind: 'command-required',
 	tone: 'combat',
-	badge: 'Your command is needed',
-	title: 'Choose one command for today’s encounter.',
-	description: 'Read the field, choose an action, and lock in your traveler’s move before the day closes.',
+	badge: 'Your card plan is needed',
+	title: 'Queue cards for today’s encounter.',
+	description: 'Read the field, queue cards, and lock in your traveler’s plan before the day closes.',
 	actionHref: '#party-action',
-	actionLabel: 'Choose a command',
+	actionLabel: 'Build card plan',
 	...overrides,
 });
 

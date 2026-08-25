@@ -6,7 +6,8 @@ import { createInteriorMapLayout, createInteriorMapTravel } from '#/lib/interior
 import type { InteriorMapLayout } from '#/lib/interior-map';
 import { createWorldMapLayout, createWorldMapTravel, getWorldMapTravelDirection } from '#/lib/world-map';
 
-type TestNode = Omit<PartyMap['nodes'][number], 'mapMetadata'>;
+type TestNode = Omit<PartyMap['nodes'][number], 'mapMetadata' | 'encounterCleared'> &
+	Partial<Pick<PartyMap['nodes'][number], 'encounterCleared'>>;
 type TestMap = Omit<
 	PartyMap,
 	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation'
@@ -32,6 +33,7 @@ function withMapDefaults(value: TestMap): PartyMap {
 		navigation: null,
 		nodes: value.nodes.map((item, index) => ({
 			...item,
+			encounterCleared: false,
 			discovered: true,
 			mapMetadata: {
 				mapId: 'overworld',
@@ -52,6 +54,7 @@ function withMapDefaults(value: TestMap): PartyMap {
 function node(id: string, regionNo: number, name = id): TestNode {
 	return {
 		discovered: true,
+		encounterCleared: false,
 		id,
 		chapterNo: 1,
 		regionNo,
@@ -78,6 +81,7 @@ function interiorNode(
 		nodeType,
 		templateKey: `${role}-v1`,
 		config: null,
+		encounterCleared: false,
 		mapMetadata: {
 			mapId: 'interior',
 			nodeId: id,

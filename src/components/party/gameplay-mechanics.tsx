@@ -11,53 +11,38 @@ function remaining(value: number, cost: number) {
 	return Math.max(0, cost - value);
 }
 
-export function GameplayMechanics({
-	daily,
-	currentMemberUserId,
-	compact = false,
-	showHelp = true,
-}: {
-	daily?: DailyProgress;
-	currentMemberUserId?: string;
-	compact?: boolean;
-	showHelp?: boolean;
-}) {
+export function GameplayMechanics({ daily, showHelp = true }: { daily?: DailyProgress; showHelp?: boolean }) {
 	const hasChallenge = Boolean(daily?.challengeCost);
-	const currentMember = currentMemberUserId ? daily?.members.find((member) => member.userId === currentMemberUserId) : undefined;
-	const journeyReady = daily ? daily.movementCost === 0 || daily.movementSatisfied : false;
+	const travelRequirementMet = daily ? daily.movementCost === 0 || daily.movementSatisfied : false;
 	const challengeCleared = daily ? daily.challengeCost === 0 || daily.challengeCleared : false;
 
 	return (
-		<section
-			className={`gameplay-mechanics ${compact ? 'gameplay-mechanics-compact' : ''}`}
-			aria-label="Adventure mechanics"
-			data-testid="gameplay-mechanics"
-		>
+		<section className="gameplay-mechanics" aria-label="Adventure mechanics" data-testid="gameplay-mechanics">
 			<div className="gameplay-mechanic-grid">
 				<div className="gameplay-mechanic gameplay-mechanic-momentum">
 					<div className="gameplay-mechanic-heading">
 						<Sparkles className="size-4" aria-hidden="true" />
-						<span className="game-pixel-label">Momentum</span>
+						<span className="game-pixel-label">Momentum · daily movement</span>
 					</div>
 					<strong>{daily ? daily.movementUnits : '—'}</strong>
-					<span>{daily ? 'today’s party readiness' : 'daily signal unavailable'}</span>
+					<span>{daily ? 'from today’s health signal' : 'daily signal unavailable'}</span>
 				</div>
 
 				<div className="gameplay-mechanic">
 					<div className="gameplay-mechanic-heading">
 						<Compass className="size-4" aria-hidden="true" />
-						<span className="game-pixel-label">Journey</span>
+						<span className="game-pixel-label">Travel requirement</span>
 					</div>
 					<strong>{daily ? (daily.movementCost > 0 ? `${daily.movementUnits} / ${daily.movementCost}` : 'Ready') : '—'}</strong>
 					{daily && daily.movementCost > 0 && (
-						<Progress value={percent(daily.movementUnits, daily.movementCost)} aria-label="Journey requirement" />
+						<Progress value={percent(daily.movementUnits, daily.movementCost)} aria-label="Travel requirement progress" />
 					)}
 					<span>
 						{!daily
 							? 'travel requirement unavailable'
 							: daily.movementCost === 0
 								? 'no travel required'
-								: journeyReady
+								: travelRequirementMet
 									? 'ready to travel'
 									: `needs ${remaining(daily.movementUnits, daily.movementCost)} more Momentum`}
 					</span>
@@ -78,16 +63,10 @@ export function GameplayMechanics({
 				)}
 			</div>
 
-			{currentMemberUserId && daily && (
-				<p className="gameplay-mechanics-note" role="status">
-					<strong>{currentMember?.movementUnits ? 'Ready to act today.' : 'No Momentum recorded for this traveler today.'}</strong> Each
-					traveler chooses one command; Momentum determines whether that command can resolve.
-				</p>
-			)}
-
-			{!compact && showHelp && (
+			{showHelp && (
 				<p className="gameplay-mechanics-help">
-					Momentum comes from today’s health signal. It powers daily commands and helps meet the Journey requirement
+					Momentum is daily movement from today’s health signal. It determines each traveler’s card slots and helps the party meet the
+					Travel requirement
 					{hasChallenge ? ', while contributing to the active Challenge.' : '.'}
 				</p>
 			)}

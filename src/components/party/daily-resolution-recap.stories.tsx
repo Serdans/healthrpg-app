@@ -104,11 +104,11 @@ export const OngoingCombat: Story = {
 							{
 								userId: 'user-1',
 								displayName: 'Hero',
-								actionKey: null,
-								actionName: 'Basic attack',
+								classKey: 'warrior',
+								cards: [{ key: 'class:basic-attack', displayName: 'Basic Attack' }],
 								healthBefore: 20,
 								recovery: 4,
-								actionHealing: 0,
+								cardHealing: 0,
 								damageTaken: 2,
 								healthAfter: 22,
 								maxHealth: 30,
@@ -117,6 +117,7 @@ export const OngoingCombat: Story = {
 						enemies: [
 							{
 								id: 'enemy-1',
+								archetypeKey: 'wolf',
 								displayName: 'Wolf',
 								healthBefore: 12,
 								damageTaken: 4,
@@ -151,6 +152,7 @@ export const CompletedCombat: Story = {
 						enemies: [
 							{
 								id: 'enemy-1',
+								archetypeKey: 'wolf',
 								displayName: 'Wolf',
 								healthBefore: 12,
 								damageTaken: 12,
@@ -180,6 +182,7 @@ export const MultipleEncounters: Story = {
 						enemies: [
 							{
 								id: 'slime-1',
+								archetypeKey: 'slime',
 								displayName: 'Slime',
 								healthBefore: 8,
 								damageTaken: 8,
@@ -195,6 +198,7 @@ export const MultipleEncounters: Story = {
 						enemies: [
 							{
 								id: 'bat-1',
+								archetypeKey: 'bat',
 								displayName: 'Cave Bat',
 								healthBefore: 12,
 								damageTaken: 12,

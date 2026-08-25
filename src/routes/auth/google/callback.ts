@@ -26,10 +26,11 @@ export const Route = createFileRoute('/auth/google/callback')({
 		handlers: {
 			GET: async ({ request }) => {
 				try {
+					const cookie = request.headers.get('Cookie');
 					const upstream = await fetch(backendCallbackUrl(request), {
 						headers: {
-							Cookie: request.headers.get('Cookie') ?? '',
 							Accept: 'application/json',
+							...(cookie === null ? {} : { Cookie: cookie }),
 						},
 					});
 					if (!upstream.ok) return redirectToLogin(request);

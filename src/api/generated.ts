@@ -2332,6 +2332,7 @@ export interface paths {
                                     spawnArchetype: string | null;
                                 };
                                 discovered: boolean;
+                                encounterCleared: boolean;
                             }[];
                             edges: {
                                 id: string;
@@ -4048,17 +4049,21 @@ export interface paths {
                                     members: {
                                         userId: string;
                                         displayName: string;
-                                        actionKey: ("shield-wall" | "ambush" | "volley" | "mend" | "arcane-burst" | "rally") | null;
-                                        actionName: string;
+                                        classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
+                                        cards: {
+                                            key: string;
+                                            displayName: string;
+                                        }[];
                                         healthBefore: number;
                                         recovery: number;
-                                        actionHealing: number;
+                                        cardHealing: number;
                                         damageTaken: number;
                                         healthAfter: number;
                                         maxHealth: number;
                                     }[];
                                     enemies: {
                                         id: string;
+                                        archetypeKey: string;
                                         displayName: string;
                                         healthBefore: number;
                                         damageTaken: number;
@@ -5982,17 +5987,43 @@ export interface paths {
                                 currentHealth: number;
                                 maxHealth: number;
                                 classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
-                                signatureAction: {
-                                    key: "shield-wall" | "ambush" | "volley" | "mend" | "arcane-burst" | "rally";
+                                movementUnits: number;
+                                playSlots: number;
+                                cards: {
+                                    key: string;
+                                    sourceKind: "class" | "weapon" | "gear" | "item";
+                                    sourceKey: string;
+                                    classKey: ("warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard") | null;
+                                    unlockLevel: number;
                                     displayName: string;
                                     description: string;
                                     targetMode: "enemy" | "ally" | "none";
+                                    repeatable: boolean;
+                                    locked: boolean;
+                                    selectedCount: number;
+                                    preview: {
+                                        effects: {
+                                            kind: "damage" | "heal" | "guard" | "rally";
+                                            baseAmount: number;
+                                            manualTargetBonus: number | null;
+                                            rallyBonus: number | null;
+                                            targetCount: number | null;
+                                            distribution: "single" | "split" | null;
+                                        }[];
+                                    } | null;
+                                }[];
+                                plan: {
+                                    itemLoadoutKeys: string[];
+                                    plays: {
+                                        cardKey: string;
+                                        targetEnemyId: string | null;
+                                        targetUserId: string | null;
+                                    }[];
                                 };
-                                selectedActionKey: ("shield-wall" | "ambush" | "volley" | "mend" | "arcane-burst" | "rally") | null;
-                                actionMode: "ability" | "basic";
-                                targetEnemyId: string | null;
-                                targetUserId: string | null;
-                                targetMode: "manual" | "auto" | "none";
+                                reservedItems: {
+                                    itemKey: string;
+                                    quantity: number;
+                                }[];
                             }[];
                         };
                     };
@@ -6083,7 +6114,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/parties/{partyId}/encounter/actions/me": {
+    "/api/v1/parties/{partyId}/encounter/plan/me": {
         parameters: {
             query?: never;
             header?: never;
@@ -6103,9 +6134,12 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        actionKey: ("shield-wall" | "ambush" | "volley" | "mend" | "arcane-burst" | "rally") | null;
-                        targetEnemyId: string | null;
-                        targetUserId: string | null;
+                        itemLoadoutKeys: string[];
+                        plays: {
+                            cardKey: string;
+                            targetEnemyId: string | null;
+                            targetUserId: string | null;
+                        }[];
                     };
                 };
             };
@@ -6134,17 +6168,43 @@ export interface paths {
                                 currentHealth: number;
                                 maxHealth: number;
                                 classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
-                                signatureAction: {
-                                    key: "shield-wall" | "ambush" | "volley" | "mend" | "arcane-burst" | "rally";
+                                movementUnits: number;
+                                playSlots: number;
+                                cards: {
+                                    key: string;
+                                    sourceKind: "class" | "weapon" | "gear" | "item";
+                                    sourceKey: string;
+                                    classKey: ("warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard") | null;
+                                    unlockLevel: number;
                                     displayName: string;
                                     description: string;
                                     targetMode: "enemy" | "ally" | "none";
+                                    repeatable: boolean;
+                                    locked: boolean;
+                                    selectedCount: number;
+                                    preview: {
+                                        effects: {
+                                            kind: "damage" | "heal" | "guard" | "rally";
+                                            baseAmount: number;
+                                            manualTargetBonus: number | null;
+                                            rallyBonus: number | null;
+                                            targetCount: number | null;
+                                            distribution: "single" | "split" | null;
+                                        }[];
+                                    } | null;
+                                }[];
+                                plan: {
+                                    itemLoadoutKeys: string[];
+                                    plays: {
+                                        cardKey: string;
+                                        targetEnemyId: string | null;
+                                        targetUserId: string | null;
+                                    }[];
                                 };
-                                selectedActionKey: ("shield-wall" | "ambush" | "volley" | "mend" | "arcane-burst" | "rally") | null;
-                                actionMode: "ability" | "basic";
-                                targetEnemyId: string | null;
-                                targetUserId: string | null;
-                                targetMode: "manual" | "auto" | "none";
+                                reservedItems: {
+                                    itemKey: string;
+                                    quantity: number;
+                                }[];
                             }[];
                         };
                     };

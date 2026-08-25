@@ -34,6 +34,7 @@ function tileNode(id: string, kind: string, x: number, y: number): PartyMap['nod
 			spawnArchetype: kind === 'spawn' ? 'slime' : kind === 'boss' ? 'ruin-sentinel' : null,
 		},
 		discovered: true,
+		encounterCleared: false,
 	};
 }
 
@@ -104,6 +105,7 @@ export const ExploredCorridor: StoryObj<typeof DungeonGridMap> = {
 		await expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-dungeon-theme', 'atmospheric');
 		await expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-dungeon-floor', '0');
 		await expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-tile-balance', '9');
+		await expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-party-size', '1');
 		await expect(canvas.getByTestId('dungeon-live-status')).toHaveTextContent(/Party is at entry/);
 	},
 };
@@ -246,6 +248,7 @@ export const NavigatorGated: StoryObj<typeof DungeonGridMap> = {
 	play: async ({ canvasElement }) => {
 		const canvas = within(canvasElement);
 		await expect(canvas.getByTestId('dungeon-navigator')).toHaveAttribute('data-navigation-mode', 'observing');
+		await expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-party-size', '2');
 		await expect(canvas.queryByTestId('dungeon-navigator-claim')).not.toBeInTheDocument();
 		await expect(canvas.getByTestId('dungeon-advance')).toBeDisabled();
 		await expect(canvas.getByTestId('dungeon-route-intent')).toBeVisible();

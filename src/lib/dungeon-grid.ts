@@ -1,7 +1,8 @@
 import type { PartyMap } from '#/lib/api';
 import type { PartyTravelerDirection } from '#/lib/game-art';
 
-export type DungeonGridTileKind = 'entry' | 'floor' | 'stairs-up' | 'stairs-down' | 'treasure' | 'rest' | 'spawn' | 'goal' | 'boss';
+export const DUNGEON_TILE_KINDS = ['entry', 'floor', 'stairs-up', 'stairs-down', 'treasure', 'rest', 'spawn', 'goal', 'boss'] as const;
+export type DungeonGridTileKind = (typeof DUNGEON_TILE_KINDS)[number];
 
 export type DungeonGridTileState = 'current' | 'revealed';
 export type DungeonGridTerrain = 'floor' | 'wall' | 'fog';
@@ -83,12 +84,14 @@ const stageSidePadding = 48;
 const minStageWidth = 960;
 const minStageHeight = 720;
 
-const KINDS: ReadonlySet<string> = new Set(['entry', 'stairs-up', 'stairs-down', 'treasure', 'rest', 'spawn', 'goal', 'boss']);
+export function isDungeonGridTileKind(value: string): value is DungeonGridTileKind {
+	return DUNGEON_TILE_KINDS.some((kind) => kind === value);
+}
 
 export function dungeonTileKind(templateKey: string): DungeonGridTileKind {
 	const match = /^dungeon-tile-(.+)-v1$/.exec(templateKey);
 	const kind = match?.[1];
-	return kind && KINDS.has(kind) ? (kind as DungeonGridTileKind) : 'floor';
+	return kind && isDungeonGridTileKind(kind) ? kind : 'floor';
 }
 
 /**

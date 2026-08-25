@@ -22,6 +22,9 @@ export interface GroundedAnchor {
 
 export type DungeonMonsterRole = 'regular' | 'boss';
 
+/** Target visible silhouette footprint for the party leader on the dungeon plane. */
+export const DUNGEON_PARTY_VISIBLE_FOOTPRINT = 0.84;
+
 /** Target visible silhouette footprint for monsters in the dungeon plane. */
 export const DUNGEON_MONSTER_VISIBLE_FOOTPRINT = {
 	regular: 0.86,
@@ -79,6 +82,13 @@ export function dungeonMonsterScale(
 	if (!visible) return (tileSize * 1.18) / frame.width;
 	const target = tileSize * DUNGEON_MONSTER_VISIBLE_FOOTPRINT[role];
 	return target / Math.max(visible.width, visible.height);
+}
+
+/** Scales the dedicated map leader by visible artwork, keeping the feet tile-grounded. */
+export function dungeonPartyScale(bounds: AlphaBounds | null, frame: SpriteFrameRect, tileSize: number): number {
+	const visible = alphaBoundsSize(bounds);
+	if (!visible) return (tileSize * DUNGEON_PARTY_VISIBLE_FOOTPRINT) / frame.width;
+	return (tileSize * DUNGEON_PARTY_VISIBLE_FOOTPRINT) / Math.max(visible.width, visible.height);
 }
 
 export function dungeonMonsterVisibleSize(

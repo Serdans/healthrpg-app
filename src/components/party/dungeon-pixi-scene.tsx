@@ -7,17 +7,18 @@ import type { Ticker, Texture as PixiTexture } from 'pixi.js';
 
 import { cellOrigin, tileCenter } from '#/lib/dungeon-grid';
 import type { DungeonGridCell, DungeonGridLayout, DungeonGridTile } from '#/lib/dungeon-grid';
-import { dungeonMarkerPresentation } from '#/lib/dungeon-markers';
+import { dungeonMarkerPresentationForTile } from '#/lib/dungeon-markers';
 import { dungeonZoom, followDungeonCamera, snapCamera } from '#/lib/dungeon-camera';
 import type { CameraState } from '#/lib/dungeon-camera';
 import { DUNGEON_ARRIVAL_BOB_PX, sampleDungeonMotion, walkFrameForElapsed, walkFrameForMotion } from '#/lib/dungeon-motion';
 import type { DungeonRecoveryMotion } from '#/lib/dungeon-motion';
-import { battleEnemyArtForArchetype, dungeonPropsArt, dungeonTilesetArt, partyTravelerArt } from '#/lib/game-art';
+import { dungeonMapMonsterArtForArchetype, dungeonMapPartyArt, dungeonPropsArt, dungeonTilesetArt } from '#/lib/game-art';
 import type { BattleEnemyArchetype, PartyTravelerDirection } from '#/lib/game-art';
 import type { DungeonPropTextureName } from '#/lib/dungeon-props';
 import { floorTextureName, TEXTURE_COUNT, TEXTURE_INDEX } from '#/lib/dungeon-tiles';
 import {
 	createGroundedFrameTexture,
+	dungeonPartyScale,
 	dungeonMonsterScale,
 	dungeonMonsterShadowWidth,
 	dungeonMonsterVisibleSize,
@@ -31,6 +32,7 @@ export interface DungeonPixiSceneProps {
 	layout: DungeonGridLayout;
 	movement: DungeonMovementController;
 	direction: PartyTravelerDirection;
+	partyMemberCount: number;
 	recovery: DungeonRecoveryMotion | null;
 	viewportRef: RefObject<HTMLDivElement | null>;
 	cameraRef: MutableRefObject<CameraState | null>;
@@ -77,6 +79,8 @@ interface DungeonPixiRuntime {
 	terrain: Container;
 	monsterLayer: Container;
 	party: Sprite;
+	partyPips: Graphics[];
+	partyPipCount: number;
 	partyShadow: Graphics;
 	partyHighlight: Graphics;
 	monsterSprites: Map<string, Sprite>;
@@ -132,19 +136,30 @@ function dungeonLayoutRenderKey(layout: DungeonGridLayout): string {
 		)
 		.join(';');
 	const tileKey = layout.tiles
-		.map((tile) => [tile.node.id, tile.floorNo, tile.col, tile.row, tile.kind, tile.discovered ? 1 : 0, tile.archetypeKey ?? ''].join(','))
+		.map((tile) =>
+			[
+				tile.node.id,
+				tile.floorNo,
+				tile.col,
+				tile.row,
+				tile.kind,
+				tile.discovered ? 1 : 0,
+				tile.node.encounterCleared ? 1 : 0,
+				tile.archetypeKey ?? null,
+			].join(','),
+		)
 		.join(';');
-	return [
+	return JSON.stringify([
 		layout.tileSize,
 		layout.gap,
 		layout.padding,
-		layout.activeFloorNo ?? '',
+		layout.activeFloorNo,
 		layout.width,
 		layout.height,
 		floorKey,
 		cellKey,
 		tileKey,
-	].join('|');
+	]);
 }
 
 function textureFrame(texture: PixiTexture, col: number, row: number, columns: number, rows: number): SpriteFrameRect {
@@ -173,15 +188,16 @@ const DUNGEON_MONSTER_ARCHETYPES: readonly BattleEnemyArchetype[] = [
 ];
 
 async function loadDungeonAssets(): Promise<DungeonPixiAssets> {
-	const [tileset, party, props, ...monsterTextures] = await Promise.all([
+	const [tileset, party, props, monsters] = await Promise.all([
 		Assets.load<PixiTexture>(dungeonTilesetArt.src),
-		Assets.load<PixiTexture>(partyTravelerArt.src),
+		Assets.load<PixiTexture>(dungeonMapPartyArt.src),
 		Assets.load<PixiTexture>(dungeonPropsArt.src),
-		...DUNGEON_MONSTER_ARCHETYPES.map((key) => Assets.load<PixiTexture>(battleEnemyArtForArchetype(key).src)),
+		Assets.load<PixiTexture>(dungeonMapMonsterArtForArchetype('unknown').src),
 	]);
 	setNearest(tileset);
 	setNearest(party);
 	setNearest(props);
+	setNearest(monsters);
 
 	const tileTextures = Array.from({ length: TEXTURE_COUNT }, (_, index) => {
 		const frame = new Rectangle(index * dungeonTilesetArt.tileSize, 0, dungeonTilesetArt.tileSize, dungeonTilesetArt.tileSize);
@@ -210,7 +226,7 @@ async function loadDungeonAssets(): Promise<DungeonPixiAssets> {
 	const partyFrames = new Map<string, GroundedTexture>();
 	for (const direction of DIRECTIONS) {
 		for (const frameIndex of [0, 1] as const) {
-			const frame = textureFrame(party, frameIndex, DIRECTION_ROW[direction], 2, 4);
+			const frame = textureFrame(party, frameIndex, DIRECTION_ROW[direction], dungeonMapPartyArt.columns, dungeonMapPartyArt.rows);
 			const alpha = readFrameAlphaBounds(party, frame);
 			const texture = createGroundedFrameTexture(party, frame, `party-${frameKey(direction, frameIndex)}`, alpha);
 			partyFrames.set(frameKey(direction, frameIndex), { texture, frame, alpha });
@@ -218,21 +234,14 @@ async function loadDungeonAssets(): Promise<DungeonPixiAssets> {
 	}
 
 	const monsterFrames = new Map<string, GroundedTexture>();
-	for (const [index, key] of DUNGEON_MONSTER_ARCHETYPES.entries()) {
-		const texture = monsterTextures[index];
-		setNearest(texture);
-		const position = battleEnemyArtForArchetype(key).position;
-		const [xp, yp] = position.split(' ').map((value) => Number.parseFloat(value) / 100);
-		const frame = textureFrame(texture, Math.round(orZero(xp) * 2), Math.round(orZero(yp) * 2), 3, 3);
-		const alpha = readFrameAlphaBounds(texture, frame);
-		monsterFrames.set(key, { texture: createGroundedFrameTexture(texture, frame, `monster-${key}`, alpha), frame, alpha });
+	for (const key of DUNGEON_MONSTER_ARCHETYPES) {
+		const position = dungeonMapMonsterArtForArchetype(key).position;
+		const frame = textureFrame(monsters, position[0], position[1], 3, 3);
+		const alpha = readFrameAlphaBounds(monsters, frame);
+		monsterFrames.set(key, { texture: createGroundedFrameTexture(monsters, frame, `monster-${key}`, alpha), frame, alpha });
 	}
 
 	return { tileTextures, propTextures, partyFrames, monsterFrames };
-}
-
-function orZero(value: number): number {
-	return Number.isFinite(value) ? value : 0;
 }
 
 function drawBackdrop(layout: DungeonGridLayout): Container {
@@ -323,7 +332,7 @@ function drawMarker(
 	propTextures: Map<DungeonPropTextureName, PixiTexture>,
 	pulses: PulseGraphic[],
 ): void {
-	const marker = dungeonMarkerPresentation(tile.kind);
+	const marker = dungeonMarkerPresentationForTile(tile);
 	if (!marker.visible || !marker.propName) return;
 	drawPropMarker(container, layout, tile, propTextures, marker.propName, pulses);
 }
@@ -348,6 +357,55 @@ function setGroundedSpriteTexture(sprite: Sprite, grounded: GroundedTexture): vo
 	sprite.anchor.set(anchor.x, anchor.y);
 }
 
+function setPartySpriteScale(sprite: Sprite, grounded: GroundedTexture, tileSize: number): void {
+	sprite.scale.set(dungeonPartyScale(grounded.alpha, grounded.frame, tileSize));
+}
+
+function createPartyPips(actors: Container, partyMemberCount: number): Graphics[] {
+	const pips: Graphics[] = [];
+	for (let index = 0; index < Math.max(0, partyMemberCount - 1); index += 1) {
+		const pip = new Graphics();
+		pip.circle(0, 0, 3.2).fill({ color: 0x65c6bd, alpha: 0.92 }).stroke({ width: 1, color: 0x07131a, alpha: 0.9 });
+		pip.circle(0, 0, 1.35).fill({ color: 0xf1be4e, alpha: 0.9 });
+		pip.zIndex = 0;
+		actors.addChild(pip);
+		pips.push(pip);
+	}
+	return pips;
+}
+
+function positionPartyPips(
+	pips: Graphics[],
+	center: { x: number; y: number },
+	groundY: number,
+	tileSize: number,
+	direction: PartyTravelerDirection,
+	now: number,
+): void {
+	if (pips.length === 0) return;
+	const facing = {
+		north: { x: 0, y: -1 },
+		south: { x: 0, y: 1 },
+		east: { x: 1, y: 0 },
+		west: { x: -1, y: 0 },
+	}[direction];
+	const backward = { x: -facing.x, y: -facing.y };
+	const side = { x: -backward.y, y: backward.x };
+	const columns = Math.min(3, pips.length);
+	for (const [index, pip] of pips.entries()) {
+		const row = Math.floor(index / columns);
+		const column = index % columns;
+		const lateral = (column - (columns - 1) / 2) * tileSize * 0.18;
+		const backwardDistance = tileSize * (0.34 + row * 0.18);
+		pip.position.set(
+			center.x + backward.x * backwardDistance + side.x * lateral,
+			groundY + backward.y * backwardDistance + side.y * lateral,
+		);
+		pip.alpha = 0.78 + Math.sin(now / 440 + index * 0.7) * 0.08;
+		pip.zIndex = groundY - backwardDistance - 0.1;
+	}
+}
+
 function drawMonsters(
 	monsterLayer: Container,
 	layout: DungeonGridLayout,
@@ -357,7 +415,7 @@ function drawMonsters(
 	clearChildren(monsterLayer);
 	monsterSprites.clear();
 	for (const tile of layout.tiles) {
-		if (!tile.archetypeKey || !tile.discovered) continue;
+		if (!tile.archetypeKey || !tile.discovered || tile.node.encounterCleared) continue;
 		const grounded = assets.monsterFrames.get(tile.archetypeKey);
 		if (!grounded) continue;
 		const sprite = new Sprite(grounded.texture);
@@ -407,6 +465,7 @@ function createScene(
 	layout: DungeonGridLayout,
 	assets: DungeonPixiAssets,
 	stage: Container,
+	partyMemberCount: number,
 	initialCamera: CameraState | null = null,
 ): DungeonPixiRuntime {
 	const root = new Container();
@@ -430,11 +489,13 @@ function createScene(
 
 	const partyFrame = assets.partyFrames.get(frameKey('south', 0));
 	const party = new Sprite(partyFrame?.texture ?? Texture.EMPTY);
-	if (partyFrame) setGroundedSpriteTexture(party, partyFrame);
-	party.width = layout.tileSize * 1.5;
-	party.height = layout.tileSize * 1.5;
+	if (partyFrame) {
+		setGroundedSpriteTexture(party, partyFrame);
+		setPartySpriteScale(party, partyFrame, layout.tileSize);
+	}
 	party.zIndex = 0;
 	actors.addChild(party);
+	const partyPips = createPartyPips(actors, partyMemberCount);
 
 	const partyShadow = createActorShadow({ x: 0, y: 0 }, layout.tileSize * 0.3, layout.tileSize * 0.12);
 	partyShadow.zIndex = -0.2;
@@ -455,6 +516,8 @@ function createScene(
 		terrain,
 		monsterLayer,
 		party,
+		partyPips,
+		partyPipCount: partyMemberCount,
 		partyShadow,
 		partyHighlight,
 		monsterSprites,
@@ -494,6 +557,14 @@ function createScene(
 
 	scene.update = (props, now, elapsedMs) => {
 		const { layout: currentLayout, movement, recovery } = props;
+		if (scene.partyPipCount !== props.partyMemberCount) {
+			for (const pip of scene.partyPips) {
+				actors.removeChild(pip);
+				pip.destroy();
+			}
+			scene.partyPips = createPartyPips(actors, props.partyMemberCount);
+			scene.partyPipCount = props.partyMemberCount;
+		}
 		if (scene.layoutKey !== props.layoutKey) refreshLayout(currentLayout);
 		if (movement.advanceVisual(now)) props.onVisualStateChange?.();
 		const recoveryKey = recovery ? `${recovery.toNodeId}:${String(recovery.startedAt)}` : null;
@@ -545,8 +616,7 @@ function createScene(
 			const grounded = assets.partyFrames.get(nextPartyFrameKey);
 			if (grounded) {
 				setGroundedSpriteTexture(scene.party, grounded);
-				scene.party.width = currentLayout.tileSize * 1.5;
-				scene.party.height = currentLayout.tileSize * 1.5;
+				setPartySpriteScale(scene.party, grounded, currentLayout.tileSize);
 				scene.partyFrameKey = nextPartyFrameKey;
 			}
 		}
@@ -570,6 +640,7 @@ function createScene(
 				color: 0xf1be4e,
 				alpha: 0.08 + arrival * 0.04 + Math.sin(now / 480) * 0.01,
 			});
+		positionPartyPips(scene.partyPips, sample.point, groundY, currentLayout.tileSize, scene.direction, now);
 
 		for (const pulse of pulses) pulse.graphic.alpha = pulse.baseAlpha * (0.86 + Math.sin(now / 550 + pulse.phase) * 0.12);
 		for (const mote of scene.motes) {
@@ -589,6 +660,7 @@ function DungeonPixiRuntime({
 	layoutKey,
 	movement,
 	direction,
+	partyMemberCount,
 	recovery,
 	viewportRef,
 	cameraRef,
@@ -606,6 +678,7 @@ function DungeonPixiRuntime({
 		layoutKey,
 		movement,
 		direction,
+		partyMemberCount,
 		recovery,
 		viewportRef,
 		cameraRef,
@@ -622,6 +695,7 @@ function DungeonPixiRuntime({
 			layoutKey,
 			movement,
 			direction,
+			partyMemberCount,
 			recovery,
 			viewportRef,
 			cameraRef,
@@ -630,7 +704,20 @@ function DungeonPixiRuntime({
 			onVisualStateChange,
 			onRecoveryComplete,
 		};
-	}, [cameraRef, direction, layout, layoutKey, movement, onError, onReady, onRecoveryComplete, onVisualStateChange, recovery, viewportRef]);
+	}, [
+		cameraRef,
+		direction,
+		layout,
+		layoutKey,
+		movement,
+		onError,
+		onReady,
+		onRecoveryComplete,
+		onVisualStateChange,
+		partyMemberCount,
+		recovery,
+		viewportRef,
+	]);
 
 	useEffect(() => {
 		let active = true;
@@ -641,7 +728,7 @@ function DungeonPixiRuntime({
 				if (!active) return;
 				const currentLayout = layoutRef.current;
 				const initialCamera = cameraFloorRef.current === currentLayout.activeFloorNo ? cameraRef.current : null;
-				created = createScene(currentLayout, assets, app.stage, initialCamera);
+				created = createScene(currentLayout, assets, app.stage, propsRef.current.partyMemberCount, initialCamera);
 				sceneRef.current = created;
 				cameraFloorRef.current = currentLayout.activeFloorNo;
 				propsRef.current.onReady?.(true);

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	alphaBoundsFromPixels,
+	dungeonPartyScale,
 	dungeonMonsterScale,
 	dungeonMonsterShadowWidth,
 	dungeonMonsterVisibleSize,
@@ -44,5 +45,12 @@ describe('grounded dungeon sprites', () => {
 		expect(dungeonMonsterVisibleSize(sentinel, sentinelScale, frame).height).toBe(48);
 		expect(slimeScale).toBeGreaterThan(sentinelScale);
 		expect(dungeonMonsterShadowWidth(41.28, 48)).toBeCloseTo(21.4656);
+	});
+
+	it('keeps the dedicated map leader below one tile while preserving the visible footprint', () => {
+		const frame = { x: 0, y: 0, width: 512, height: 384 };
+		const bounds = { left: 70, top: 40, right: 430, bottom: 350 };
+
+		expect(dungeonPartyScale(bounds, frame, 48) * (bounds.right - bounds.left + 1)).toBeCloseTo(40.32);
 	});
 });
