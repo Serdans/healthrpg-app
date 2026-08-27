@@ -122,11 +122,10 @@ export function screenToStage(point: ScreenPoint, camera: CameraState): StagePoi
 	};
 }
 
-/** CSS pixels used for one source pixel in the PMD-density presentation. */
-export const DUNGEON_SOURCE_PIXEL_SCALE = 2;
-
 /**
- * Keep the native 24px art at a stable 2× source-pixel scale.
+ * Keep the native 24px art at a stable 2× source-pixel scale. The layout
+ * already expresses each cell as 48 reference pixels, so no camera zoom is
+ * needed to preserve the intended density.
  *
  * Compact floors used to be enlarged until their bounding box filled the
  * viewport. That made a 48px world cell become a 72px or 96px screen cell,

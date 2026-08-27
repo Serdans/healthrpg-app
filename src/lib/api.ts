@@ -105,15 +105,17 @@ function errorMessage(value: unknown) {
 	return 'The request could not be completed.';
 }
 
+function toApiError(error: unknown): ApiError {
+	if (error instanceof ApiError) return error;
+	if (isHTTPError(error)) return new ApiError(errorMessage(error.data), error.response.status);
+	return new ApiError('Network request failed. Check your connection and try again.', 0);
+}
+
 async function requestJson<T>(input: string, options?: Options): Promise<T> {
 	try {
 		return await http(input, options).json<T>();
 	} catch (error) {
-		if (isHTTPError(error)) {
-			throw new ApiError(errorMessage(error.data), error.response.status);
-		}
-
-		throw new ApiError('Network request failed. Check your connection and try again.', 0);
+		throw toApiError(error);
 	}
 }
 
@@ -121,11 +123,7 @@ async function requestVoid(input: string, options?: Options): Promise<void> {
 	try {
 		await http(input, options);
 	} catch (error) {
-		if (isHTTPError(error)) {
-			throw new ApiError(errorMessage(error.data), error.response.status);
-		}
-
-		throw new ApiError('Network request failed. Check your connection and try again.', 0);
+		throw toApiError(error);
 	}
 }
 
@@ -303,7 +301,7 @@ export const setEncounterPlan = (partyId: string, body: EncounterPlanBody) =>
 		json: body,
 	});
 
-export const usePartyItem = (partyId: string, body: PartyItemUseBody) =>
+export const partyItemUse = (partyId: string, body: PartyItemUseBody) =>
 	requestJson<PartyItemUseResponse>(partyPath(partyId, '/item-uses'), {
 		method: 'post',
 		json: body,

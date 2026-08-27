@@ -4,12 +4,46 @@ import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { BattleScene } from '#/components/party/battle-scene';
 import type { Encounter, Inventory, Party } from '#/lib/api';
 import type { BattleTerrain } from '#/lib/battle-terrain';
+import { cardPlanAdditionIssue, reviewCardPlan } from '#/lib/battle-cards';
 import { combatCommandState } from '#/lib/combat-command-state';
 import { useInventory, useSetEncounterPlan } from '#/lib/queries';
 
 type EncounterMember = Encounter['members'][number];
 type EncounterCard = EncounterMember['cards'][number];
 type CardPlay = EncounterMember['plan']['plays'][number];
+
+interface CombatDraft {
+	plays: CardPlay[];
+	selectedCardKey: string | null;
+	selectedPlayIndex: number | null;
+}
+
+function planFingerprint(member: EncounterMember, encounter: Encounter): string {
+	return JSON.stringify({
+		nodeId: encounter.nodeId,
+		worldDate: encounter.worldDate,
+		userId: member.userId,
+		plan: member.plan,
+	});
+}
+
+function clearUnavailableTargets(plays: CardPlay[], standingEnemyIds: ReadonlySet<string>, memberIds: ReadonlySet<string>): CardPlay[] {
+	const nextPlays = plays.map((play) => {
+		const targetEnemyId = play.targetEnemyId !== null && !standingEnemyIds.has(play.targetEnemyId) ? null : play.targetEnemyId;
+		const targetUserId = play.targetUserId !== null && !memberIds.has(play.targetUserId) ? null : play.targetUserId;
+		if (targetEnemyId === play.targetEnemyId && targetUserId === play.targetUserId) return play;
+		return { ...play, targetEnemyId, targetUserId };
+	});
+	return nextPlays.some((play, index) => play !== plays[index]) ? nextPlays : plays;
+}
+
+function selectedIndexAfterReorder(currentIndex: number | null, fromIndex: number, toIndex: number): number | null {
+	if (currentIndex === null) return null;
+	if (currentIndex === fromIndex) return toIndex;
+	if (fromIndex < toIndex && currentIndex > fromIndex && currentIndex <= toIndex) return currentIndex - 1;
+	if (fromIndex > toIndex && currentIndex >= toIndex && currentIndex < fromIndex) return currentIndex + 1;
+	return currentIndex;
+}
 
 function cardForItem(item: Inventory['items'][number]): EncounterCard {
 	const preview =
@@ -56,6 +90,20 @@ function itemLoadoutKeysForPlays(plays: CardPlay[], cards: EncounterCard[]): str
 	].slice(0, 2);
 }
 
+function cardsForCombatDraft(
+	memberCards: readonly EncounterCard[],
+	inventoryItems: readonly Inventory['items'][number][],
+): EncounterCard[] {
+	const cardsByKey = new Map(memberCards.map((card) => [card.key, card]));
+	for (const item of inventoryItems) {
+		if (item.quantity > 0) {
+			const card = cardForItem(item);
+			cardsByKey.set(card.key, card);
+		}
+	}
+	return [...cardsByKey.values()];
+}
+
 export function CombatPanel({
 	partyId,
 	userId,
@@ -74,27 +122,49 @@ export function CombatPanel({
 	const planMutation = useSetEncounterPlan(partyId);
 	const inventoryQuery = useInventory();
 	const currentMember = encounter.members.find((member) => member.userId === userId);
-	const [plays, setPlays] = useState<CardPlay[]>(() => currentMember?.plan.plays ?? []);
-	const [selectedCardKey, setSelectedCardKey] = useState<string | null>(() => currentMember?.plan.plays[0]?.cardKey ?? null);
-	const [selectedPlayIndex, setSelectedPlayIndex] = useState<number | null>(() => (currentMember?.plan.plays.length ? 0 : null));
+	const [draft, setDraft] = useState<CombatDraft>(() => ({
+		plays: currentMember?.plan.plays ?? [],
+		selectedCardKey: currentMember?.plan.plays[0]?.cardKey ?? null,
+		selectedPlayIndex: currentMember?.plan.plays.length ? 0 : null,
+	}));
 	const [commandDirty, setCommandDirty] = useState(false);
 	const pageScrollYRef = useRef<number | null>(null);
+	const pageScrollRestoreFrameRef = useRef<number | null>(null);
+	const { plays, selectedCardKey, selectedPlayIndex } = draft;
 
-	const savedPlanFingerprint: string | null = currentMember
-		? `${encounter.nodeId}:${encounter.worldDate}:${currentMember.userId}:${JSON.stringify(currentMember.plan)}`
-		: null;
+	const savedPlanFingerprint = currentMember ? planFingerprint(currentMember, encounter) : null;
 	useEffect(() => {
 		if (!currentMember) return;
-		setPlays(currentMember.plan.plays);
-		setSelectedPlayIndex(currentMember.plan.plays.length > 0 ? 0 : null);
-		setSelectedCardKey(currentMember.plan.plays[0]?.cardKey ?? null);
+		setDraft({
+			plays: currentMember.plan.plays,
+			selectedCardKey: currentMember.plan.plays[0]?.cardKey ?? null,
+			selectedPlayIndex: currentMember.plan.plays.length > 0 ? 0 : null,
+		});
 		setCommandDirty(false);
 	}, [savedPlanFingerprint]);
+	useEffect(() => {
+		if (!currentMember) return;
+		const standingEnemyIds = new Set(encounter.enemies.filter((enemy) => enemy.currentHealth > 0).map((enemy) => enemy.id));
+		const memberIds = new Set(encounter.members.map((member) => member.userId));
+		setDraft((currentDraft) => {
+			const nextPlays = clearUnavailableTargets(currentDraft.plays, standingEnemyIds, memberIds);
+			return nextPlays === currentDraft.plays ? currentDraft : { ...currentDraft, plays: nextPlays };
+		});
+	}, [currentMember, encounter.enemies, encounter.members]);
 	useLayoutEffect(() => {
 		const pageScrollY = pageScrollYRef.current;
 		if (pageScrollY === null) return;
+		pageScrollYRef.current = null;
 		window.scrollTo(window.scrollX, pageScrollY);
-		window.requestAnimationFrame(() => window.scrollTo(window.scrollX, pageScrollY));
+		const frameId = window.requestAnimationFrame(() => {
+			pageScrollRestoreFrameRef.current = null;
+			window.scrollTo(window.scrollX, pageScrollY);
+		});
+		pageScrollRestoreFrameRef.current = frameId;
+		return () => {
+			window.cancelAnimationFrame(frameId);
+			if (pageScrollRestoreFrameRef.current === frameId) pageScrollRestoreFrameRef.current = null;
+		};
 	}, [plays, selectedCardKey, selectedPlayIndex]);
 
 	if (!currentMember) return <ErrorNotice message="Your traveler is not present in this encounter." />;
@@ -112,9 +182,14 @@ export function CombatPanel({
 	}
 
 	const inventoryItems = inventoryQuery.data.items;
-	const usableItems = inventoryItems.filter((item) => item.quantity > 0);
-	const draftCards = [...new Map([...currentMember.cards, ...usableItems.map(cardForItem)].map((card) => [card.key, card])).values()];
+	const draftCards = cardsForCombatDraft(currentMember.cards, inventoryItems);
 	const draftMember: EncounterMember = { ...currentMember, cards: draftCards };
+	const planReview = reviewCardPlan({
+		plays,
+		cards: draftCards,
+		inventory: inventoryQuery.data,
+		playSlots: currentMember.playSlots,
+	});
 	const actionError = planMutation.error;
 	const actionBusy = planMutation.isPending;
 	const partyMemberName = (memberUserId: string) =>
@@ -134,60 +209,67 @@ export function CombatPanel({
 		preservePageScroll();
 
 		const existingIndexes = plays.flatMap((play, index) => (play.cardKey === cardKey ? [index] : []));
-		if (existingIndexes.length > 0 && !card.repeatable) {
-			setSelectedCardKey(cardKey);
-			setSelectedPlayIndex(existingIndexes[0]);
-			return;
-		}
-		if (plays.length >= currentMember.playSlots) {
-			if (existingIndexes.length > 0) {
-				setSelectedCardKey(cardKey);
-				setSelectedPlayIndex(existingIndexes[existingIndexes.length - 1]);
+		const addIssue = cardPlanAdditionIssue({
+			card,
+			plays,
+			cards: draftCards,
+			inventory: inventoryQuery.data,
+			playSlots: currentMember.playSlots,
+		});
+		if (addIssue !== null) {
+			if (existingIndexes.length > 0 && (addIssue === 'duplicate' || addIssue === 'capacity')) {
+				const focusIndex = card.repeatable ? existingIndexes.at(-1) : existingIndexes[0];
+				if (focusIndex !== undefined) {
+					setDraft((currentDraft) => ({
+						...currentDraft,
+						selectedCardKey: cardKey,
+						selectedPlayIndex: focusIndex,
+					}));
+				}
 			}
 			return;
 		}
-		const quantity = inventoryItems.find((item) => item.key === card.sourceKey)?.quantity;
-		const selectedQuantity = plays.filter((play) => play.cardKey === card.key).length;
-		if (card.sourceKind === 'item' && quantity !== undefined && selectedQuantity >= quantity) return;
-		if (
-			card.sourceKind === 'item' &&
-			!plays.some((play) => draftCards.find((candidate) => candidate.key === play.cardKey)?.sourceKey === card.sourceKey) &&
-			new Set(
-				plays.flatMap((play) => {
-					const queuedCard = draftCards.find((candidate) => candidate.key === play.cardKey);
-					return queuedCard?.sourceKind === 'item' ? [queuedCard.sourceKey] : [];
-				}),
-			).size >= 2
-		) {
-			return;
-		}
 
-		setSelectedCardKey(cardKey);
 		const nextPlay: CardPlay = {
 			cardKey,
 			targetEnemyId: card.targetMode === 'enemy' ? standingEnemyId : null,
 			targetUserId: card.targetMode === 'ally' ? userId : null,
 		};
-		setPlays((currentPlays) => [...currentPlays, nextPlay]);
-		setSelectedPlayIndex(plays.length);
+		setDraft((currentDraft) => {
+			const nextPlays = [...currentDraft.plays, nextPlay];
+			return {
+				plays: nextPlays,
+				selectedCardKey: cardKey,
+				selectedPlayIndex: nextPlays.length - 1,
+			};
+		});
 		markDirty();
 	};
 
 	const removePlay = (playIndex: number) => {
-		if (!plays[playIndex]) return;
 		preservePageScroll();
-		const nextPlays = plays.filter((_, index) => index !== playIndex);
-		const nextPlayIndex = nextPlays.length > 0 ? Math.min(playIndex, nextPlays.length - 1) : null;
-		setPlays(nextPlays);
-		setSelectedPlayIndex(nextPlayIndex);
-		setSelectedCardKey(nextPlayIndex === null ? null : nextPlays[nextPlayIndex].cardKey);
+		setDraft((currentDraft) => {
+			if (!currentDraft.plays[playIndex]) return currentDraft;
+			const nextPlays = currentDraft.plays.filter((_, index) => index !== playIndex);
+			const nextPlayIndex = nextPlays.length > 0 ? Math.min(playIndex, nextPlays.length - 1) : null;
+			return {
+				plays: nextPlays,
+				selectedPlayIndex: nextPlayIndex,
+				selectedCardKey: nextPlayIndex === null ? null : (nextPlays[nextPlayIndex]?.cardKey ?? null),
+			};
+		});
 		markDirty();
 	};
 
 	const focusPlay = (playIndex: number) => {
-		if (playIndex < 0 || playIndex >= plays.length) return;
-		setSelectedPlayIndex(playIndex);
-		setSelectedCardKey(plays[playIndex].cardKey);
+		setDraft((currentDraft) => {
+			if (playIndex < 0 || playIndex >= currentDraft.plays.length) return currentDraft;
+			return {
+				...currentDraft,
+				selectedPlayIndex: playIndex,
+				selectedCardKey: currentDraft.plays[playIndex]?.cardKey ?? null,
+			};
+		});
 	};
 
 	const activatePlay = (playIndex: number) => {
@@ -209,24 +291,40 @@ export function CombatPanel({
 			return;
 		}
 
-		setPlays((currentPlays) => {
-			const nextPlays = [...currentPlays];
+		setDraft((currentDraft) => {
+			if (
+				fromIndex === toIndex ||
+				fromIndex < 0 ||
+				toIndex < 0 ||
+				fromIndex >= currentDraft.plays.length ||
+				toIndex >= currentDraft.plays.length
+			) {
+				return currentDraft;
+			}
+
+			const nextPlays = [...currentDraft.plays];
 			const [movedPlay] = nextPlays.splice(fromIndex, 1);
 			nextPlays.splice(toIndex, 0, movedPlay);
-			return nextPlays;
-		});
-		setSelectedPlayIndex((currentIndex) => {
-			if (currentIndex === null || currentIndex === fromIndex) return currentIndex === null ? null : toIndex;
-			if (fromIndex < toIndex && currentIndex > fromIndex && currentIndex <= toIndex) return currentIndex - 1;
-			if (fromIndex > toIndex && currentIndex >= toIndex && currentIndex < fromIndex) return currentIndex + 1;
-			return currentIndex;
+			const currentIndex = currentDraft.selectedPlayIndex;
+			const nextSelectedPlayIndex = selectedIndexAfterReorder(currentIndex, fromIndex, toIndex);
+			return {
+				plays: nextPlays,
+				selectedPlayIndex: nextSelectedPlayIndex,
+				selectedCardKey: nextSelectedPlayIndex === null ? null : (nextPlays[nextSelectedPlayIndex]?.cardKey ?? null),
+			};
 		});
 		markDirty();
 	};
 
 	const updateSelectedPlay = (update: (play: CardPlay) => CardPlay) => {
-		if (selectedPlayIndex === null) return;
-		setPlays((currentPlays) => currentPlays.map((play, index) => (index === selectedPlayIndex ? update(play) : play)));
+		setDraft((currentDraft) => {
+			const currentIndex = currentDraft.selectedPlayIndex;
+			if (currentIndex === null || !currentDraft.plays[currentIndex]) return currentDraft;
+			return {
+				...currentDraft,
+				plays: currentDraft.plays.map((play, index) => (index === currentIndex ? update(play) : play)),
+			};
+		});
 		markDirty();
 	};
 
@@ -241,8 +339,12 @@ export function CombatPanel({
 	};
 
 	const submitPlan = () => {
+		if (!planReview.valid) return;
+		const standingEnemyIds = new Set(encounter.enemies.filter((enemy) => enemy.currentHealth > 0).map((enemy) => enemy.id));
+		const memberIds = new Set(encounter.members.map((member) => member.userId));
+		const playsForSubmission = clearUnavailableTargets(plays, standingEnemyIds, memberIds);
 		planMutation.mutate(
-			{ itemLoadoutKeys: itemLoadoutKeysForPlays(plays, draftCards), plays },
+			{ itemLoadoutKeys: itemLoadoutKeysForPlays(playsForSubmission, draftCards), plays: playsForSubmission },
 			{
 				onError: () => setCommandDirty(true),
 				onSuccess: () => setCommandDirty(false),

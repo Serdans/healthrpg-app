@@ -11,7 +11,8 @@ import type { BattleScreenPlacement, BattleViewportSize } from '#/lib/battle-cam
 import { battleFloorSlots } from '#/lib/battle-arena';
 import { battleFloorCalibrationFor } from '#/lib/battle-terrain';
 import type { BattleTerrain } from '#/lib/battle-terrain';
-import { cardsForPlanFan } from '#/lib/battle-cards';
+import { cardPlanAdditionIssue, cardPlanIssueLabel, cardsForPlanFan, reviewCardPlan } from '#/lib/battle-cards';
+import type { CardPlanIssue } from '#/lib/battle-cards';
 import type { CombatCommandState } from '#/lib/combat-command-state';
 import { battleTerrainWorldSize } from '#/lib/game-art';
 import { BattlePixiScene } from './battle-pixi-scene';
@@ -36,6 +37,7 @@ interface BattleHandPointerState {
 	pointerId: number;
 	startX: number;
 	startY: number;
+	startScrollLeft: number;
 	panning: boolean;
 }
 
@@ -124,29 +126,6 @@ function targetLabel(targetMode: TargetMode | null) {
 	if (targetMode === 'enemy') return 'Enemy target';
 	if (targetMode === 'ally') return 'Ally target';
 	return 'No target';
-}
-
-function cardDisabledReason({
-	itemTypeBlocked,
-	quantityBlocked,
-	capacityBlocked,
-}: {
-	itemTypeBlocked: boolean;
-	quantityBlocked: boolean;
-	capacityBlocked: boolean;
-}): string | null {
-	if (itemTypeBlocked) return 'Two item types are already queued.';
-	if (quantityBlocked) return 'You do not have another copy of this item.';
-	if (capacityBlocked) return 'All play slots are full.';
-	return null;
-}
-
-function cardForPlay(member: EncounterMember, play: CardPlay | undefined) {
-	return play ? member.cards.find((card) => card.key === play.cardKey) : undefined;
-}
-
-function plannedCardName(member: EncounterMember) {
-	return cardForPlay(member, member.plan.plays[0])?.displayName ?? 'Basic Attack';
 }
 
 function CardSourceIcon({ card }: { card: EncounterCard }) {
@@ -264,6 +243,7 @@ function BattleCardFace({ card, inventory, playOrder = null }: { card: Encounter
 		.filter((value): value is string => value !== null)
 		.join(' · ');
 	const previewEffects = card.preview?.effects ?? [];
+	const previewEffectKeyCounts = new Map<string, number>();
 
 	return (
 		<span className="battle-card-face">
@@ -276,15 +256,20 @@ function BattleCardFace({ card, inventory, playOrder = null }: { card: Encounter
 				<strong>{card.displayName}</strong>
 				{previewEffects.length > 0 ? (
 					<span className="battle-card-effect-list" aria-label="Projected effects">
-						{previewEffects.map((effect, index) => (
-							<span
-								key={`${effect.kind}-${index}`}
-								className={`battle-card-effect-chip battle-card-effect-${effect.kind}`}
-								data-effect-kind={effect.kind}
-							>
-								{previewEffectLabel(effect)}
-							</span>
-						))}
+						{previewEffects.map((effect) => {
+							const effectKeyBase = `${card.key}-${JSON.stringify(effect)}`;
+							const effectKeyOccurrence = previewEffectKeyCounts.get(effectKeyBase) ?? 0;
+							previewEffectKeyCounts.set(effectKeyBase, effectKeyOccurrence + 1);
+							return (
+								<span
+									key={`${effectKeyBase}-${effectKeyOccurrence}`}
+									className={`battle-card-effect-chip battle-card-effect-${effect.kind}`}
+									data-effect-kind={effect.kind}
+								>
+									{previewEffectLabel(effect)}
+								</span>
+							);
+						})}
 					</span>
 				) : null}
 				<small className="battle-card-description">{card.description}</small>
@@ -295,16 +280,28 @@ function BattleCardFace({ card, inventory, playOrder = null }: { card: Encounter
 }
 
 type BattleFanCardEntry = {
-	card: EncounterCard;
+	card: EncounterCard | null;
 	queuedOrder: number | null;
 	playIndex: number | null;
 };
 
-function battleFanCardInstanceId({ card, playIndex }: Pick<BattleFanCardEntry, 'card' | 'playIndex'>): string {
-	return playIndex === null ? card.key : `${card.key}-play-${playIndex}`;
+function isAvailableBattleFanCard(entry: BattleFanCardEntry | undefined): entry is BattleFanCardEntry & { card: EncounterCard } {
+	return entry !== undefined && entry.card !== null;
 }
 
-function BattleFanCardSurface({ card, inventory, queuedOrder }: { card: EncounterCard; inventory: Inventory; queuedOrder: number | null }) {
+function battleFanCardInstanceId({ card, playIndex }: Pick<BattleFanCardEntry, 'card' | 'playIndex'>): string {
+	return playIndex === null ? (card?.key ?? 'unavailable-card') : `play-${playIndex}`;
+}
+
+function BattleFanCardSurface({
+	card,
+	inventory,
+	queuedOrder,
+}: {
+	card: EncounterCard | null;
+	inventory: Inventory;
+	queuedOrder: number | null;
+}) {
 	return (
 		<span className="battle-fan-card-surface">
 			{queuedOrder !== null ? (
@@ -313,7 +310,22 @@ function BattleFanCardSurface({ card, inventory, queuedOrder }: { card: Encounte
 					<span>{queuedOrder}</span>
 				</span>
 			) : null}
-			<BattleCardFace card={card} inventory={inventory} />
+			{card ? (
+				<BattleCardFace card={card} inventory={inventory} />
+			) : (
+				<span className="battle-card-face battle-card-face-unavailable">
+					<span className="battle-card-face-topline">
+						<span>Unavailable</span>
+					</span>
+					<span className="battle-card-art battle-card-art-icon" aria-hidden="true">
+						<Shield className="size-5" />
+					</span>
+					<span className="battle-card-copy">
+						<strong>Card unavailable</strong>
+						<small className="battle-card-description">This planned card changed. Click to remove it.</small>
+					</span>
+				</span>
+			)}
 		</span>
 	);
 }
@@ -333,10 +345,72 @@ function targetInstruction(card: EncounterCard | undefined): string {
 	return 'Select a highlighted ally or use lowest-health targeting.';
 }
 
-function hasAvailableTarget(card: EncounterCard | undefined, standingEnemies: boolean, partyMemberCount: number): boolean {
+function selectedTargetMode(selectedPlayIndex: number | null, card: EncounterCard | undefined): TargetMode | null {
+	if (selectedPlayIndex === null) return null;
+	return card?.targetMode ?? null;
+}
+
+function battleTargetNote(issue: CardPlanIssue | null, queuedCount: number, card: EncounterCard | undefined): string {
+	if (issue !== null) return cardPlanIssueLabel(issue);
+	if (queuedCount === 0) return EMPTY_PLAN_NOTE;
+	return targetInstruction(card);
+}
+
+function cardActionLabel(isQueuedCard: boolean, focused: boolean): string {
+	if (!isQueuedCard) return 'click to add to plan';
+	if (focused) return 'focused for targeting; click to remove this play';
+	return 'click to remove this play; use the reorder handle to move it';
+}
+
+function hasAvailableTarget(
+	card: EncounterCard | undefined,
+	standingEnemyIds: ReadonlySet<string>,
+	partyMemberIds: ReadonlySet<string>,
+): boolean {
 	if (!card || card.targetMode === 'none') return true;
-	if (card.targetMode === 'enemy') return standingEnemies;
-	return partyMemberCount > 0;
+	if (card.targetMode === 'enemy') return standingEnemyIds.size > 0;
+	return partyMemberIds.size > 0;
+}
+
+function BattleStatusMessage({ state, queuedCount, playSlots }: { state: CombatCommandState; queuedCount: number; playSlots: number }) {
+	switch (state) {
+		case 'readonly':
+			return (
+				<>
+					<Shield className="size-4" aria-hidden="true" /> This encounter is read-only because the expedition is closed.
+				</>
+			);
+		case 'resolved':
+			return (
+				<>
+					<Check className="size-4" aria-hidden="true" /> This encounter has resolved. Review the daily chronicle for the outcome.
+				</>
+			);
+		case 'saving':
+			return (
+				<>
+					<Sparkles className="size-4" aria-hidden="true" /> Saving your daily card plan…
+				</>
+			);
+		case 'edited':
+			return (
+				<>
+					<Sparkles className="size-4" aria-hidden="true" /> Review your cards and save the updated plan.
+				</>
+			);
+		case 'saved':
+			return (
+				<>
+					<Check className="size-4" aria-hidden="true" /> Your daily plan is locked in for resolution.
+				</>
+			);
+		case 'active':
+			return (
+				<>
+					<Sparkles className="size-4" aria-hidden="true" /> Card hand phase · {queuedCount}/{playSlots} card slots queued
+				</>
+			);
+	}
 }
 
 function prefersReducedMotion(): boolean {
@@ -357,6 +431,12 @@ function centeredFanPosition(index: number, cardCount: number, maxRotation: numb
 	};
 }
 
+function fanStackOrder(focused: boolean, queued: boolean, cardCount: number, baseZIndex: number): number {
+	if (focused) return cardCount + 30;
+	if (queued) return cardCount + 10;
+	return baseZIndex;
+}
+
 function fanCardStyle(index: number, cardCount: number, queued: boolean, focused: boolean): CSSProperties {
 	const { centeredIndex, rotation, offset, drop } = centeredFanPosition(
 		index,
@@ -366,7 +446,7 @@ function fanCardStyle(index: number, cardCount: number, queued: boolean, focused
 		BATTLE_FAN_MAX_DROP_REM,
 	);
 	const baseZIndex = Math.max(1, cardCount - Math.round(Math.abs(centeredIndex)));
-	const stackOrder = focused ? cardCount + 30 : queued ? cardCount + 10 : baseZIndex;
+	const stackOrder = fanStackOrder(focused, queued, cardCount, baseZIndex);
 
 	return {
 		'--fan-offset': `${offset}rem`,
@@ -667,7 +747,6 @@ function Battlefield({
 										isCurrentUser ? 'you' : null,
 										label(member.classKey),
 										`${member.currentHealth} of ${member.maxHealth} health`,
-										plannedCardName(member),
 										targetable ? 'targetable' : null,
 									]
 										.filter((value): value is string => value !== null)
@@ -788,55 +867,71 @@ function BattleCommandTray({
 	const queuedCardKeys = new Set(plays.map((play) => play.cardKey));
 	const categoryCards = playableCards.filter((card) => category === 'all' || cardCategory(card) === category);
 	const categoryCardKeys = new Set(categoryCards.map((card) => card.key));
-	const visibleCards = playableCards.filter((card) => queuedCardKeys.has(card.key) || categoryCardKeys.has(card.key));
+	const visibleCards = currentMember.cards.filter((card) => queuedCardKeys.has(card.key) || categoryCardKeys.has(card.key));
 	const availableCardKeys = new Set(
 		categoryCards.filter((card) => !queuedCardKeys.has(card.key) || card.repeatable).map((card) => card.key),
 	);
 	const handCards: BattleFanCardEntry[] = cardsForPlanFan(visibleCards, plays, availableCardKeys);
 	const firstAvailableIndex = handCards.findIndex(({ playIndex }) => playIndex === null);
 	const interactionDisabled = readOnly || encounter.status === 'completed' || actionBusy;
-	const standingEnemies = encounter.enemies.some((enemy) => enemy.currentHealth > 0);
-	const hasTarget = hasAvailableTarget(selectedCard, standingEnemies, encounter.members.length);
-	const targetNote = plays.length === 0 ? EMPTY_PLAN_NOTE : targetInstruction(selectedCard);
+	const standingEnemyIds = new Set(encounter.enemies.filter((enemy) => enemy.currentHealth > 0).map((enemy) => enemy.id));
+	const partyMemberIds = new Set(encounter.members.map((member) => member.userId));
+	const hasTarget = hasAvailableTarget(selectedCard, standingEnemyIds, partyMemberIds);
+	const planReview = reviewCardPlan({ plays, cards: currentMember.cards, inventory, playSlots: currentMember.playSlots });
+	const selectedPlanIssue = selectedPlayIndex === null ? null : (planReview.issues.get(selectedPlayIndex) ?? null);
+	const targetNote = battleTargetNote(selectedPlanIssue, plays.length, selectedCard);
 	const selectedCardEffects = selectedCard?.preview?.effects ?? [];
 	const selectedCardEffectLabel = selectedCardEffects.length > 0 ? selectedCardEffects.map(previewEffectLabel).join(' · ') : null;
-	const queuedItemKeys = new Set(
-		plays.flatMap((play) => {
-			const card = cardForPlay(currentMember, play);
-			return card?.sourceKind === 'item' ? [card.sourceKey] : [];
-		}),
-	);
 	const categoryCounts = playableCards.reduce<Record<Exclude<CardCategory, 'all'>, number>>(
-		(counts, card) => ({ ...counts, [cardCategory(card)]: counts[cardCategory(card)] + 1 }),
+		(counts, card) => {
+			const cardType = cardCategory(card);
+			counts[cardType] += 1;
+			return counts;
+		},
 		{ class: 0, equipment: 0, item: 0 },
 	);
 	const cardInteractionState = (entry: BattleFanCardEntry) => {
 		const { card, playIndex } = entry;
-		const queuedCount = plays.filter((play) => play.cardKey === card.key).length;
 		const isQueuedCard = playIndex !== null;
-		const itemEntry = card.sourceKind === 'item' ? inventoryEntryForCard(card, inventory) : undefined;
-		const itemTypeBlocked = !isQueuedCard && card.sourceKind === 'item' && !queuedItemKeys.has(card.sourceKey) && queuedItemKeys.size >= 2;
-		const quantityBlocked = !isQueuedCard && card.sourceKind === 'item' && itemEntry !== undefined && queuedCount >= itemEntry.quantity;
-		const capacityBlocked = !isQueuedCard && plays.length >= currentMember.playSlots;
-		const disabled = interactionDisabled || (!isQueuedCard && (capacityBlocked || itemTypeBlocked || quantityBlocked));
+		if (!card) {
+			return {
+				queuedCount: 0,
+				disabled: interactionDisabled,
+				disabledReason: cardPlanIssueLabel('missing-card'),
+				planIssue: 'missing-card' as CardPlanIssue,
+			};
+		}
+
+		const queuedCount = plays.filter((play) => play.cardKey === card.key).length;
+		const addIssue = isQueuedCard
+			? null
+			: cardPlanAdditionIssue({ card, plays, cards: currentMember.cards, inventory, playSlots: currentMember.playSlots });
+		const planIssue = isQueuedCard ? (planReview.issues.get(playIndex) ?? null) : null;
+		const disabled = interactionDisabled || (!isQueuedCard && addIssue !== null);
+		const issue = addIssue ?? planIssue;
 
 		return {
 			queuedCount,
 			disabled,
-			disabledReason: cardDisabledReason({ itemTypeBlocked, quantityBlocked, capacityBlocked }),
+			disabledReason: issue === null ? null : cardPlanIssueLabel(issue),
+			planIssue,
 		};
 	};
 	const fanCardIds = handCards.map(battleFanCardInstanceId).join('|');
 	const intentPreviewId = hoveredFanCardId ?? focusedFanCardId ?? touchPreviewId;
 	const intentPreviewEntry = intentPreviewId ? handCards.find((entry) => battleFanCardInstanceId(entry) === intentPreviewId) : undefined;
 	const intentPreviewState = intentPreviewEntry ? cardInteractionState(intentPreviewEntry) : null;
-	const intentPreviewCanShow = intentPreviewEntry !== undefined && intentPreviewState !== null && !intentPreviewState.disabled;
+	const intentPreviewCanShow = isAvailableBattleFanCard(intentPreviewEntry) && intentPreviewState !== null && !intentPreviewState.disabled;
 	const previewId = renderedPreviewId;
 	const previewEntry = previewId ? handCards.find((entry) => battleFanCardInstanceId(entry) === previewId) : undefined;
 	const previewState = previewEntry ? cardInteractionState(previewEntry) : null;
-	const previewCanShow = previewEntry !== undefined && previewState !== null && (!previewState.disabled || previewPhase === 'closing');
+	const previewCanShow =
+		isAvailableBattleFanCard(previewEntry) && previewState !== null && (!previewState.disabled || previewPhase === 'closing');
 	const previewRender =
-		previewEntry !== undefined && previewState !== null && previewAnchor !== null && (!previewState.disabled || previewPhase === 'closing')
+		isAvailableBattleFanCard(previewEntry) &&
+		previewState !== null &&
+		previewAnchor !== null &&
+		(!previewState.disabled || previewPhase === 'closing')
 			? { entry: previewEntry, anchor: previewAnchor }
 			: null;
 
@@ -873,7 +968,7 @@ function BattleCommandTray({
 			onPlayActivate(entry.playIndex);
 			return;
 		}
-		onCardActivate(entry.card.key);
+		if (entry.card) onCardActivate(entry.card.key);
 	};
 	const handleFanCardClick = (entry: BattleFanCardEntry) => {
 		if (suppressCardClickRef.current) {
@@ -979,29 +1074,40 @@ function BattleCommandTray({
 	const handleHandPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
 		lastPointerTypeRef.current = event.pointerType;
 		suppressCardClickRef.current = false;
+		if (event.pointerType !== 'mouse') {
+			handPointerRef.current = null;
+			return;
+		}
 		handPointerRef.current = {
 			pointerId: event.pointerId,
 			startX: event.clientX,
 			startY: event.clientY,
+			startScrollLeft: event.currentTarget.scrollLeft,
 			panning: false,
 		};
 	};
 	const handleHandPointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
 		const pointer = handPointerRef.current;
-		if (!pointer || pointer.pointerId !== event.pointerId || pointer.panning) return;
+		if (!pointer || pointer.pointerId !== event.pointerId) return;
 
-		const deltaX = Math.abs(event.clientX - pointer.startX);
-		const deltaY = Math.abs(event.clientY - pointer.startY);
-		if (deltaX < BATTLE_CARD_HAND_PAN_THRESHOLD_PX || deltaX <= deltaY) return;
+		const deltaX = event.clientX - pointer.startX;
+		const deltaY = event.clientY - pointer.startY;
+		if (!pointer.panning && (Math.abs(deltaX) < BATTLE_CARD_HAND_PAN_THRESHOLD_PX || Math.abs(deltaX) <= Math.abs(deltaY))) return;
 
-		pointer.panning = true;
-		suppressCardClickRef.current = true;
-		clearPreviewIntent();
+		if (!pointer.panning) {
+			pointer.panning = true;
+			suppressCardClickRef.current = true;
+			event.currentTarget.setPointerCapture(event.pointerId);
+			clearPreviewIntent();
+		}
+		event.currentTarget.scrollLeft = pointer.startScrollLeft - deltaX;
+		event.preventDefault();
 	};
 	const handleHandPointerEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
 		const pointer = handPointerRef.current;
 		if (pointer?.pointerId !== event.pointerId) return;
 
+		if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
 		handPointerRef.current = null;
 		if (pointer.panning) {
 			window.setTimeout(() => {
@@ -1250,30 +1356,31 @@ function BattleCommandTray({
 											) : null}
 											{handCards.map((entry, index) => {
 												const { card, queuedOrder, playIndex } = entry;
-												const { queuedCount, disabled, disabledReason } = cardInteractionState(entry);
+												const { queuedCount, disabled, disabledReason, planIssue } = cardInteractionState(entry);
 												const isQueuedCard = playIndex !== null;
 												const focused = isQueuedCard && selectedPlayIndex === playIndex;
-												const cardMeta = [targetLabel(card.targetMode), card.repeatable ? 'add again' : null]
-													.filter((value): value is string => value !== null)
-													.join(' · ');
-												const effectAnnouncement = previewEffectAnnouncement(card);
+												const cardMeta = card
+													? [targetLabel(card.targetMode), card.repeatable ? 'add again' : null]
+															.filter((value): value is string => value !== null)
+															.join(' · ')
+													: null;
+												const effectAnnouncement = card ? previewEffectAnnouncement(card) : null;
 												const instanceId = battleFanCardInstanceId(entry);
 												const previewActive = previewRender !== null && battleFanCardInstanceId(previewRender.entry) === instanceId;
-												const ariaLabel = [
-													card.displayName,
-													effectAnnouncement,
-													card.description,
-													cardMeta,
-													isQueuedCard ? `queued play ${queuedOrder}` : 'available card',
-													isQueuedCard
-														? focused
-															? 'focused for targeting; click to remove this play'
-															: 'click to remove this play; use the reorder handle to move it'
-														: 'click to add to plan',
-													disabledReason,
-												]
-													.filter((value): value is string => value !== null)
-													.join(', ');
+												const cardAction = cardActionLabel(isQueuedCard, focused);
+												const ariaLabel = card
+													? [
+															card.displayName,
+															effectAnnouncement,
+															card.description,
+															cardMeta,
+															isQueuedCard ? `queued play ${queuedOrder}` : 'available card',
+															cardAction,
+															disabledReason,
+														]
+															.filter((value): value is string => value !== null)
+															.join(', ')
+													: ['Card unavailable', cardAction, disabledReason].filter((value): value is string => value !== null).join(', ');
 												return (
 													<div
 														key={instanceId}
@@ -1301,16 +1408,20 @@ function BattleCommandTray({
 															type="button"
 															className={classNames('battle-fan-card', focused && 'battle-fan-card-focused')}
 															data-testid={
-																isQueuedCard ? `battle-queued-card-${queuedOrder}` : 'battle-card-' + card.key.replaceAll(':', '-')
+																isQueuedCard
+																	? `battle-queued-card-${queuedOrder}`
+																	: `battle-card-${card?.key.replaceAll(':', '-') ?? 'unavailable'}`
 															}
-															data-card-key={card.key}
-															data-category={cardCategory(card)}
+															data-card-key={card?.key ?? null}
+															data-category={card ? cardCategory(card) : undefined}
+															data-plan-issue={planIssue ?? undefined}
 															data-queued={isQueuedCard}
 															data-queued-count={queuedCount > 0 ? queuedCount : null}
 															data-queued-order={queuedOrder}
 															data-play-index={playIndex}
 															aria-label={ariaLabel}
 															aria-pressed={isQueuedCard ? focused : undefined}
+															aria-invalid={planIssue !== null}
 															disabled={disabled}
 															title={disabledReason ?? undefined}
 															onPointerDown={(event) => {
@@ -1337,7 +1448,7 @@ function BattleCommandTray({
 																className="battle-fan-card-reorder-handle"
 																data-testid={`battle-reorder-handle-${queuedOrder}`}
 																data-play-index={playIndex}
-																aria-label={`Reorder ${card.displayName}. Use arrow keys to move it.`}
+																aria-label={`Reorder ${card?.displayName ?? 'unavailable card'}. Use arrow keys to move it.`}
 																disabled={disabled}
 																onPointerDown={(event) => handleReorderPointerDown(event, playIndex)}
 																onPointerMove={handleReorderPointerMove}
@@ -1392,8 +1503,9 @@ function BattleCommandTray({
 							className="battle-save-plan-button"
 							data-testid="battle-save-plan"
 							aria-label={actionPending ? 'Saving battle plan' : 'Ready — lock battle plan'}
-							title="Lock this battle plan"
-							disabled={interactionDisabled || actionPending || !hasTarget}
+							title={planReview.valid ? 'Lock this battle plan' : 'Remove invalid cards before locking this plan'}
+							data-plan-valid={planReview.valid}
+							disabled={interactionDisabled || actionPending || !hasTarget || !planReview.valid}
 							onClick={onSubmitPlan}
 						>
 							<Check className="size-3.5" aria-hidden="true" /> {actionPending ? 'Saving…' : 'Ready'}
@@ -1439,31 +1551,7 @@ export function BattleScene({
 			</h2>
 
 			<div className={`battle-status battle-status-${commandState}`} data-state={commandState} data-testid="battle-status" role="status">
-				{commandState === 'readonly' ? (
-					<>
-						<Shield className="size-4" aria-hidden="true" /> This encounter is read-only because the expedition is closed.
-					</>
-				) : commandState === 'resolved' ? (
-					<>
-						<Check className="size-4" aria-hidden="true" /> This encounter has resolved. Review the daily chronicle for the outcome.
-					</>
-				) : commandState === 'saving' ? (
-					<>
-						<Sparkles className="size-4" aria-hidden="true" /> Saving your daily card plan…
-					</>
-				) : commandState === 'edited' ? (
-					<>
-						<Sparkles className="size-4" aria-hidden="true" /> Review your cards and save the updated plan.
-					</>
-				) : commandState === 'saved' ? (
-					<>
-						<Check className="size-4" aria-hidden="true" /> Your daily plan is locked in for resolution.
-					</>
-				) : (
-					<>
-						<Sparkles className="size-4" aria-hidden="true" /> Card hand phase · {plays.length}/{currentMember.playSlots} card slots queued
-					</>
-				)}
+				<BattleStatusMessage state={commandState} queuedCount={plays.length} playSlots={currentMember.playSlots} />
 			</div>
 
 			<div className="battle-stage">
@@ -1475,7 +1563,7 @@ export function BattleScene({
 					actionBusy={actionBusy}
 					targetEnemyId={targetEnemyId}
 					selectedTargetUserId={selectedTargetUserId}
-					targetMode={selectedPlayIndex === null ? null : (selectedCard?.targetMode ?? null)}
+					targetMode={selectedTargetMode(selectedPlayIndex, selectedCard)}
 					partyMemberName={partyMemberName}
 					onEnemySelect={onEnemySelect}
 					onAllySelect={onAllySelect}

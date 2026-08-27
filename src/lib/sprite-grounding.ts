@@ -18,19 +18,6 @@ export interface GroundedAnchor {
 	y: number;
 }
 
-export interface GroundedSpritePlacement {
-	left: number;
-	top: number;
-	size: number;
-}
-
-export interface GroundedSpritePlacementOptions {
-	sourceAnchor: GroundedAnchor;
-	scale: number;
-	groundPoint: GroundedAnchor;
-	lift?: number;
-}
-
 /** Finds the visible bounds of a packed frame from RGBA pixel data. */
 export function alphaBoundsFromPixels(pixels: Uint8ClampedArray, width: number, height: number): AlphaBounds | null {
 	let left = width;
@@ -64,23 +51,5 @@ export function alphaBoundsSize(bounds: AlphaBounds | null): { width: number; he
 	return {
 		width: bounds.right - bounds.left + 1,
 		height: bounds.bottom - bounds.top + 1,
-	};
-}
-
-/**
- * Positions a complete atlas frame so its source contact point reaches the
- * desired stage contact point. The returned values are percentages expressed
- * as normalized stage coordinates, which keeps CSS and Pixi placement aligned.
- */
-export function groundedSpritePlacement({
-	sourceAnchor,
-	scale,
-	groundPoint,
-	lift = 0,
-}: GroundedSpritePlacementOptions): GroundedSpritePlacement {
-	return {
-		left: groundPoint.x - sourceAnchor.x * scale,
-		top: groundPoint.y - lift - sourceAnchor.y * scale,
-		size: scale,
 	};
 }

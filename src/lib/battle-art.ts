@@ -38,12 +38,6 @@ export function battleArtBackgroundStyle(art: BattleArtSource): { backgroundPosi
 	};
 }
 
-/** Shared local contact point inside each actor stage. */
-export const BATTLE_ENTITY_CONTACT_POINT = {
-	x: 0.5,
-	y: 1,
-} as const satisfies GroundedAnchor;
-
 export function battleArtVariant(currentHealth: number, maxHealth: number): BattleArtVariant {
 	if (currentHealth === 0) return 'defeated';
 	return currentHealth < maxHealth / 2 ? 'hurt' : 'neutral';

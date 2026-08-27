@@ -205,8 +205,7 @@ export function DungeonGridMap({
 	const publishedTravelingRef = useRef(false);
 	const heldRef = useRef<{ mapping: (typeof KEY_DIRECTIONS)[string]; timer: number } | null>(null);
 	const heldGenerationRef = useRef(0);
-	const clearHeldRef = useRef<() => void>(() => undefined);
-	const pumpRequestsRef = useRef<() => void>(() => undefined);
+	const pumpRequestsRef = useRef<(() => void) | null>(null);
 
 	const publishVisualState = useCallback(() => {
 		const snapshot = movement.snapshot;
@@ -231,7 +230,7 @@ export function DungeonGridMap({
 		viewRef.current = { layout, selectedNodeId };
 		currentMapNodeRef.current = map.currentNodeId;
 		walkMutationRef.current = walkMutation;
-	}, [layout, map.currentNodeId, publishVisualState, selectedNodeId, walkMutation]);
+	}, [layout, map.currentNodeId, selectedNodeId, walkMutation]);
 
 	useEffect(() => {
 		mountedRef.current = true;
@@ -265,9 +264,6 @@ export function DungeonGridMap({
 		heldGenerationRef.current += 1;
 		movement.stopManualInput();
 	}, [movement]);
-	useLayoutEffect(() => {
-		clearHeldRef.current = clearHeld;
-	}, [clearHeld]);
 
 	const beginRecovery = useCallback(
 		(targetNodeId: string, frameNow: number, fromPoint?: StagePoint) => {
@@ -324,17 +320,17 @@ export function DungeonGridMap({
 					return;
 				}
 				publishVisualState();
-				pumpRequestsRef.current();
+				pumpRequestsRef.current?.();
 			})
 			.catch(() => {
 				if (!mountedRef.current) return;
-				clearHeldRef.current();
+				clearHeld();
 				const frameNow = performance.now();
 				const fromPoint = sampleDungeonMotion(viewRef.current.layout, movement, recoveryRef.current, frameNow).point;
 				const targetNodeId = movement.reject();
 				beginRecovery(targetNodeId, frameNow, fromPoint);
 			});
-	}, [beginRecovery, movement, publishVisualState]);
+	}, [beginRecovery, clearHeld, movement, publishVisualState]);
 	useLayoutEffect(() => {
 		pumpRequestsRef.current = pumpRequests;
 	}, [pumpRequests]);
@@ -355,12 +351,12 @@ export function DungeonGridMap({
 				setSelectedNodeId(result.nodeId);
 				publishVisualState();
 			})
-			.catch(() => clearHeldRef.current())
+			.catch(() => clearHeld())
 			.finally(() => {
 				autoBusyRef.current = false;
 				if (mountedRef.current) setAutoBusy(false);
 			});
-	}, [canNavigate, movement, publishVisualState]);
+	}, [canNavigate, clearHeld, movement, publishVisualState]);
 
 	const stepOnce = useCallback(
 		(mapping: (typeof KEY_DIRECTIONS)[string]) => {
@@ -372,7 +368,7 @@ export function DungeonGridMap({
 			directionRef.current = intent.direction;
 			setSpriteDirection(intent.direction);
 			publishVisualState();
-			pumpRequestsRef.current();
+			pumpRequestsRef.current?.();
 		},
 		[canNavigate, layout, movement, publishVisualState],
 	);
@@ -397,7 +393,7 @@ export function DungeonGridMap({
 
 	useEffect(() => () => clearHeld(), [clearHeld]);
 	useEffect(() => {
-		const stopHeldInput = () => clearHeldRef.current();
+		const stopHeldInput = () => clearHeld();
 		const stopHeldInputOnKeyUp = (event: globalThis.KeyboardEvent) => {
 			if (event.key in KEY_DIRECTIONS) stopHeldInput();
 		};
@@ -407,7 +403,7 @@ export function DungeonGridMap({
 			window.removeEventListener('blur', stopHeldInput);
 			window.removeEventListener('keyup', stopHeldInputOnKeyUp, true);
 		};
-	}, []);
+	}, [clearHeld]);
 	useEffect(() => {
 		if (walkMutation?.error) clearHeld();
 	}, [clearHeld, walkMutation?.error]);

@@ -4,6 +4,7 @@ import { expect } from 'storybook/test';
 
 import type { Encounter, Inventory } from '#/lib/api';
 import type { BattleTerrain } from '#/lib/battle-terrain';
+import { cardPlanAdditionIssue } from '#/lib/battle-cards';
 import { combatCommandState } from '#/lib/combat-command-state';
 
 import { BattleScene } from './battle-scene';
@@ -350,27 +351,19 @@ function BattlePreview({
 					if (plays.length >= activeMember.playSlots) {
 						if (existingIndexes.length > 0) {
 							setSelectedCardKey(cardKey);
-							setSelectedPlayIndex(existingIndexes.at(-1) as number);
+							const lastIndex = existingIndexes.at(-1);
+							if (lastIndex !== undefined) setSelectedPlayIndex(lastIndex);
 						}
 						return;
 					}
-					const itemQuantity = inventory.items.find((item) => item.key === selectedEncounterCard.sourceKey)?.quantity;
 					if (
-						selectedEncounterCard.sourceKind === 'item' &&
-						itemQuantity !== undefined &&
-						plays.filter((play) => play.cardKey === cardKey).length >= itemQuantity
-					)
-						return;
-					const queuedItemKeys = new Set(
-						plays.flatMap((play) => {
-							const queuedCard = draftCards.find((candidate) => candidate.key === play.cardKey);
-							return queuedCard?.sourceKind === 'item' ? [queuedCard.sourceKey] : [];
-						}),
-					);
-					if (
-						selectedEncounterCard.sourceKind === 'item' &&
-						!queuedItemKeys.has(selectedEncounterCard.sourceKey) &&
-						queuedItemKeys.size >= 2
+						cardPlanAdditionIssue({
+							card: selectedEncounterCard,
+							plays,
+							cards: draftCards,
+							inventory,
+							playSlots: activeMember.playSlots,
+						}) !== null
 					)
 						return;
 					setSelectedCardKey(cardKey);

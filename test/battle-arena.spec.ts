@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { battleFloorSlots } from '#/lib/battle-arena';
-import { battleActorStageSize, battleFloorBoundaryYAtX, createBattleCamera, projectBattleFloorSlot } from '#/lib/battle-camera';
+import { battleFloorBoundaryYAtX, createBattleCamera, projectBattleFloorSlot } from '#/lib/battle-camera';
 import { battleFloorCalibrationFor } from '#/lib/battle-terrain';
 
 const world = { width: 1672, height: 941 };
@@ -106,18 +106,6 @@ describe('battle camera projection', () => {
 				}
 			}
 		}
-	});
-
-	it('uses the same projected contact point for DOM sizing and Pixi sizing', () => {
-		const viewport = { width: 390, height: 640 };
-		const [placement] = projectedSlots(viewport.width, viewport.height, 'enemy', 1);
-
-		const stageSize = battleActorStageSize(viewport, 'enemy', 1, placement.scale);
-		const camera = createBattleCamera(viewport, world);
-
-		expect((placement.worldX - camera.originX) * camera.scale).toBeCloseTo(placement.x, 8);
-		expect((placement.worldY - camera.originY) * camera.scale).toBeCloseTo(placement.groundY, 8);
-		expect(stageSize).toBeGreaterThan(0);
 	});
 
 	it('returns no slots for an empty formation', () => {

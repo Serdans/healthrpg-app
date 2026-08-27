@@ -61,9 +61,13 @@ async function body(request) {
 function currentNodeType() {
 	if (state.scenario === 'village' || state.scenario === 'village-interior') return 'village';
 	if (state.scenario === 'dungeon-grid') return 'travel';
-	if (state.scenario === 'combat') return 'combat';
+	if (state.scenario === 'combat' || state.scenario === 'combat-stale') return 'combat';
 	if (state.scenario === 'event') return 'narrative';
 	return 'travel';
+}
+
+function isCombatScenario() {
+	return state.scenario === 'combat' || state.scenario === 'combat-stale';
 }
 
 function dungeonNavigation() {
@@ -95,31 +99,30 @@ function party() {
 			config: {
 				movementCost: 10,
 				challengeCost: 0,
-				event:
-					state.scenario === 'combat'
-						? { eventType: 'combat' }
-						: state.scenario === 'village' || state.scenario === 'village-interior'
-							? { eventType: 'village', settlementKey: 'mossway' }
-							: state.scenario === 'event'
-								? {
-										eventType: 'narrative',
-										prompt: 'Which light do you follow?',
-										choices: [
-											{
-												key: 'lantern',
-												displayName: 'Follow the lanterns',
-												description: 'Take the warm road.',
-												requirements: { movementUnits: 0, recoveryPoints: 0 },
-											},
-											{
-												key: 'stars',
-												displayName: 'Read the stars',
-												description: 'Trust the high path.',
-												requirements: { movementUnits: 1, recoveryPoints: 0 },
-											},
-										],
-									}
-								: undefined,
+				event: isCombatScenario()
+					? { eventType: 'combat' }
+					: state.scenario === 'village' || state.scenario === 'village-interior'
+						? { eventType: 'village', settlementKey: 'mossway' }
+						: state.scenario === 'event'
+							? {
+									eventType: 'narrative',
+									prompt: 'Which light do you follow?',
+									choices: [
+										{
+											key: 'lantern',
+											displayName: 'Follow the lanterns',
+											description: 'Take the warm road.',
+											requirements: { movementUnits: 0, recoveryPoints: 0 },
+										},
+										{
+											key: 'stars',
+											displayName: 'Read the stars',
+											description: 'Trust the high path.',
+											requirements: { movementUnits: 1, recoveryPoints: 0 },
+										},
+									],
+								}
+							: undefined,
 			},
 		},
 		challengeProgress: 0,
@@ -366,14 +369,13 @@ function map() {
 				config: {
 					movementCost: 10,
 					challengeCost: 0,
-					event:
-						state.scenario === 'combat'
-							? { eventType: 'combat' }
-							: state.scenario === 'village'
-								? { eventType: 'village', settlementKey: 'mossway' }
-								: state.scenario === 'event'
-									? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
-									: undefined,
+					event: isCombatScenario()
+						? { eventType: 'combat' }
+						: state.scenario === 'village'
+							? { eventType: 'village', settlementKey: 'mossway' }
+							: state.scenario === 'event'
+								? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
+								: undefined,
 				},
 				discovered: true,
 				adjacent: true,
@@ -509,40 +511,38 @@ function dailyRecap() {
 			recoveryPoints: 4,
 			challenge: { progressBefore: 0, contribution: 0, progressAfter: 0, cost: 0, cleared: true },
 			route: null,
-			event:
-				state.scenario === 'combat' ? { eventType: 'combat', outcome: 'ongoing', selectedChoiceKey: null, selectionReason: null } : null,
-			combats:
-				state.scenario === 'combat'
-					? [
-							{
-								completed: false,
-								members: [
-									{
-										userId: 'user-1',
-										displayName: 'Hero',
-										cards: [{ key: 'class:basic-attack', displayName: 'Basic Attack' }],
-										healthBefore: 20,
-										recovery: 4,
-										cardHealing: 0,
-										damageTaken: 2,
-										healthAfter: 22,
-										maxHealth: 30,
-									},
-								],
-								enemies: [
-									{
-										id: 'enemy-1',
-										displayName: 'Wolf',
-										healthBefore: 12,
-										damageTaken: 8,
-										healthAfter: 4,
-										maxHealth: 12,
-										defeated: false,
-									},
-								],
-							},
-						]
-					: [],
+			event: isCombatScenario() ? { eventType: 'combat', outcome: 'ongoing', selectedChoiceKey: null, selectionReason: null } : null,
+			combats: isCombatScenario()
+				? [
+						{
+							completed: false,
+							members: [
+								{
+									userId: 'user-1',
+									displayName: 'Hero',
+									cards: [{ key: 'class:basic-attack', displayName: 'Basic Attack' }],
+									healthBefore: 20,
+									recovery: 4,
+									cardHealing: 0,
+									damageTaken: 2,
+									healthAfter: 22,
+									maxHealth: 30,
+								},
+							],
+							enemies: [
+								{
+									id: 'enemy-1',
+									displayName: 'Wolf',
+									healthBefore: 12,
+									damageTaken: 8,
+									healthAfter: 4,
+									maxHealth: 12,
+									defeated: false,
+								},
+							],
+						},
+					]
+				: [],
 			rewards: [],
 			navigation: null,
 		},
@@ -857,6 +857,10 @@ async function handler(request) {
 	if (path === '/__scenario' && request.method === 'POST') {
 		const payload = await body(request);
 		state.scenario = payload.scenario ?? 'branch';
+		state.selectedPlan =
+			state.scenario === 'combat-stale'
+				? { itemLoadoutKeys: [], plays: [{ cardKey: 'class:retired-skill', targetEnemyId: 'enemy-1', targetUserId: null }] }
+				: null;
 		state.walkedTo = null;
 		state.walkCount = 0;
 		state.dungeonDiscovered = new Set(['tile-entry']);

@@ -342,6 +342,23 @@ test('selects a specific enemy target for an attack card', async ({ page, reques
 		});
 });
 
+test('keeps a stale planned card visible until it is removed', async ({ page, request }) => {
+	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'combat-stale' } });
+	await authenticate(page);
+	await page.goto('/parties/party-1');
+
+	const staleCard = page.getByTestId('battle-queued-card-1');
+	await expect(staleCard).toContainText('Card unavailable');
+	await expect(staleCard).toHaveAttribute('data-plan-issue', 'missing-card');
+	await expect(page.getByTestId('battle-save-plan')).toBeDisabled();
+	await expect(page.getByTestId('battle-save-plan')).toHaveAttribute('data-plan-valid', 'false');
+
+	await staleCard.click({ force: true });
+	await expect(page.getByTestId('battle-plan-summary')).toContainText('Plan 0/3');
+	await expect(page.getByTestId('battle-save-plan')).toBeEnabled();
+	await expect.poll(async () => lastMutation(request)).toEqual({ path: null, body: null });
+});
+
 test('builds and saves a daily card plan', async ({ page, request }) => {
 	await request.post(`${mockBackendUrl}/__scenario`, { data: { scenario: 'combat' } });
 	await authenticate(page);
@@ -620,15 +637,15 @@ test('builds and saves a daily card plan', async ({ page, request }) => {
 	expect(focusedStack.stackOrder).toBeGreaterThan(focusedStack.maxSiblingStackOrder);
 	await expect(page.getByTestId('battle-card-class-shield-wall')).toHaveCount(0);
 	await expect(queuedShieldWall).toHaveClass(/battle-fan-card-focused/);
-	await queuedShieldWall.evaluate((card) => (card as HTMLButtonElement).click());
+	await queuedShieldWall.click({ force: true });
 	await expect(page.getByTestId('battle-plan-summary')).toContainText('Plan 0/3');
-	await page.getByTestId('battle-card-item-herb').evaluate((card) => (card as HTMLButtonElement).click());
+	await page.getByTestId('battle-card-item-herb').click({ force: true });
 	const herbCard = page.getByTestId('battle-card-item-herb');
 	await expect(page.getByTestId('battle-queued-card-1')).toHaveAttribute('data-card-key', 'item:herb');
 	await expect(herbCard).toHaveAttribute('data-queued', 'false');
 	await expect(herbCard).toHaveAttribute('data-queued-count', '1');
-	await page.getByTestId('battle-card-class-basic-attack').evaluate((card) => (card as HTMLButtonElement).click());
-	await page.getByTestId('battle-card-class-basic-attack').evaluate((card) => (card as HTMLButtonElement).click());
+	await page.getByTestId('battle-card-class-basic-attack').click({ force: true });
+	await page.getByTestId('battle-card-class-basic-attack').click({ force: true });
 	await expect(page.getByTestId('battle-queued-card-2')).toHaveAttribute('data-card-key', 'class:basic-attack');
 	await expect(page.getByTestId('battle-queued-card-3')).toHaveAttribute('data-card-key', 'class:basic-attack');
 	await expect(page.getByTestId('battle-card-class-basic-attack')).toHaveAttribute('data-queued', 'false');
@@ -1044,6 +1061,16 @@ test('keeps the selected fan and lock action inside a phone battle viewport', as
 	await expect(handViewportControl).toHaveAttribute('data-has-right-overflow', 'true');
 	await expect(page.locator('.battle-fan-card[data-edge-fade-left="true"]')).toHaveCount(0);
 	await expect(page.locator('.battle-fan-card[data-edge-fade-right="true"]')).toHaveCount(1);
+	const handViewportBounds = await handViewportControl.boundingBox();
+	if (!handViewportBounds) throw new Error('Hand viewport bounds are missing.');
+	await page.mouse.move(handViewportBounds.x + handViewportBounds.width * 0.78, handViewportBounds.y + handViewportBounds.height * 0.45);
+	await page.mouse.down();
+	await page.mouse.move(handViewportBounds.x + handViewportBounds.width * 0.22, handViewportBounds.y + handViewportBounds.height * 0.45, {
+		steps: 6,
+	});
+	await page.mouse.up();
+	await expect.poll(() => handViewportControl.evaluate((viewport) => viewport.scrollLeft)).toBeGreaterThan(0);
+	await expect(handViewportControl).toHaveAttribute('data-has-left-overflow', 'true');
 	await handViewportControl.evaluate((viewport) => {
 		viewport.scrollLeft = Math.floor((viewport.scrollWidth - viewport.clientWidth) / 2);
 		viewport.dispatchEvent(new Event('scroll'));

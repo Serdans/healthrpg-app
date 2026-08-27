@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { InventoryView } from '#/components/inventory/inventory-view';
 import type { EquipmentSlot } from '#/lib/api';
-import { useEquipLoadout, useInventory, useLoadout, useParties, usePartyRoster, useUnequipLoadout, useUsePartyItem } from '#/lib/queries';
+import { useEquipLoadout, useInventory, useLoadout, useParties, usePartyItemUse, usePartyRoster, useUnequipLoadout } from '#/lib/queries';
 
 export const Route = createFileRoute('/_app/inventory')({
 	head: () => ({ meta: [{ title: 'Kit · HealthRPG' }] }),
@@ -32,7 +32,7 @@ function InventoryPage() {
 	const activeParty = activeParties.find((party) => party.id === selectedPartyId) ?? activeParties.at(0) ?? null;
 	const activePartyId = activeParty?.id ?? null;
 	const rosterQuery = usePartyRoster(activePartyId);
-	const itemUseMutation = useUsePartyItem(activePartyId);
+	const itemUseMutation = usePartyItemUse(activePartyId);
 	const [status, setStatus] = useState<string | null>(null);
 
 	if (inventoryQuery.isPending || loadoutQuery.isPending || partiesQuery.isPending) return <LoadingState label="Opening your satchel…" />;

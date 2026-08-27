@@ -45,7 +45,7 @@ import {
 	transferDungeonNavigator,
 	unequipLoadout,
 	updatePreferences,
-	usePartyItem,
+	partyItemUse,
 	voteDungeonRoute,
 	walkDungeon,
 } from './api';
@@ -510,10 +510,10 @@ export function useSetEncounterPlan(partyId: string) {
 	});
 }
 
-export function useUsePartyItem(partyId: string | null) {
+export function usePartyItemUse(partyId: string | null) {
 	const queryClient = useQueryClient();
 	return useMutation({
-		mutationFn: (input: Parameters<typeof usePartyItem>[1]) => usePartyItem(requirePartyId(partyId), input),
+		mutationFn: (input: Parameters<typeof partyItemUse>[1]) => partyItemUse(requirePartyId(partyId), input),
 		onSuccess: () => {
 			if (partyId === null) return;
 			void queryClient.invalidateQueries({ queryKey: queryKeys.inventory });

@@ -9,8 +9,6 @@ export interface BattleFloorSlot {
 	row: BattleArenaRow;
 }
 
-interface FormationPoint extends BattleFloorSlot {}
-
 const PARTY_LANE_WEIGHTS: Partial<Record<number, readonly number[]>> = {
 	2: [0.18, 0.82],
 	3: [0, 0.5, 1],
@@ -19,7 +17,7 @@ const PARTY_LANE_WEIGHTS: Partial<Record<number, readonly number[]>> = {
 	6: [0.04, 0.5, 0.96, 0.08, 0.54, 1],
 };
 
-const ENEMY_FORMATIONS: Partial<Record<number, readonly FormationPoint[]>> = {
+const ENEMY_FORMATIONS: Partial<Record<number, readonly BattleFloorSlot[]>> = {
 	1: [{ laneWeight: 0.5, depth: 0.2, row: 'back' }],
 	2: [
 		{ laneWeight: 0.18, depth: 0.18, row: 'back' },

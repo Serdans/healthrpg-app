@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import type { MutableRefObject, RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import type { RefObject } from 'react';
 import { Application, useApplication } from '@pixi/react';
 import type { ApplicationRef } from '@pixi/react';
 import { Assets, Container, Graphics, Rectangle, Sprite, Texture } from 'pixi.js';
@@ -36,7 +36,6 @@ interface BattlePixiAssets {
 }
 
 interface BattlePixiActor {
-	id: string;
 	side: 'enemy' | 'party';
 	art: BattleArtSource;
 	frameKey: string;
@@ -47,8 +46,7 @@ interface BattlePixiActor {
 }
 
 interface BattlePixiRuntimeComponentProps {
-	propsRef: MutableRefObject<BattlePixiSceneProps>;
-	propsVersion: number;
+	props: BattlePixiSceneProps;
 	battleTerrain: BattleTerrain;
 }
 
@@ -68,7 +66,7 @@ interface BattlePixiRuntime {
 }
 
 function renderBattleApp(app: RenderableBattleApplication): void {
-	if (app.renderer === undefined) return;
+	if (!app.renderer) return;
 	app.render();
 }
 
@@ -124,7 +122,6 @@ function drawTerrainEffects(container: Container, terrain: BattleTerrain, worldW
 function createBattlePixiActor(
 	container: Container,
 	assets: BattlePixiAssets,
-	id: string,
 	side: 'enemy' | 'party',
 	art: BattleArtSource,
 ): BattlePixiActor {
@@ -137,7 +134,7 @@ function createBattlePixiActor(
 	const selection = new Graphics();
 	container.addChild(shadow, selection, sprite);
 
-	return { id, side, art, frameKey: frameKey(art), sprite, shadow, selection, texture };
+	return { side, art, frameKey: frameKey(art), sprite, shadow, selection, texture };
 }
 
 function disposeActor(container: Container, actor: BattlePixiActor): void {
@@ -157,12 +154,15 @@ function actorId(side: 'enemy' | 'party', id: string): string {
 }
 
 function actorArt(side: 'enemy' | 'party', entity: Encounter['enemies'][number] | EncounterMember): BattleArtSource {
-	if (side === 'enemy') return battleEnemyArtForArchetype((entity as Encounter['enemies'][number]).archetypeKey);
-	return battlePartyArtForClass((entity as EncounterMember).classKey);
+	if (side === 'enemy' && 'archetypeKey' in entity) return battleEnemyArtForArchetype(entity.archetypeKey);
+	if (side === 'party' && 'classKey' in entity) return battlePartyArtForClass(entity.classKey);
+	throw new Error(`Cannot resolve art for ${side} actor.`);
 }
 
 function entityId(side: 'enemy' | 'party', entity: Encounter['enemies'][number] | EncounterMember): string {
-	return side === 'enemy' ? (entity as Encounter['enemies'][number]).id : (entity as EncounterMember).userId;
+	if (side === 'enemy' && 'id' in entity) return entity.id;
+	if (side === 'party' && 'userId' in entity) return entity.userId;
+	throw new Error(`Cannot resolve identity for ${side} actor.`);
 }
 
 function syncActors(scene: BattlePixiRuntime, props: BattlePixiSceneProps): void {
@@ -189,7 +189,7 @@ function syncActors(scene: BattlePixiRuntime, props: BattlePixiSceneProps): void
 			continue;
 		}
 		if (current) disposeActor(scene.actors, current);
-		const created = createBattlePixiActor(scene.actors, scene.assets, id, nextActor.side, nextActor.art);
+		const created = createBattlePixiActor(scene.actors, scene.assets, nextActor.side, nextActor.art);
 		scene.actorSprites.set(id, created);
 	}
 }
@@ -274,37 +274,38 @@ function createBattlePixiScene(props: BattlePixiSceneProps, assets: BattlePixiAs
 		actors,
 		actorSprites: new Map(),
 		assets,
-		destroy: () => {
+		destroy() {
 			for (const actor of scene.actorSprites.values()) disposeActor(actors, actor);
 			scene.actorSprites.clear();
 			root.destroy({ children: true });
 		},
-		update: () => undefined,
+		update(nextProps) {
+			syncActors(scene, nextProps);
+			world.position.set(-nextProps.camera.originX * nextProps.camera.scale, -nextProps.camera.originY * nextProps.camera.scale);
+			world.scale.set(nextProps.camera.scale);
+
+			for (const [index, enemy] of nextProps.encounter.enemies.entries()) {
+				const actor = scene.actorSprites.get(actorId('enemy', enemy.id));
+				if (actor) updateActor(actor, nextProps, index, enemy);
+			}
+			for (const [index, member] of nextProps.encounter.members.entries()) {
+				const actor = scene.actorSprites.get(actorId('party', member.userId));
+				if (actor) updateActor(actor, nextProps, index, member);
+			}
+			actors.sortChildren();
+		},
 	};
-
-	scene.update = (nextProps) => {
-		syncActors(scene, nextProps);
-		world.position.set(-nextProps.camera.originX * nextProps.camera.scale, -nextProps.camera.originY * nextProps.camera.scale);
-		world.scale.set(nextProps.camera.scale);
-
-		for (const [index, enemy] of nextProps.encounter.enemies.entries()) {
-			const actor = scene.actorSprites.get(actorId('enemy', enemy.id));
-			if (actor) updateActor(actor, nextProps, index, enemy);
-		}
-		for (const [index, member] of nextProps.encounter.members.entries()) {
-			const actor = scene.actorSprites.get(actorId('party', member.userId));
-			if (actor) updateActor(actor, nextProps, index, member);
-		}
-		actors.sortChildren();
-	};
-
-	scene.update(props);
 	return scene;
 }
 
-function BattlePixiRuntime({ propsRef, propsVersion, battleTerrain }: BattlePixiRuntimeComponentProps) {
+function BattlePixiRuntime({ props, battleTerrain }: BattlePixiRuntimeComponentProps) {
 	const { app } = useApplication();
 	const sceneRef = useRef<BattlePixiRuntime | null>(null);
+	const propsRef = useRef(props);
+
+	useLayoutEffect(() => {
+		propsRef.current = props;
+	}, [props]);
 
 	useEffect(() => {
 		let active = true;
@@ -327,40 +328,27 @@ function BattlePixiRuntime({ propsRef, propsVersion, battleTerrain }: BattlePixi
 			if (sceneRef.current === created) sceneRef.current = null;
 			created?.destroy();
 		};
-	}, [app, battleTerrain, propsRef]);
+	}, [app, battleTerrain]);
 
 	useEffect(() => {
 		const scene = sceneRef.current;
 		if (!scene) return;
-		scene.update(propsRef.current);
+		scene.update(props);
 		renderBattleApp(app);
-	}, [app, propsRef, propsVersion]);
+	}, [app, props]);
 	return null;
 }
 
 export function BattlePixiScene(props: BattlePixiSceneProps) {
 	const applicationRef = useRef<ApplicationRef>(null);
-	const propsRef = useRef<BattlePixiSceneProps>(props);
-	const propsVersionRef = useRef(0);
-	if (propsRef.current !== props) {
-		propsRef.current = props;
-		propsVersionRef.current += 1;
-	}
 	const resolution = typeof window === 'undefined' ? 1 : Math.max(1, window.devicePixelRatio || 1);
-
-	const markCanvas = useCallback((app: { canvas: HTMLCanvasElement }) => {
-		app.canvas.dataset.testid = 'battle-arena-canvas';
-		app.canvas.dataset.renderer = 'pixi';
-		app.canvas.setAttribute('aria-hidden', 'true');
-	}, []);
 
 	useLayoutEffect(() => {
 		const canvas = applicationRef.current?.getCanvas();
-		if (canvas) {
-			canvas.dataset.testid = 'battle-arena-canvas';
-			canvas.dataset.renderer = 'pixi';
-			canvas.setAttribute('aria-hidden', 'true');
-		}
+		if (!canvas) return;
+		canvas.dataset.testid = 'battle-arena-canvas';
+		canvas.dataset.renderer = 'pixi';
+		canvas.setAttribute('aria-hidden', 'true');
 	}, []);
 
 	return (
@@ -376,9 +364,8 @@ export function BattlePixiScene(props: BattlePixiSceneProps) {
 				resolution={resolution}
 				backgroundAlpha={0}
 				autoStart={false}
-				onInit={markCanvas}
 			>
-				<BattlePixiRuntime propsRef={propsRef} propsVersion={propsVersionRef.current} battleTerrain={props.battleTerrain} />
+				<BattlePixiRuntime props={props} battleTerrain={props.battleTerrain} />
 			</Application>
 		</div>
 	);

@@ -83,7 +83,6 @@ interface DungeonPixiRuntime {
 	partyPipCount: number;
 	partyShadow: Graphics;
 	partyHighlight: Graphics;
-	monsterSprites: Map<string, Sprite>;
 	pulses: PulseGraphic[];
 	motes: MoteGraphic[];
 	assets: DungeonPixiAssets;
@@ -406,14 +405,8 @@ function positionPartyPips(
 	}
 }
 
-function drawMonsters(
-	monsterLayer: Container,
-	layout: DungeonGridLayout,
-	assets: DungeonPixiAssets,
-	monsterSprites: Map<string, Sprite>,
-): void {
+function drawMonsters(monsterLayer: Container, layout: DungeonGridLayout, assets: DungeonPixiAssets): void {
 	clearChildren(monsterLayer);
-	monsterSprites.clear();
 	for (const tile of layout.tiles) {
 		if (!tile.archetypeKey || !tile.discovered || tile.node.encounterCleared) continue;
 		const grounded = assets.monsterFrames.get(tile.archetypeKey);
@@ -435,7 +428,6 @@ function drawMonsters(
 		);
 		shadow.zIndex = groundY - 0.2;
 		monsterLayer.addChild(shadow, sprite);
-		monsterSprites.set(tile.node.id, sprite);
 	}
 }
 
@@ -504,8 +496,7 @@ function createScene(
 	partyHighlight.zIndex = -0.1;
 	actors.addChild(partyHighlight);
 
-	const monsterSprites = new Map<string, Sprite>();
-	drawMonsters(monsterLayer, layout, assets, monsterSprites);
+	drawMonsters(monsterLayer, layout, assets);
 	const motes = createMotes(layout, world);
 
 	const scene: DungeonPixiRuntime = {
@@ -520,7 +511,6 @@ function createScene(
 		partyPipCount: partyMemberCount,
 		partyShadow,
 		partyHighlight,
-		monsterSprites,
 		pulses,
 		motes,
 		assets,
@@ -539,117 +529,112 @@ function createScene(
 			for (const grounded of assets.partyFrames.values()) grounded.texture.destroy();
 			for (const grounded of assets.monsterFrames.values()) grounded.texture.destroy();
 		},
-		refreshLayout: () => undefined,
-		update: () => undefined,
-	};
-
-	const refreshLayout = (nextLayout: DungeonGridLayout): void => {
-		scene.layout = nextLayout;
-		scene.layoutKey = dungeonLayoutRenderKey(nextLayout);
-		clearChildren(terrain);
-		terrain.addChild(drawBackdrop(nextLayout), drawPlane(nextLayout, assets));
-		drawMarkers(markers, nextLayout, assets, pulses);
-		drawMonsters(monsterLayer, nextLayout, assets, monsterSprites);
-		for (const mote of scene.motes) mote.graphic.destroy();
-		scene.motes = createMotes(nextLayout, world);
-	};
-	scene.refreshLayout = refreshLayout;
-
-	scene.update = (props, now, elapsedMs) => {
-		const { layout: currentLayout, movement, recovery } = props;
-		if (scene.partyPipCount !== props.partyMemberCount) {
-			for (const pip of scene.partyPips) {
-				actors.removeChild(pip);
-				pip.destroy();
+		refreshLayout(nextLayout) {
+			scene.layout = nextLayout;
+			scene.layoutKey = dungeonLayoutRenderKey(nextLayout);
+			clearChildren(terrain);
+			terrain.addChild(drawBackdrop(nextLayout), drawPlane(nextLayout, assets));
+			drawMarkers(markers, nextLayout, assets, pulses);
+			drawMonsters(monsterLayer, nextLayout, assets);
+			for (const mote of scene.motes) mote.graphic.destroy();
+			scene.motes = createMotes(nextLayout, world);
+		},
+		update(props, now, elapsedMs) {
+			const { layout: currentLayout, movement, recovery } = props;
+			if (scene.partyPipCount !== props.partyMemberCount) {
+				for (const pip of scene.partyPips) {
+					actors.removeChild(pip);
+					pip.destroy();
+				}
+				scene.partyPips = createPartyPips(actors, props.partyMemberCount);
+				scene.partyPipCount = props.partyMemberCount;
 			}
-			scene.partyPips = createPartyPips(actors, props.partyMemberCount);
-			scene.partyPipCount = props.partyMemberCount;
-		}
-		if (scene.layoutKey !== props.layoutKey) refreshLayout(currentLayout);
-		if (movement.advanceVisual(now)) props.onVisualStateChange?.();
-		const recoveryKey = recovery ? `${recovery.toNodeId}:${String(recovery.startedAt)}` : null;
-		if (!recovery) scene.recoveryCompletedKey = null;
-		if (recovery && now - recovery.startedAt >= recovery.durationMs && scene.recoveryCompletedKey !== recoveryKey) {
-			scene.recoveryCompletedKey = recoveryKey;
-			props.onRecoveryComplete?.(recovery.toNodeId, now);
-		}
-		const viewport = props.viewportRef.current;
-		if (!viewport) return;
-		const width = Math.max(1, viewport.clientWidth);
-		const height = Math.max(1, viewport.clientHeight);
-		const zoom = dungeonZoom(currentLayout, { width, height });
-		const sample = sampleDungeonMotion(currentLayout, movement, recovery, now);
-		const floor = currentLayout.floors.at(0);
-		const floorFits = Boolean(floor && floor.width * zoom <= width - 48 && floor.height * zoom <= height - 48);
-		const sameFloor = scene.cameraFloorNo === currentLayout.activeFloorNo;
-		scene.camera = followDungeonCamera(
-			sample.point,
-			{ width, height },
-			{ width: currentLayout.width, height: currentLayout.height },
-			zoom,
-			{
-				deadZone: { width: currentLayout.tileSize * 4, height: currentLayout.tileSize * 4 },
-				lockToCenter: floorFits,
-				catchupMs: 180,
-				previous: sameFloor ? (scene.camera ?? props.cameraRef.current) : null,
-				elapsedMs,
-			},
-		);
-		scene.cameraFloorNo = currentLayout.activeFloorNo;
-		const renderCamera = snapCamera(scene.camera);
-		props.cameraRef.current = renderCamera;
-		world.position.set(
-			renderCamera.originX - renderCamera.offsetX * renderCamera.zoom,
-			renderCamera.originY - renderCamera.offsetY * renderCamera.zoom,
-		);
-		world.scale.set(renderCamera.zoom);
-
-		const motionDirection = movement.snapshot.motion?.direction ?? props.direction;
-		scene.direction = motionDirection;
-		const frameIndex = recovery
-			? walkFrameForElapsed(now, recovery.startedAt)
-			: sample.moving
-				? walkFrameForMotion(now, sample.segment)
-				: 0;
-		const nextPartyFrameKey = frameKey(scene.direction, frameIndex);
-		if (nextPartyFrameKey !== scene.partyFrameKey) {
-			const grounded = assets.partyFrames.get(nextPartyFrameKey);
-			if (grounded) {
-				setGroundedSpriteTexture(scene.party, grounded);
-				setPartySpriteScale(scene.party, grounded, currentLayout.tileSize);
-				scene.partyFrameKey = nextPartyFrameKey;
+			if (scene.layoutKey !== props.layoutKey) scene.refreshLayout(currentLayout);
+			if (movement.advanceVisual(now)) props.onVisualStateChange?.();
+			const recoveryKey = recovery ? `${recovery.toNodeId}:${String(recovery.startedAt)}` : null;
+			if (!recovery) scene.recoveryCompletedKey = null;
+			if (recovery && now - recovery.startedAt >= recovery.durationMs && scene.recoveryCompletedKey !== recoveryKey) {
+				scene.recoveryCompletedKey = recoveryKey;
+				props.onRecoveryComplete?.(recovery.toNodeId, now);
 			}
-		}
-		const groundY = sample.point.y + currentLayout.tileSize * 0.25;
-		const arrival = sample.moving ? Math.sin(Math.PI * sample.progress) : 0;
-		const bob = arrival * DUNGEON_ARRIVAL_BOB_PX;
-		scene.party.position.set(sample.point.x, groundY - bob);
-		scene.party.zIndex = groundY;
-		scene.partyGroundY = groundY;
-		scene.partyShadow.position.set(sample.point.x, groundY);
-		scene.partyShadow.zIndex = groundY - 0.2;
-		scene.partyShadow.scale.set(1 - arrival * 0.06, 1 - arrival * 0.06);
-		scene.partyHighlight.zIndex = groundY - 0.1;
-		scene.partyHighlight.clear();
-		scene.partyHighlight
-			.ellipse(sample.point.x, groundY - currentLayout.tileSize * 0.06, currentLayout.tileSize * 0.72, currentLayout.tileSize * 0.34)
-			.fill({ color: 0xf1be4e, alpha: 0.025 + arrival * 0.015 });
-		scene.partyHighlight
-			.ellipse(sample.point.x, groundY - currentLayout.tileSize * 0.08, currentLayout.tileSize * 0.4, currentLayout.tileSize * 0.16)
-			.fill({
-				color: 0xf1be4e,
-				alpha: 0.08 + arrival * 0.04 + Math.sin(now / 480) * 0.01,
-			});
-		positionPartyPips(scene.partyPips, sample.point, groundY, currentLayout.tileSize, scene.direction, now);
-
-		for (const pulse of pulses) pulse.graphic.alpha = pulse.baseAlpha * (0.86 + Math.sin(now / 550 + pulse.phase) * 0.12);
-		for (const mote of scene.motes) {
-			mote.graphic.position.set(
-				mote.baseX + Math.sin(now / 900 + mote.phase) * 4,
-				mote.baseY + (((now / 90) * mote.speed + mote.phase * 11) % 18),
+			const viewport = props.viewportRef.current;
+			if (!viewport) return;
+			const width = Math.max(1, viewport.clientWidth);
+			const height = Math.max(1, viewport.clientHeight);
+			const zoom = dungeonZoom(currentLayout, { width, height });
+			const sample = sampleDungeonMotion(currentLayout, movement, recovery, now);
+			const floor = currentLayout.floors.at(0);
+			const floorFits = Boolean(floor && floor.width * zoom <= width - 48 && floor.height * zoom <= height - 48);
+			const sameFloor = scene.cameraFloorNo === currentLayout.activeFloorNo;
+			scene.camera = followDungeonCamera(
+				sample.point,
+				{ width, height },
+				{ width: currentLayout.width, height: currentLayout.height },
+				zoom,
+				{
+					deadZone: { width: currentLayout.tileSize * 4, height: currentLayout.tileSize * 4 },
+					lockToCenter: floorFits,
+					catchupMs: 180,
+					previous: sameFloor ? (scene.camera ?? props.cameraRef.current) : null,
+					elapsedMs,
+				},
 			);
-		}
-		actors.sortChildren();
+			scene.cameraFloorNo = currentLayout.activeFloorNo;
+			const renderCamera = snapCamera(scene.camera);
+			props.cameraRef.current = renderCamera;
+			world.position.set(
+				renderCamera.originX - renderCamera.offsetX * renderCamera.zoom,
+				renderCamera.originY - renderCamera.offsetY * renderCamera.zoom,
+			);
+			world.scale.set(renderCamera.zoom);
+
+			const motionDirection = movement.snapshot.motion?.direction ?? props.direction;
+			scene.direction = motionDirection;
+			const frameIndex = recovery
+				? walkFrameForElapsed(now, recovery.startedAt)
+				: sample.moving
+					? walkFrameForMotion(now, sample.segment)
+					: 0;
+			const nextPartyFrameKey = frameKey(scene.direction, frameIndex);
+			if (nextPartyFrameKey !== scene.partyFrameKey) {
+				const grounded = assets.partyFrames.get(nextPartyFrameKey);
+				if (grounded) {
+					setGroundedSpriteTexture(scene.party, grounded);
+					setPartySpriteScale(scene.party, grounded, currentLayout.tileSize);
+					scene.partyFrameKey = nextPartyFrameKey;
+				}
+			}
+			const groundY = sample.point.y + currentLayout.tileSize * 0.25;
+			const arrival = sample.moving ? Math.sin(Math.PI * sample.progress) : 0;
+			const bob = arrival * DUNGEON_ARRIVAL_BOB_PX;
+			scene.party.position.set(sample.point.x, groundY - bob);
+			scene.party.zIndex = groundY;
+			scene.partyGroundY = groundY;
+			scene.partyShadow.position.set(sample.point.x, groundY);
+			scene.partyShadow.zIndex = groundY - 0.2;
+			scene.partyShadow.scale.set(1 - arrival * 0.06, 1 - arrival * 0.06);
+			scene.partyHighlight.zIndex = groundY - 0.1;
+			scene.partyHighlight.clear();
+			scene.partyHighlight
+				.ellipse(sample.point.x, groundY - currentLayout.tileSize * 0.06, currentLayout.tileSize * 0.72, currentLayout.tileSize * 0.34)
+				.fill({ color: 0xf1be4e, alpha: 0.025 + arrival * 0.015 });
+			scene.partyHighlight
+				.ellipse(sample.point.x, groundY - currentLayout.tileSize * 0.08, currentLayout.tileSize * 0.4, currentLayout.tileSize * 0.16)
+				.fill({
+					color: 0xf1be4e,
+					alpha: 0.08 + arrival * 0.04 + Math.sin(now / 480) * 0.01,
+				});
+			positionPartyPips(scene.partyPips, sample.point, groundY, currentLayout.tileSize, scene.direction, now);
+
+			for (const pulse of pulses) pulse.graphic.alpha = pulse.baseAlpha * (0.86 + Math.sin(now / 550 + pulse.phase) * 0.12);
+			for (const mote of scene.motes) {
+				mote.graphic.position.set(
+					mote.baseX + Math.sin(now / 900 + mote.phase) * 4,
+					mote.baseY + (((now / 90) * mote.speed + mote.phase * 11) % 18),
+				);
+			}
+			actors.sortChildren();
+		},
 	};
 
 	return scene;
@@ -757,17 +742,11 @@ export function DungeonPixiScene(props: DungeonPixiSceneProps) {
 	const applicationRef = useRef<ApplicationRef>(null);
 	const resolution = typeof window === 'undefined' ? 1 : Math.max(1, window.devicePixelRatio || 1);
 
-	const markCanvas = useCallback((app: { canvas: HTMLCanvasElement }) => {
-		app.canvas.dataset.testid = 'dungeon-grid-canvas';
-		app.canvas.dataset.renderer = 'pixi';
-	}, []);
-
 	useLayoutEffect(() => {
 		const canvas = applicationRef.current?.getCanvas();
-		if (canvas) {
-			canvas.dataset.testid = 'dungeon-grid-canvas';
-			canvas.dataset.renderer = 'pixi';
-		}
+		if (!canvas) return;
+		canvas.dataset.testid = 'dungeon-grid-canvas';
+		canvas.dataset.renderer = 'pixi';
 	}, []);
 
 	return (
@@ -781,7 +760,6 @@ export function DungeonPixiScene(props: DungeonPixiSceneProps) {
 			autoDensity
 			resolution={resolution}
 			backgroundAlpha={0}
-			onInit={markCanvas}
 		>
 			<DungeonPixiRuntime {...props} layoutKey={dungeonLayoutRenderKey(props.layout)} />
 		</Application>
