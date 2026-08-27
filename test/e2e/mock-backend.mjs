@@ -752,7 +752,7 @@ function encounter() {
 			classKey: 'warrior',
 			unlockLevel: 2,
 			displayName: 'Shield Wall',
-			description: 'Brace against the next assault.',
+			description: 'Brace against the next assault, reducing incoming pressure while the party regains its footing.',
 			targetMode: 'none',
 			repeatable: false,
 			locked: false,

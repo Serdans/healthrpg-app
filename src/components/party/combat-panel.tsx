@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { BattleScene } from '#/components/party/battle-scene';
 import type { Encounter, Inventory, Party } from '#/lib/api';
+import type { BattleTerrain } from '#/lib/battle-terrain';
 import { combatCommandState } from '#/lib/combat-command-state';
 import { useInventory, useSetEncounterPlan } from '#/lib/queries';
 
@@ -60,12 +61,14 @@ export function CombatPanel({
 	userId,
 	party,
 	encounter,
+	battleTerrain,
 	readOnly = false,
 }: {
 	partyId: string;
 	userId: string;
 	party: Party;
 	encounter: Encounter;
+	battleTerrain: BattleTerrain;
 	readOnly?: boolean;
 }) {
 	const planMutation = useSetEncounterPlan(partyId);
@@ -172,23 +175,24 @@ export function CombatPanel({
 
 	const removePlay = (playIndex: number) => {
 		if (!plays[playIndex]) return;
+		preservePageScroll();
 		const nextPlays = plays.filter((_, index) => index !== playIndex);
-		const nextPlayIndex = playIndex < nextPlays.length ? playIndex : null;
+		const nextPlayIndex = nextPlays.length > 0 ? Math.min(playIndex, nextPlays.length - 1) : null;
 		setPlays(nextPlays);
 		setSelectedPlayIndex(nextPlayIndex);
 		setSelectedCardKey(nextPlayIndex === null ? null : nextPlays[nextPlayIndex].cardKey);
 		markDirty();
 	};
 
+	const focusPlay = (playIndex: number) => {
+		if (playIndex < 0 || playIndex >= plays.length) return;
+		setSelectedPlayIndex(playIndex);
+		setSelectedCardKey(plays[playIndex].cardKey);
+	};
+
 	const activatePlay = (playIndex: number) => {
 		if (playIndex < 0 || playIndex >= plays.length || readOnly || encounter.status === 'completed' || actionBusy) return;
-		const play = plays[playIndex];
-		if (selectedPlayIndex === playIndex) {
-			removePlay(playIndex);
-			return;
-		}
-		setSelectedPlayIndex(playIndex);
-		setSelectedCardKey(play.cardKey);
+		removePlay(playIndex);
 	};
 
 	const reorderPlay = (fromIndex: number, toIndex: number) => {
@@ -257,6 +261,7 @@ export function CombatPanel({
 	return (
 		<BattleScene
 			encounter={encounter}
+			battleTerrain={battleTerrain}
 			currentMember={draftMember}
 			userId={userId}
 			readOnly={readOnly}
@@ -273,6 +278,7 @@ export function CombatPanel({
 			partyMemberName={partyMemberName}
 			onCardActivate={activateCard}
 			onPlayActivate={activatePlay}
+			onPlayFocus={focusPlay}
 			onPlayReorder={reorderPlay}
 			onEnemySelect={selectEnemy}
 			onAllySelect={selectAlly}

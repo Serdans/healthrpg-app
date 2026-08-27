@@ -1,13 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-	alphaBoundsFromPixels,
-	dungeonPartyScale,
-	dungeonMonsterScale,
-	dungeonMonsterShadowWidth,
-	dungeonMonsterVisibleSize,
-	groundedAnchor,
-} from '#/lib/dungeon-sprite';
+import { dungeonPartyScale, dungeonMonsterScale, dungeonMonsterShadowWidth, dungeonMonsterVisibleSize } from '#/lib/dungeon-sprite';
+import { alphaBoundsFromPixels, groundedAnchor } from '#/lib/sprite-grounding';
 
 function pixels(width: number, opaque: Array<[number, number]>): Uint8ClampedArray {
 	const result = new Uint8ClampedArray(width * 4 * 4);

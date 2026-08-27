@@ -22,10 +22,10 @@ import {
 	dungeonMonsterScale,
 	dungeonMonsterShadowWidth,
 	dungeonMonsterVisibleSize,
-	groundedAnchor,
 	readFrameAlphaBounds,
 } from '#/lib/dungeon-sprite';
-import type { AlphaBounds, SpriteFrameRect } from '#/lib/dungeon-sprite';
+import { groundedAnchor } from '#/lib/sprite-grounding';
+import type { AlphaBounds, SpriteFrameRect } from '#/lib/sprite-grounding';
 import type { DungeonMovementController } from '#/lib/dungeon-movement';
 
 export interface DungeonPixiSceneProps {

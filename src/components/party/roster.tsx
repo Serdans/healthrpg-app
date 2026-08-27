@@ -5,6 +5,7 @@ import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import { Progress } from '#/components/ui/progress';
 import type { PartyRoster } from '#/lib/api';
+import { battleArtBackgroundStyle } from '#/lib/battle-art';
 import { battlePartyArtForClass } from '#/lib/game-art';
 
 const statLabels = [
@@ -73,8 +74,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 												memberArt
 													? {
 															backgroundImage: `url('${memberArt.src}')`,
-															backgroundPosition: memberArt.position,
-															backgroundSize: memberArt.backgroundSize,
+															...battleArtBackgroundStyle(memberArt),
 														}
 													: undefined
 											}
@@ -124,8 +124,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 										selectedMemberArt
 											? {
 													backgroundImage: `url('${selectedMemberArt.src}')`,
-													backgroundPosition: selectedMemberArt.position,
-													backgroundSize: selectedMemberArt.backgroundSize,
+													...battleArtBackgroundStyle(selectedMemberArt),
 												}
 											: undefined
 									}

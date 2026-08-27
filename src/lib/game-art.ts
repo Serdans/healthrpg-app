@@ -1,4 +1,5 @@
-import battlefieldMosswayUrl from '#/assets/game/backgrounds/battlefield-mossway.webp';
+import battlefieldRuinsUrl from '#/assets/game/backgrounds/battlefield-ruins.webp';
+import battlefieldWildsUrl from '#/assets/game/backgrounds/battlefield-wilds.webp';
 import interiorDungeonUrl from '#/assets/game/backgrounds/interior-dungeon.webp';
 import interiorVillageUrl from '#/assets/game/backgrounds/interior-village.webp';
 import overworldAtlasUrl from '#/assets/game/backgrounds/overworld-atlas.webp';
@@ -16,8 +17,11 @@ import dungeonTilesetUrl from '#/assets/game/tiles/dungeon-tileset.png';
 import dungeonPropsUrl from '#/assets/game/tiles/dungeon-props.png';
 
 import type { Inventory, PartyMap } from '#/lib/api';
+import type { BattleArtSource, BattleSpriteGrounding } from '#/lib/battle-art';
+import type { BattleTerrain } from '#/lib/battle-terrain';
 import { DUNGEON_PROP_TEXTURE_COUNT, DUNGEON_PROP_ART_SIZE, DUNGEON_PROP_TEXTURE_NAMES } from '#/lib/dungeon-props';
 import { TEXTURE_COUNT } from '#/lib/dungeon-tiles';
+import type { GroundedAnchor } from '#/lib/sprite-grounding';
 
 export type GamePanelTone = 'atlas' | 'combat' | 'village' | 'arcane' | 'history';
 
@@ -237,30 +241,79 @@ export const gameplayBackgroundArt = {
 	overworld: overworldAtlasUrl,
 	dungeon: interiorDungeonUrl,
 	village: interiorVillageUrl,
-	battlefield: battlefieldMosswayUrl,
+} as const;
+
+export const battleTerrainArt = {
+	ruins: battlefieldRuinsUrl,
+	wilds: battlefieldWildsUrl,
+} satisfies Record<BattleTerrain, string>;
+
+/** Native dimensions of the two terrain plates used by the battle camera. */
+export const battleTerrainWorldSize = {
+	width: 1672,
+	height: 941,
 } as const;
 
 export type BattleClassKey = 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
 
+function battleSpriteGrounding(sourceAnchor: GroundedAnchor, shadowWidth: number, scale = 1, lift = 0): BattleSpriteGrounding {
+	return { sourceAnchor, scale, lift, shadowWidth };
+}
+
+/**
+ * Contact points measured from the visible atlas artwork. The second party
+ * row has a shorter transparent tail, so it needs a lower source anchor to
+ * share the same battle floor as the first row.
+ */
+const battlePartyGrounding = {
+	warrior: battleSpriteGrounding({ x: 0.504, y: 1 }, 0.62),
+	rogue: battleSpriteGrounding({ x: 0.517, y: 1 }, 0.62),
+	ranger: battleSpriteGrounding({ x: 0.468, y: 1 }, 0.62),
+	cleric: battleSpriteGrounding({ x: 0.52, y: 0.936 }, 0.62),
+	mage: battleSpriteGrounding({ x: 0.521, y: 0.936 }, 0.62),
+	bard: battleSpriteGrounding({ x: 0.535, y: 0.936 }, 0.62),
+} satisfies Record<BattleClassKey, BattleSpriteGrounding>;
+
 export const battlePartyArt = {
 	src: partyClassSpritesUrl,
-	backgroundSize: '300% 200%',
-	positions: {
-		warrior: '0% 0%',
-		rogue: '50% 0%',
-		ranger: '100% 0%',
-		cleric: '0% 100%',
-		mage: '50% 100%',
-		bard: '100% 100%',
-	} satisfies Record<BattleClassKey, string>,
+	groundings: battlePartyGrounding,
+	atlas: {
+		columns: 3,
+		rows: 2,
+		frames: {
+			warrior: { column: 0, row: 0 },
+			rogue: { column: 1, row: 0 },
+			ranger: { column: 2, row: 0 },
+			cleric: { column: 0, row: 1 },
+			mage: { column: 1, row: 1 },
+			bard: { column: 2, row: 1 },
+		} satisfies Record<BattleClassKey, { column: number; row: number }>,
+	},
 } as const;
 
 export type BattleEnemyArchetype =
 	'vermin' | 'bat' | 'wild-mushroom' | 'slime' | 'wolf' | 'grotto-mite' | 'thorn-wolf' | 'ruin-sentinel' | 'unknown';
 
+/** Contact points and shadow footprints measured from the 3×3 monster atlas. */
+const battleEnemyGrounding = {
+	vermin: battleSpriteGrounding({ x: 0.5, y: 0.998 }, 0.5),
+	bat: battleSpriteGrounding({ x: 0.5, y: 0.998 }, 0.54),
+	'wild-mushroom': battleSpriteGrounding({ x: 0.5, y: 0.996 }, 0.5),
+	slime: battleSpriteGrounding({ x: 0.501, y: 0.998 }, 0.56),
+	wolf: battleSpriteGrounding({ x: 0.499, y: 0.998 }, 0.54),
+	'grotto-mite': battleSpriteGrounding({ x: 0.498, y: 1 }, 0.52),
+	'thorn-wolf': battleSpriteGrounding({ x: 0.501, y: 1 }, 0.58),
+	'ruin-sentinel': battleSpriteGrounding({ x: 0.499, y: 1 }, 0.62),
+	unknown: battleSpriteGrounding({ x: 0.5, y: 1 }, 0.52),
+} satisfies Record<BattleEnemyArchetype, BattleSpriteGrounding>;
+
 export const battleEnemySpriteArt = {
 	src: monsterSpritesUrl,
-	backgroundSize: '300% 300%',
+	groundings: battleEnemyGrounding,
+	atlas: {
+		columns: 3,
+		rows: 3,
+	} as const,
 } as const;
 
 export const dungeonMapMonsterArt = {
@@ -295,38 +348,41 @@ export const dungeonPropsArt = {
 	totalWidth: DUNGEON_PROP_TEXTURE_COUNT * DUNGEON_PROP_ART_SIZE,
 } as const;
 
-const battleEnemyPositions: Record<BattleEnemyArchetype, string> = {
-	vermin: '0% 0%',
-	bat: '50% 0%',
-	'wild-mushroom': '100% 0%',
-	slime: '0% 50%',
-	wolf: '50% 50%',
-	'grotto-mite': '100% 50%',
-	'thorn-wolf': '0% 100%',
-	'ruin-sentinel': '50% 100%',
-	unknown: '100% 100%',
-} as const;
+const battleEnemyFrames = {
+	vermin: { column: 0, row: 0 },
+	bat: { column: 1, row: 0 },
+	'wild-mushroom': { column: 2, row: 0 },
+	slime: { column: 0, row: 1 },
+	wolf: { column: 1, row: 1 },
+	'grotto-mite': { column: 2, row: 1 },
+	'thorn-wolf': { column: 0, row: 2 },
+	'ruin-sentinel': { column: 1, row: 2 },
+	unknown: { column: 2, row: 2 },
+} satisfies Record<BattleEnemyArchetype, { column: number; row: number }>;
 
 function isBattleClassKey(value: string): value is BattleClassKey {
-	return value in battlePartyArt.positions;
+	return value in battlePartyArt.atlas.frames;
 }
 
 function isBattleEnemyArchetype(value: string): value is BattleEnemyArchetype {
-	return value in battleEnemyPositions;
+	return value in battleEnemyFrames;
 }
 
-export function battlePartyArtForClass(classKey: string) {
+export function battlePartyArtForClass(classKey: string): BattleArtSource {
+	const key = isBattleClassKey(classKey) ? classKey : 'warrior';
 	return {
-		...battlePartyArt,
-		position: isBattleClassKey(classKey) ? battlePartyArt.positions[classKey] : battlePartyArt.positions.warrior,
+		src: battlePartyArt.src,
+		atlasFrame: { ...battlePartyArt.atlas, ...battlePartyArt.atlas.frames[key] },
+		grounding: battlePartyArt.groundings[key],
 	};
 }
 
-export function battleEnemyArtForArchetype(archetypeKey: string) {
+export function battleEnemyArtForArchetype(archetypeKey: string): BattleArtSource {
 	const key = isBattleEnemyArchetype(archetypeKey) ? archetypeKey : 'unknown';
 	return {
-		...battleEnemySpriteArt,
-		position: battleEnemyPositions[key],
+		src: battleEnemySpriteArt.src,
+		atlasFrame: { ...battleEnemySpriteArt.atlas, ...battleEnemyFrames[key] },
+		grounding: battleEnemySpriteArt.groundings[key],
 	};
 }
 

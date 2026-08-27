@@ -19,6 +19,7 @@ import type { DungeonNavigatorControls } from '#/components/party/dungeon-grid-m
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import type { DailyProgress, Party, PartyEvent, PartyMap, PartyRoster, PartyVotes } from '#/lib/api';
+import { battleTerrainForMap } from '#/lib/battle-terrain';
 import type {
 	useAdventure,
 	useCastVote,
@@ -125,9 +126,16 @@ export function PartyActionSection({
 		: hasBranchDecision
 			? 'The party’s next destination is decided together.'
 			: 'Read the scene and choose the response that carries the party forward.';
+	const battleTerrain = battleTerrainForMap(map.currentMap.mapType);
 
 	return (
-		<section id="party-action" className="gameplay-section" aria-labelledby="party-action-title" data-testid="party-action" tabIndex={-1}>
+		<section
+			id="party-action"
+			className={`gameplay-section ${isCombat ? 'gameplay-section-combat' : ''}`}
+			aria-labelledby="party-action-title"
+			data-testid="party-action"
+			tabIndex={-1}
+		>
 			<SectionHeading
 				eyebrow="Current action"
 				title={currentActionTitle}
@@ -143,6 +151,7 @@ export function PartyActionSection({
 					userId={userId}
 					party={party}
 					encounter={encounterQuery.data}
+					battleTerrain={battleTerrain}
 					readOnly={readOnly}
 				/>
 			)}

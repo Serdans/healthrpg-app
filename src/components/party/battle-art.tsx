@@ -1,12 +1,8 @@
 import type { CSSProperties } from 'react';
 
-import type { BattleArtVariant } from '#/lib/battle-art';
-
-type BattleArtSource = {
-	src: string;
-	backgroundSize: string;
-	position: string;
-};
+import { battleArtBackgroundStyle } from '#/lib/battle-art';
+import type { BattleArtSource, BattleArtVariant } from '#/lib/battle-art';
+import type { GroundedSpritePlacement } from '#/lib/sprite-grounding';
 
 export function BattleArt({
 	art,
@@ -16,6 +12,7 @@ export function BattleArt({
 	className,
 	testId,
 	decorative = true,
+	placement = null,
 }: {
 	art: BattleArtSource | null;
 	label: string;
@@ -24,6 +21,7 @@ export function BattleArt({
 	className?: string;
 	testId?: string;
 	decorative?: boolean;
+	placement?: GroundedSpritePlacement | null;
 }) {
 	const classes = [
 		'battle-art',
@@ -37,8 +35,16 @@ export function BattleArt({
 	const style = art
 		? ({
 				backgroundImage: `url('${art.src}')`,
-				backgroundPosition: art.position,
-				backgroundSize: art.backgroundSize,
+				...battleArtBackgroundStyle(art),
+				...(placement
+					? {
+							position: 'absolute',
+							left: `${placement.left * 100}%`,
+							top: `${placement.top * 100}%`,
+							width: `${placement.size * 100}%`,
+							height: `${placement.size * 100}%`,
+						}
+					: {}),
 			} satisfies CSSProperties)
 		: undefined;
 

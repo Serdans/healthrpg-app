@@ -167,7 +167,7 @@ function PartyDashboard() {
 	};
 
 	return (
-		<div className="gameplay-surface gameplay-shell space-y-8">
+		<div className={`gameplay-surface gameplay-shell ${isCombat ? 'space-y-4' : 'space-y-8'}`}>
 			<a
 				className="skip-link"
 				href="#party-field"
