@@ -214,7 +214,7 @@ function updateActor(
 	const worldX = placement.worldX;
 	const worldY = placement.worldY - actor.art.grounding.lift * worldStageSize;
 	const spriteSize = worldStageSize * actor.art.grounding.scale;
-	const defeated = actor.side === 'enemy' && entity.currentHealth === 0;
+	const defeated = actor.side === 'enemy' && entity.currentHealth <= 0;
 	const selected =
 		actor.side === 'enemy'
 			? props.targetMode === 'enemy' && props.targetEnemyId === entityId('enemy', entity)
@@ -268,6 +268,7 @@ function createBattlePixiScene(props: BattlePixiSceneProps, assets: BattlePixiAs
 	root.addChild(world);
 	stage.addChild(root);
 
+	let destroyed = false;
 	const scene: BattlePixiRuntime = {
 		root,
 		world,
@@ -275,6 +276,8 @@ function createBattlePixiScene(props: BattlePixiSceneProps, assets: BattlePixiAs
 		actorSprites: new Map(),
 		assets,
 		destroy() {
+			if (destroyed) return;
+			destroyed = true;
 			for (const actor of scene.actorSprites.values()) disposeActor(actors, actor);
 			scene.actorSprites.clear();
 			root.destroy({ children: true });
@@ -313,10 +316,15 @@ function BattlePixiRuntime({ props, battleTerrain }: BattlePixiRuntimeComponentP
 		void loadBattleAssets(battleTerrain)
 			.then((assets) => {
 				if (!active) return;
-				created = createBattlePixiScene(propsRef.current, assets, app.stage);
-				sceneRef.current = created;
-				created.update(propsRef.current);
-				renderBattleApp(app);
+				try {
+					created = createBattlePixiScene(propsRef.current, assets, app.stage);
+					sceneRef.current = created;
+					created.update(propsRef.current);
+					renderBattleApp(app);
+				} catch (error) {
+					created?.destroy();
+					throw error;
+				}
 			})
 			.catch((error: unknown) => {
 				if (!active) return;

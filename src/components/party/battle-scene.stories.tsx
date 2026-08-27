@@ -522,12 +522,12 @@ export const ActiveEncounter: Story = {
 		expect(getComputedStyle(shortSwordFace).overflow).toBe('visible');
 		expect(shortSwordDescriptionRect.height).toBeGreaterThanOrEqual(Number.parseFloat(shortSwordDescriptionStyles.lineHeight));
 		expect(shortSwordDescriptionRect.bottom).toBeLessThanOrEqual(shortSwordFaceRect.bottom + 1);
-		await expect(canvas.getByTestId('battle-card-filter-all')).toHaveAttribute('aria-selected', 'true');
+		await expect(canvas.getByTestId('battle-card-filter-all')).toHaveAttribute('aria-pressed', 'true');
 		await userEvent.click(canvas.getByTestId('battle-card-filter-all'));
-		await userEvent.keyboard('{ArrowRight}');
-		await expect(canvas.getByTestId('battle-card-filter-class')).toHaveAttribute('aria-selected', 'true');
-		await userEvent.keyboard('{Home}');
-		await expect(canvas.getByTestId('battle-card-filter-all')).toHaveAttribute('aria-selected', 'true');
+		await userEvent.click(canvas.getByTestId('battle-card-filter-class'));
+		await expect(canvas.getByTestId('battle-card-filter-class')).toHaveAttribute('aria-pressed', 'true');
+		await userEvent.click(canvas.getByTestId('battle-card-filter-all'));
+		await expect(canvas.getByTestId('battle-card-filter-all')).toHaveAttribute('aria-pressed', 'true');
 		expect(canvas.getAllByTestId('battle-enemy').some((enemy) => enemy.classList.contains('battle-targetable'))).toBe(true);
 		await expect(canvas.getByTestId('battle-target-ellipse')).toBeInTheDocument();
 		const wolf = canvas.getAllByTestId('battle-enemy').find((enemy) => enemy.getAttribute('data-enemy-id') === 'enemy-2');

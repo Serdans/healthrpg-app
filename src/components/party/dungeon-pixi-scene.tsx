@@ -12,8 +12,8 @@ import { dungeonZoom, followDungeonCamera, snapCamera } from '#/lib/dungeon-came
 import type { CameraState } from '#/lib/dungeon-camera';
 import { DUNGEON_ARRIVAL_BOB_PX, sampleDungeonMotion, walkFrameForElapsed, walkFrameForMotion } from '#/lib/dungeon-motion';
 import type { DungeonRecoveryMotion } from '#/lib/dungeon-motion';
-import { dungeonMapMonsterArtForArchetype, dungeonMapPartyArt, dungeonPropsArt, dungeonTilesetArt } from '#/lib/game-art';
-import type { BattleEnemyArchetype, PartyTravelerDirection } from '#/lib/game-art';
+import { dungeonMapMonsterArtForArchetype, dungeonMapPartyArt, dungeonPropsArt, dungeonTilesetArt, enemyArchetypes } from '#/lib/game-art';
+import type { PartyTravelerDirection } from '#/lib/game-art';
 import type { DungeonPropTextureName } from '#/lib/dungeon-props';
 import { floorTextureName, TEXTURE_COUNT, TEXTURE_INDEX } from '#/lib/dungeon-tiles';
 import {
@@ -38,8 +38,6 @@ export interface DungeonPixiSceneProps {
 	cameraRef: MutableRefObject<CameraState | null>;
 	onReady?: (ready: boolean) => void;
 	onError?: (message: string) => void;
-	onVisualStateChange?: () => void;
-	onRecoveryComplete?: (toNodeId: string, now: number) => void;
 }
 
 type DungeonPixiRuntimeProps = DungeonPixiSceneProps & { layoutKey: string };
@@ -55,6 +53,13 @@ interface DungeonPixiAssets {
 	propTextures: Map<DungeonPropTextureName, PixiTexture>;
 	partyFrames: Map<string, GroundedTexture>;
 	monsterFrames: Map<string, GroundedTexture>;
+}
+
+function destroyDungeonAssets(assets: DungeonPixiAssets): void {
+	for (const texture of assets.tileTextures) texture.destroy();
+	for (const texture of assets.propTextures.values()) texture.destroy();
+	for (const grounded of assets.partyFrames.values()) grounded.texture.destroy();
+	for (const grounded of assets.monsterFrames.values()) grounded.texture.destroy();
 }
 
 interface PulseGraphic {
@@ -92,7 +97,6 @@ interface DungeonPixiRuntime {
 	direction: PartyTravelerDirection;
 	partyFrameKey: string;
 	partyGroundY: number;
-	recoveryCompletedKey: string | null;
 	layoutKey: string;
 	refreshLayout: (layout: DungeonGridLayout) => void;
 	destroy: () => void;
@@ -174,18 +178,6 @@ function setNearest(texture: PixiTexture): void {
 	texture.source.scaleMode = 'nearest';
 }
 
-const DUNGEON_MONSTER_ARCHETYPES: readonly BattleEnemyArchetype[] = [
-	'vermin',
-	'bat',
-	'wild-mushroom',
-	'slime',
-	'wolf',
-	'grotto-mite',
-	'thorn-wolf',
-	'ruin-sentinel',
-	'unknown',
-];
-
 async function loadDungeonAssets(): Promise<DungeonPixiAssets> {
 	const [tileset, party, props, monsters] = await Promise.all([
 		Assets.load<PixiTexture>(dungeonTilesetArt.src),
@@ -198,49 +190,64 @@ async function loadDungeonAssets(): Promise<DungeonPixiAssets> {
 	setNearest(props);
 	setNearest(monsters);
 
-	const tileTextures = Array.from({ length: TEXTURE_COUNT }, (_, index) => {
-		const frame = new Rectangle(index * dungeonTilesetArt.tileSize, 0, dungeonTilesetArt.tileSize, dungeonTilesetArt.tileSize);
-		return new Texture({
-			source: tileset.source,
-			frame,
-			orig: new Rectangle(0, 0, dungeonTilesetArt.tileSize, dungeonTilesetArt.tileSize),
-			label: `dungeon-tile-${String(index)}`,
-		});
-	});
+	const assets: DungeonPixiAssets = {
+		tileTextures: [],
+		propTextures: new Map(),
+		partyFrames: new Map(),
+		monsterFrames: new Map(),
+	};
 
-	const propTextures = new Map<DungeonPropTextureName, PixiTexture>();
-	for (const [index, name] of dungeonPropsArt.names.entries()) {
-		const frame = new Rectangle(index * dungeonPropsArt.tileSize, 0, dungeonPropsArt.tileSize, dungeonPropsArt.tileSize);
-		propTextures.set(
-			name,
-			new Texture({
-				source: props.source,
-				frame,
-				orig: new Rectangle(0, 0, dungeonPropsArt.tileSize, dungeonPropsArt.tileSize),
-				label: `dungeon-prop-${name}`,
-			}),
-		);
-	}
-
-	const partyFrames = new Map<string, GroundedTexture>();
-	for (const direction of DIRECTIONS) {
-		for (const frameIndex of [0, 1] as const) {
-			const frame = textureFrame(party, frameIndex, DIRECTION_ROW[direction], dungeonMapPartyArt.columns, dungeonMapPartyArt.rows);
-			const alpha = readFrameAlphaBounds(party, frame);
-			const texture = createGroundedFrameTexture(party, frame, `party-${frameKey(direction, frameIndex)}`, alpha);
-			partyFrames.set(frameKey(direction, frameIndex), { texture, frame, alpha });
+	try {
+		for (let index = 0; index < TEXTURE_COUNT; index += 1) {
+			const frame = new Rectangle(index * dungeonTilesetArt.tileSize, 0, dungeonTilesetArt.tileSize, dungeonTilesetArt.tileSize);
+			assets.tileTextures.push(
+				new Texture({
+					source: tileset.source,
+					frame,
+					orig: new Rectangle(0, 0, dungeonTilesetArt.tileSize, dungeonTilesetArt.tileSize),
+					label: `dungeon-tile-${String(index)}`,
+				}),
+			);
 		}
-	}
 
-	const monsterFrames = new Map<string, GroundedTexture>();
-	for (const key of DUNGEON_MONSTER_ARCHETYPES) {
-		const position = dungeonMapMonsterArtForArchetype(key).position;
-		const frame = textureFrame(monsters, position[0], position[1], 3, 3);
-		const alpha = readFrameAlphaBounds(monsters, frame);
-		monsterFrames.set(key, { texture: createGroundedFrameTexture(monsters, frame, `monster-${key}`, alpha), frame, alpha });
-	}
+		for (const [index, name] of dungeonPropsArt.names.entries()) {
+			const frame = new Rectangle(index * dungeonPropsArt.tileSize, 0, dungeonPropsArt.tileSize, dungeonPropsArt.tileSize);
+			assets.propTextures.set(
+				name,
+				new Texture({
+					source: props.source,
+					frame,
+					orig: new Rectangle(0, 0, dungeonPropsArt.tileSize, dungeonPropsArt.tileSize),
+					label: `dungeon-prop-${name}`,
+				}),
+			);
+		}
 
-	return { tileTextures, propTextures, partyFrames, monsterFrames };
+		for (const direction of DIRECTIONS) {
+			for (const frameIndex of [0, 1] as const) {
+				const frame = textureFrame(party, frameIndex, DIRECTION_ROW[direction], dungeonMapPartyArt.columns, dungeonMapPartyArt.rows);
+				const alpha = readFrameAlphaBounds(party, frame);
+				const texture = createGroundedFrameTexture(party, frame, `party-${frameKey(direction, frameIndex)}`, alpha);
+				assets.partyFrames.set(frameKey(direction, frameIndex), { texture, frame, alpha });
+			}
+		}
+
+		for (const key of enemyArchetypes) {
+			const position = dungeonMapMonsterArtForArchetype(key).position;
+			const frame = textureFrame(monsters, position[0], position[1], 3, 3);
+			const alpha = readFrameAlphaBounds(monsters, frame);
+			assets.monsterFrames.set(key, {
+				texture: createGroundedFrameTexture(monsters, frame, `monster-${key}`, alpha),
+				frame,
+				alpha,
+			});
+		}
+
+		return assets;
+	} catch (error) {
+		destroyDungeonAssets(assets);
+		throw error;
+	}
 }
 
 function drawBackdrop(layout: DungeonGridLayout): Container {
@@ -499,6 +506,7 @@ function createScene(
 	drawMonsters(monsterLayer, layout, assets);
 	const motes = createMotes(layout, world);
 
+	let destroyed = false;
 	const scene: DungeonPixiRuntime = {
 		root,
 		world,
@@ -520,14 +528,12 @@ function createScene(
 		direction: 'south',
 		partyFrameKey: frameKey('south', 0),
 		partyGroundY: 0,
-		recoveryCompletedKey: null,
 		layoutKey: dungeonLayoutRenderKey(layout),
 		destroy: () => {
+			if (destroyed) return;
+			destroyed = true;
 			root.destroy({ children: true });
-			for (const texture of assets.tileTextures) texture.destroy();
-			for (const texture of assets.propTextures.values()) texture.destroy();
-			for (const grounded of assets.partyFrames.values()) grounded.texture.destroy();
-			for (const grounded of assets.monsterFrames.values()) grounded.texture.destroy();
+			destroyDungeonAssets(assets);
 		},
 		refreshLayout(nextLayout) {
 			scene.layout = nextLayout;
@@ -550,13 +556,6 @@ function createScene(
 				scene.partyPipCount = props.partyMemberCount;
 			}
 			if (scene.layoutKey !== props.layoutKey) scene.refreshLayout(currentLayout);
-			if (movement.advanceVisual(now)) props.onVisualStateChange?.();
-			const recoveryKey = recovery ? `${recovery.toNodeId}:${String(recovery.startedAt)}` : null;
-			if (!recovery) scene.recoveryCompletedKey = null;
-			if (recovery && now - recovery.startedAt >= recovery.durationMs && scene.recoveryCompletedKey !== recoveryKey) {
-				scene.recoveryCompletedKey = recoveryKey;
-				props.onRecoveryComplete?.(recovery.toNodeId, now);
-			}
 			const viewport = props.viewportRef.current;
 			if (!viewport) return;
 			const width = Math.max(1, viewport.clientWidth);
@@ -651,8 +650,6 @@ function DungeonPixiRuntime({
 	cameraRef,
 	onReady,
 	onError,
-	onVisualStateChange,
-	onRecoveryComplete,
 }: DungeonPixiRuntimeProps) {
 	const { app } = useApplication();
 	const sceneRef = useRef<DungeonPixiRuntime | null>(null);
@@ -669,8 +666,6 @@ function DungeonPixiRuntime({
 		cameraRef,
 		onReady,
 		onError,
-		onVisualStateChange,
-		onRecoveryComplete,
 	});
 
 	useLayoutEffect(() => {
@@ -686,23 +681,8 @@ function DungeonPixiRuntime({
 			cameraRef,
 			onReady,
 			onError,
-			onVisualStateChange,
-			onRecoveryComplete,
 		};
-	}, [
-		cameraRef,
-		direction,
-		layout,
-		layoutKey,
-		movement,
-		onError,
-		onReady,
-		onRecoveryComplete,
-		onVisualStateChange,
-		partyMemberCount,
-		recovery,
-		viewportRef,
-	]);
+	}, [cameraRef, direction, layout, layoutKey, movement, onError, onReady, partyMemberCount, recovery, viewportRef]);
 
 	useEffect(() => {
 		let active = true;
@@ -710,13 +690,22 @@ function DungeonPixiRuntime({
 		propsRef.current.onReady?.(false);
 		void loadDungeonAssets()
 			.then((assets) => {
-				if (!active) return;
-				const currentLayout = layoutRef.current;
-				const initialCamera = cameraFloorRef.current === currentLayout.activeFloorNo ? cameraRef.current : null;
-				created = createScene(currentLayout, assets, app.stage, propsRef.current.partyMemberCount, initialCamera);
-				sceneRef.current = created;
-				cameraFloorRef.current = currentLayout.activeFloorNo;
-				propsRef.current.onReady?.(true);
+				if (!active) {
+					destroyDungeonAssets(assets);
+					return;
+				}
+				try {
+					const currentLayout = layoutRef.current;
+					const initialCamera = cameraFloorRef.current === currentLayout.activeFloorNo ? cameraRef.current : null;
+					created = createScene(currentLayout, assets, app.stage, propsRef.current.partyMemberCount, initialCamera);
+					sceneRef.current = created;
+					cameraFloorRef.current = currentLayout.activeFloorNo;
+					propsRef.current.onReady?.(true);
+				} catch (error) {
+					created?.destroy();
+					if (!created) destroyDungeonAssets(assets);
+					throw error;
+				}
 			})
 			.catch((error: unknown) => {
 				if (!active) return;

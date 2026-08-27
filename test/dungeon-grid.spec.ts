@@ -95,6 +95,7 @@ describe('dungeon grid layout', () => {
 		const right = tileCenter(layout, second);
 		expect(right.x - left.x).toBe(layout.tileSize + layout.gap);
 		expect(left.y).toBe(right.y);
+		expect(layout.gap).toBe(0);
 	});
 
 	it('renders only the party active floor', () => {
@@ -154,16 +155,6 @@ describe('tile kinds', () => {
 });
 
 describe('pixel plane geometry', () => {
-	it('butts tiles edge-to-edge with no gap', () => {
-		const layout = createDungeonGridLayout(corridor);
-		const left = layout.tiles.find((tile) => tile.node.id === 'a');
-		const right = layout.tiles.find((tile) => tile.node.id === 'b');
-		if (!left || !right) throw new Error('Expected tiles');
-		const leftCenter = tileCenter(layout, left);
-		const rightCenter = tileCenter(layout, right);
-		expect(rightCenter.x - leftCenter.x).toBe(layout.tileSize);
-	});
-
 	it('flags rock cells above walked floor for the cliff face', () => {
 		const lShaped = dungeonMap('a', [tileNode('a', 'entry', 0, 0, 0), tileNode('b', 'floor', 0, 0, 1), tileNode('c', 'floor', 0, 1, 1)]);
 		const layout = createDungeonGridLayout(lShaped);

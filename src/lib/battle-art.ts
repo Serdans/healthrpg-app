@@ -39,6 +39,6 @@ export function battleArtBackgroundStyle(art: BattleArtSource): { backgroundPosi
 }
 
 export function battleArtVariant(currentHealth: number, maxHealth: number): BattleArtVariant {
-	if (currentHealth === 0) return 'defeated';
+	if (currentHealth <= 0) return 'defeated';
 	return currentHealth < maxHealth / 2 ? 'hurt' : 'neutral';
 }

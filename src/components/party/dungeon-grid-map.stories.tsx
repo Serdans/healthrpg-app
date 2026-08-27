@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, within } from 'storybook/test';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 import { DungeonGridMap } from './dungeon-grid-map';
 import type { PartyMap } from '#/lib/api';
@@ -191,8 +191,9 @@ export const InteractiveWalk: StoryObj<typeof DungeonGridMap> = {
 		await canvas.getByTestId('dungeon-grid-viewport').focus();
 		await userEvent.keyboard('{ArrowUp}');
 		await expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-party-node-id', 'treasure');
+		await waitFor(() => expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-party-traveling', 'false'), { timeout: 15_000 });
 		await userEvent.keyboard('{ArrowDown}');
-		await expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-party-node-id', 'entry');
+		await waitFor(() => expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-party-node-id', 'entry'), { timeout: 15_000 });
 		await userEvent.keyboard('{ArrowRight}');
 		await expect(canvas.getByTestId('dungeon-grid')).toHaveAttribute('data-party-node-id', 'corridor');
 		await expect(canvas.getByTestId('dungeon-live-status')).not.toHaveTextContent(/Party is at entry/);

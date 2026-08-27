@@ -9,7 +9,7 @@ import type { CameraState, StagePoint } from '#/lib/dungeon-camera';
 import { createDungeonGridLayout, directionBetween, tileCenter } from '#/lib/dungeon-grid';
 import type { DungeonGridLayout, DungeonGridTileKind } from '#/lib/dungeon-grid';
 import { DUNGEON_LEGEND_KINDS, dungeonMarkerPresentation, dungeonMarkerPresentationForTile } from '#/lib/dungeon-markers';
-import { DUNGEON_MANUAL_REPEAT_MS, DUNGEON_STEP_DURATION_MS, sampleDungeonMotion } from '#/lib/dungeon-motion';
+import { DUNGEON_MANUAL_REPEAT_MS, DUNGEON_STEP_DURATION_MS, pointForDungeonNode, sampleDungeonMotion } from '#/lib/dungeon-motion';
 import type { DungeonRecoveryMotion } from '#/lib/dungeon-motion';
 import { DungeonMovementController } from '#/lib/dungeon-movement';
 import type { DungeonMoveStep } from '#/lib/dungeon-movement';
@@ -58,12 +58,19 @@ export interface DungeonNavigatorControls {
 	};
 }
 
-const KEY_DIRECTIONS: Record<string, { direction: PartyTravelerDirection; step: DungeonMoveStep }> = {
+const KEY_DIRECTIONS = {
 	ArrowUp: { direction: 'north', step: 'up' },
 	ArrowDown: { direction: 'south', step: 'down' },
 	ArrowLeft: { direction: 'west', step: 'left' },
 	ArrowRight: { direction: 'east', step: 'right' },
-};
+} as const satisfies Record<string, { direction: PartyTravelerDirection; step: DungeonMoveStep }>;
+
+type DungeonDirectionKey = keyof typeof KEY_DIRECTIONS;
+type DungeonKeyMapping = (typeof KEY_DIRECTIONS)[DungeonDirectionKey];
+
+function dungeonDirectionKey(value: string): DungeonDirectionKey | null {
+	return Object.hasOwn(KEY_DIRECTIONS, value) ? (value as DungeonDirectionKey) : null;
+}
 
 type DungeonRoutePolicy = DungeonRoutePolicyInput['policy'];
 
@@ -86,11 +93,6 @@ const ROUTE_POLICY_KEYS = ['mission', 'explore', 'treasure', 'rest'] as const sa
 interface DungeonView {
 	layout: DungeonGridLayout;
 	selectedNodeId: string;
-}
-
-function pointForNode(layout: DungeonGridLayout, nodeId: string, fallback: StagePoint): StagePoint {
-	const tile = layout.tiles.find((candidate) => candidate.node.id === nodeId);
-	return tile ? tileCenter(layout, tile) : fallback;
 }
 
 function movementHintForTile(tile: DungeonGridLayout['tiles'][number] | null | undefined): string {
@@ -203,7 +205,7 @@ export function DungeonGridMap({
 	const autoBusyRef = useRef(false);
 	const publishedNodeRef = useRef(map.currentNodeId);
 	const publishedTravelingRef = useRef(false);
-	const heldRef = useRef<{ mapping: (typeof KEY_DIRECTIONS)[string]; timer: number } | null>(null);
+	const heldRef = useRef<{ key: DungeonDirectionKey; timer: number } | null>(null);
 	const heldGenerationRef = useRef(0);
 	const pumpRequestsRef = useRef<(() => void) | null>(null);
 
@@ -253,8 +255,7 @@ export function DungeonGridMap({
 	}, [map.navigation?.navigatorUserId, navigatorControls?.members, navigatorControls?.userId]);
 
 	useEffect(() => {
-		const intent = map.navigation?.routeIntent;
-		setRoutePolicy(intent?.policy ?? 'mission');
+		setRoutePolicy(map.navigation?.routeIntent?.policy ?? 'mission');
 	}, [map.navigation?.routeIntent?.policy]);
 
 	const clearHeld = useCallback(() => {
@@ -271,7 +272,7 @@ export function DungeonGridMap({
 			const fallback = currentLayout.currentTile
 				? tileCenter(currentLayout, currentLayout.currentTile)
 				: { x: currentLayout.width / 2, y: currentLayout.height / 2 };
-			const toPoint = pointForNode(currentLayout, targetNodeId, fallback);
+			const toPoint = pointForDungeonNode(currentLayout, targetNodeId, fallback);
 			const startPoint = fromPoint ?? sampleDungeonMotion(currentLayout, movement, recoveryRef.current, frameNow).point;
 			const before = movement.snapshot;
 			const fromNodeId = before.motion?.fromNodeId ?? before.visualNodeId;
@@ -359,7 +360,7 @@ export function DungeonGridMap({
 	}, [canNavigate, clearHeld, movement, publishVisualState]);
 
 	const stepOnce = useCallback(
-		(mapping: (typeof KEY_DIRECTIONS)[string]) => {
+		(mapping: DungeonKeyMapping) => {
 			if (!walkMutationRef.current || !canNavigate || autoBusyRef.current || recoveryRef.current) return;
 			movement.setDuration(prefersReducedMotion() ? 0 : DUNGEON_STEP_DURATION_MS);
 			const intent = movement.enqueueManual(layout, mapping.direction, mapping.step, performance.now());
@@ -378,7 +379,7 @@ export function DungeonGridMap({
 	}, [stepOnce]);
 
 	const startHeld = useCallback(
-		(mapping: (typeof KEY_DIRECTIONS)[string]) => {
+		(key: DungeonDirectionKey, mapping: DungeonKeyMapping) => {
 			clearHeld();
 			stepOnceRef.current(mapping);
 			const generation = heldGenerationRef.current;
@@ -386,7 +387,7 @@ export function DungeonGridMap({
 				if (heldGenerationRef.current !== generation) return;
 				stepOnceRef.current(mapping);
 			}, DUNGEON_MANUAL_REPEAT_MS);
-			heldRef.current = { mapping, timer };
+			heldRef.current = { key, timer };
 		},
 		[clearHeld],
 	);
@@ -395,7 +396,7 @@ export function DungeonGridMap({
 	useEffect(() => {
 		const stopHeldInput = () => clearHeld();
 		const stopHeldInputOnKeyUp = (event: globalThis.KeyboardEvent) => {
-			if (event.key in KEY_DIRECTIONS) stopHeldInput();
+			if (heldRef.current?.key === event.key) stopHeldInput();
 		};
 		window.addEventListener('blur', stopHeldInput);
 		window.addEventListener('keyup', stopHeldInputOnKeyUp, true);
@@ -435,22 +436,23 @@ export function DungeonGridMap({
 		movement.queueServerPath(layout, [currentNodeId], currentNodeId, performance.now());
 		setSelectedNodeId(currentNodeId);
 		publishVisualState();
-	}, [layout, map.currentNodeId, movement, publishVisualState]);
+	}, [clearHeld, layout, map.currentNodeId, movement, publishVisualState]);
 
 	useEffect(() => {
 		if (!layout.tiles.some((tile) => tile.node.id === selectedNodeId)) setSelectedNodeId(map.currentNodeId);
 	}, [layout, map.currentNodeId, selectedNodeId]);
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		if (!(event.key in KEY_DIRECTIONS)) return;
+		const key = dungeonDirectionKey(event.key);
+		if (!key) return;
 		event.preventDefault();
 		if (event.repeat) return;
 		if (!canNavigate) return;
-		startHeld(KEY_DIRECTIONS[event.key]);
+		startHeld(key, KEY_DIRECTIONS[key]);
 	};
 	const handleKeyUp = (event: KeyboardEvent<HTMLDivElement>) => {
-		if (!(event.key in KEY_DIRECTIONS)) return;
-		clearHeld();
+		const key = dungeonDirectionKey(event.key);
+		if (key && heldRef.current?.key === key) clearHeld();
 	};
 
 	const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -489,6 +491,20 @@ export function DungeonGridMap({
 		},
 		[movement, publishVisualState],
 	);
+	useEffect(() => {
+		let frameId = 0;
+		const advanceMovement = (frameNow: number) => {
+			if (movement.advanceVisual(frameNow)) publishVisualState();
+			const recovery = recoveryRef.current;
+			if (recovery && frameNow - recovery.startedAt >= recovery.durationMs) {
+				handleRecoveryComplete(recovery.toNodeId, frameNow);
+			}
+			frameId = window.requestAnimationFrame(advanceMovement);
+		};
+
+		frameId = window.requestAnimationFrame(advanceMovement);
+		return () => window.cancelAnimationFrame(frameId);
+	}, [handleRecoveryComplete, movement, publishVisualState]);
 	const handlePixiError = useCallback((message: string) => {
 		setPixiReady(false);
 		setPixiError(message);
@@ -545,10 +561,9 @@ export function DungeonGridMap({
 				className="dungeon-grid-viewport"
 				data-testid="dungeon-grid-viewport"
 				tabIndex={0}
-				role="application"
+				role="region"
 				aria-label={`${map.currentMap.name}, ${floorLabel}. ${canNavigate ? 'Use arrow keys to step one tile at a time.' : 'Observe the shared party position while the Navigator moves.'}`}
 				onKeyDown={handleKeyDown}
-				onKeyUpCapture={handleKeyUp}
 				onKeyUp={handleKeyUp}
 				onPointerDown={handlePointerDown}
 				onBlur={clearHeld}
@@ -563,8 +578,6 @@ export function DungeonGridMap({
 					cameraRef={cameraRef}
 					onReady={handlePixiReady}
 					onError={handlePixiError}
-					onVisualStateChange={publishVisualState}
-					onRecoveryComplete={handleRecoveryComplete}
 				/>
 				{pixiError ? (
 					<div className="dungeon-grid-renderer-error" role="alert">

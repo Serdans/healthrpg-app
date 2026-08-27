@@ -119,7 +119,7 @@ function classNames(...values: Array<string | false | null>): string {
 }
 
 function healthPercent(currentHealth: number, maxHealth: number) {
-	return maxHealth > 0 ? (currentHealth / maxHealth) * 100 : 0;
+	return maxHealth > 0 ? Math.min(100, Math.max(0, (currentHealth / maxHealth) * 100)) : 0;
 }
 
 function targetLabel(targetMode: TargetMode | null) {
@@ -145,26 +145,6 @@ function cardCategoryLabel(category: CardCategory): string {
 	if (category === 'equipment') return 'Equipment';
 	if (category === 'item') return 'Items';
 	return 'All';
-}
-
-function categoryAfterKey(category: CardCategory, key: string): CardCategory | null {
-	const currentIndex = CARD_CATEGORIES.indexOf(category);
-	if (currentIndex < 0) return null;
-
-	switch (key) {
-		case 'ArrowRight':
-		case 'ArrowDown':
-			return CARD_CATEGORIES[(currentIndex + 1) % CARD_CATEGORIES.length];
-		case 'ArrowLeft':
-		case 'ArrowUp':
-			return CARD_CATEGORIES[(currentIndex - 1 + CARD_CATEGORIES.length) % CARD_CATEGORIES.length];
-		case 'Home':
-			return CARD_CATEGORIES[0];
-		case 'End':
-			return CARD_CATEGORIES.at(-1) ?? null;
-		default:
-			return null;
-	}
 }
 
 type PreviewEffect = NonNullable<EncounterCard['preview']>['effects'][number];
@@ -674,7 +654,7 @@ function Battlefield({
 						const slot = enemySlots[index];
 						const placement = enemyPlacements[index];
 						const selected = targetEnemyId === enemy.id && targetMode === 'enemy';
-						const defeated = enemy.currentHealth === 0;
+						const defeated = enemy.currentHealth <= 0;
 						const targetable = !interactionDisabled && targetMode === 'enemy' && !defeated;
 						const stageSize = battleActorStageSize(viewportSize, 'enemy', enemySlots.length, placement.scale);
 						return (
@@ -767,7 +747,7 @@ function Battlefield({
 						const slot = enemySlots[index];
 						const placement = enemyPlacements[index];
 						const stageSize = battleActorStageSize(viewportSize, 'enemy', enemySlots.length, placement.scale);
-						const defeated = enemy.currentHealth === 0;
+						const defeated = enemy.currentHealth <= 0;
 						return (
 							<div
 								key={enemy.id}
@@ -1281,7 +1261,7 @@ function BattleCommandTray({
 									</span>
 								</span>
 							</div>
-							<div className="battle-card-filter-bar" role="tablist" aria-label="Card categories">
+							<div className="battle-card-filter-bar" role="group" aria-label="Card categories">
 								{CARD_CATEGORIES.map((option) => {
 									const count = option === 'all' ? playableCards.length : categoryCounts[option];
 									const active = category === option;
@@ -1289,21 +1269,10 @@ function BattleCommandTray({
 										<button
 											key={option}
 											type="button"
-											role="tab"
 											className={classNames('battle-card-filter', active && 'battle-card-filter-active')}
 											data-category={option}
 											data-testid={`battle-card-filter-${option}`}
-											aria-selected={active}
-											tabIndex={active ? 0 : -1}
-											onKeyDown={(event) => {
-												const nextCategory = categoryAfterKey(option, event.key);
-												if (nextCategory === null) return;
-												event.preventDefault();
-												setCategory(nextCategory);
-												requestAnimationFrame(() => {
-													document.querySelector<HTMLButtonElement>(`[data-testid="battle-card-filter-${nextCategory}"]`)?.focus();
-												});
-											}}
+											aria-pressed={active}
 											onClick={() => setCategory(option)}
 										>
 											<span>{cardCategoryLabel(option)}</span>
@@ -1341,7 +1310,12 @@ function BattleCommandTray({
 								onPointerUp={handleHandPointerEnd}
 								onPointerCancel={handleHandPointerEnd}
 							>
-								<div className="battle-card-hand" data-testid="battle-card-fan" aria-label={`${cardCategoryLabel(category)} cards in hand`}>
+								<div
+									className="battle-card-hand"
+									data-testid="battle-card-fan"
+									role="group"
+									aria-label={`${cardCategoryLabel(category)} cards in hand`}
+								>
 									{handCards.length > 0 ? (
 										<>
 											{firstAvailableIndex > 0 ? (
@@ -1420,7 +1394,6 @@ function BattleCommandTray({
 															data-queued-order={queuedOrder}
 															data-play-index={playIndex}
 															aria-label={ariaLabel}
-															aria-pressed={isQueuedCard ? focused : undefined}
 															aria-invalid={planIssue !== null}
 															disabled={disabled}
 															title={disabledReason ?? undefined}

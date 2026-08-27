@@ -333,6 +333,8 @@ export const dungeonMapMonsterArt = {
 	} satisfies Record<BattleEnemyArchetype, readonly [number, number]>,
 } as const;
 
+export const enemyArchetypes: readonly BattleEnemyArchetype[] = Object.keys(dungeonMapMonsterArt.positions) as BattleEnemyArchetype[];
+
 /** Baked 24px dungeon chunk strip, consumed by the canvas world renderer. */
 export const dungeonTilesetArt = {
 	src: dungeonTilesetUrl,
@@ -348,24 +350,16 @@ export const dungeonPropsArt = {
 	totalWidth: DUNGEON_PROP_TEXTURE_COUNT * DUNGEON_PROP_ART_SIZE,
 } as const;
 
-const battleEnemyFrames = {
-	vermin: { column: 0, row: 0 },
-	bat: { column: 1, row: 0 },
-	'wild-mushroom': { column: 2, row: 0 },
-	slime: { column: 0, row: 1 },
-	wolf: { column: 1, row: 1 },
-	'grotto-mite': { column: 2, row: 1 },
-	'thorn-wolf': { column: 0, row: 2 },
-	'ruin-sentinel': { column: 1, row: 2 },
-	unknown: { column: 2, row: 2 },
-} satisfies Record<BattleEnemyArchetype, { column: number; row: number }>;
+const battleEnemyFrames = Object.fromEntries(
+	Object.entries(dungeonMapMonsterArt.positions).map(([key, [column, row]]) => [key, { column, row }]),
+) as Record<BattleEnemyArchetype, { column: number; row: number }>;
 
 function isBattleClassKey(value: string): value is BattleClassKey {
-	return value in battlePartyArt.atlas.frames;
+	return Object.hasOwn(battlePartyArt.atlas.frames, value);
 }
 
 function isBattleEnemyArchetype(value: string): value is BattleEnemyArchetype {
-	return value in battleEnemyFrames;
+	return Object.hasOwn(battleEnemyFrames, value);
 }
 
 export function battlePartyArtForClass(classKey: string): BattleArtSource {
