@@ -607,6 +607,7 @@ function Battlefield({
 	const partySlots = battleFloorSlots('party', encounter.members.length);
 	const enemyPlacements = enemySlots.map((slot) => projectBattleFloorSlot(camera, calibration, slot, 'enemy', enemySlots.length));
 	const partyPlacements = partySlots.map((slot) => projectBattleFloorSlot(camera, calibration, slot, 'party', partySlots.length));
+	const cameraReady = viewportSize.width > 1 && viewportSize.height > 1;
 
 	useLayoutEffect(() => {
 		const viewport = viewportRef.current;
@@ -630,24 +631,26 @@ function Battlefield({
 			ref={viewportRef}
 			className="battlefield"
 			data-battle-terrain={battleTerrain}
-			data-battle-camera-ready={viewportSize.width > 1 && viewportSize.height > 1 ? 'true' : 'false'}
+			data-battle-camera-ready={cameraReady ? 'true' : 'false'}
 			data-testid="battlefield"
 			role="region"
 			aria-label="Battlefield"
 		>
-			<BattlePixiScene
-				battleTerrain={battleTerrain}
-				encounter={encounter}
-				targetEnemyId={targetEnemyId}
-				selectedTargetUserId={selectedTargetUserId}
-				targetMode={targetMode}
-				viewportRef={viewportRef}
-				viewportSize={viewportSize}
-				camera={camera}
-				enemyPlacements={enemyPlacements}
-				partyPlacements={partyPlacements}
-				onError={setBattleGraphicsError}
-			/>
+			{cameraReady ? (
+				<BattlePixiScene
+					battleTerrain={battleTerrain}
+					encounter={encounter}
+					targetEnemyId={targetEnemyId}
+					selectedTargetUserId={selectedTargetUserId}
+					targetMode={targetMode}
+					viewportRef={viewportRef}
+					viewportSize={viewportSize}
+					camera={camera}
+					enemyPlacements={enemyPlacements}
+					partyPlacements={partyPlacements}
+					onError={setBattleGraphicsError}
+				/>
+			) : null}
 			<div className="battlefield-arena" data-testid="battlefield-arena">
 				<div className="battlefield-arena-row battlefield-arena-enemy-row" role="group" aria-label="Enemies">
 					{encounter.enemies.map((enemy, index) => {

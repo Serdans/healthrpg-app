@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect } from 'storybook/test';
+import { expect, waitFor } from 'storybook/test';
 
 import type { Encounter, Inventory } from '#/lib/api';
 import type { BattleTerrain } from '#/lib/battle-terrain';
@@ -429,6 +429,9 @@ export const ActiveEncounter: Story = {
 	play: async ({ canvas, userEvent }) => {
 		await expect(canvas.getByRole('heading', { name: 'Battle encounter' })).toBeInTheDocument();
 		await expect(canvas.getByTestId('battlefield')).toHaveAttribute('data-battle-camera-ready', 'true');
+		await waitFor(() => expect(canvas.getByTestId('battle-pixi-scene')).toHaveAttribute('data-battle-pixi-ready', 'true'), {
+			timeout: 15_000,
+		});
 		await expect(canvas.getByTestId('battle-status')).toHaveTextContent('1/3');
 		await expect(canvas.getByTestId('battle-command-tray')).toHaveTextContent('1/3');
 		await expect(canvas.getByTestId('battle-plan-summary')).toHaveTextContent('Plan 1/3');
@@ -583,6 +586,9 @@ export const ItemLoadout: Story = {
 	),
 	play: async ({ canvas, userEvent }) => {
 		await expect(canvas.getByTestId('battle-plan-summary')).toHaveTextContent('Plan 0/3');
+		await waitFor(() => expect(canvas.getByTestId('battle-pixi-scene')).toHaveAttribute('data-battle-pixi-ready', 'true'), {
+			timeout: 15_000,
+		});
 		await expect(canvas.queryByTestId('battle-deck-toggle')).not.toBeInTheDocument();
 		await expect(canvas.getByTestId('battle-card-item-herb')).toBeInTheDocument();
 		await userEvent.click(canvas.getByTestId('battle-card-item-herb'));
@@ -606,6 +612,9 @@ export const EnemyTargeting: Story = {
 		/>
 	),
 	play: async ({ canvas, userEvent }) => {
+		await waitFor(() => expect(canvas.getByTestId('battle-pixi-scene')).toHaveAttribute('data-battle-pixi-ready', 'true'), {
+			timeout: 15_000,
+		});
 		await userEvent.click(canvas.getByTestId('battle-card-class-basic-attack'));
 		await expect(canvas.getByTestId('battle-plan-summary')).toHaveTextContent('Plan 1/3');
 		const enemies = canvas.getAllByTestId('battle-enemy');
@@ -623,6 +632,9 @@ export const OverworldTerrain: Story = {
 	render: () => <BattlePreview battleTerrain="wilds" />,
 	play: async ({ canvas }) => {
 		await expect(canvas.getByTestId('battlefield')).toHaveAttribute('data-battle-terrain', 'wilds');
+		await waitFor(() => expect(canvas.getByTestId('battle-pixi-scene')).toHaveAttribute('data-battle-pixi-ready', 'true'), {
+			timeout: 15_000,
+		});
 	},
 };
 
@@ -631,6 +643,9 @@ export const FullPartyArena: Story = {
 	play: async ({ canvas }) => {
 		await expect(canvas.getByTestId('battlefield-arena')).toBeInTheDocument();
 		await expect(canvas.getByTestId('battlefield')).toHaveAttribute('data-battle-camera-ready', 'true');
+		await waitFor(() => expect(canvas.getByTestId('battle-pixi-scene')).toHaveAttribute('data-battle-pixi-ready', 'true'), {
+			timeout: 15_000,
+		});
 		await expect(canvas.getByTestId('battlefield-arena-label-layer')).toBeInTheDocument();
 		await expect(canvas.getAllByTestId('battle-arena-actor')).toHaveLength(8);
 		await expect(canvas.getAllByTestId('battle-arena-meta')).toHaveLength(8);
@@ -688,6 +703,10 @@ export const FullPartyArena: Story = {
 export const AllyTargeting: Story = {
 	render: () => <BattlePreview userId="user-2" />,
 	play: async ({ canvas }) => {
+		await expect(canvas.getByTestId('battlefield')).toHaveAttribute('data-battle-camera-ready', 'true');
+		await waitFor(() => expect(canvas.getByTestId('battle-pixi-scene')).toHaveAttribute('data-battle-pixi-ready', 'true'), {
+			timeout: 15_000,
+		});
 		const selectedMember = canvas
 			.getAllByTestId('battle-party-member')
 			.find((member) => member.getAttribute('data-member-id') === 'user-1');
@@ -699,4 +718,11 @@ export const AllyTargeting: Story = {
 
 export const ResolvedEncounter: Story = {
 	render: () => <BattlePreview encounter={{ ...activeEncounter, status: 'completed' }} readOnly />,
+	play: async ({ canvas }) => {
+		await expect(canvas.getByTestId('battlefield')).toHaveAttribute('data-battle-camera-ready', 'true');
+		await waitFor(() => expect(canvas.getByTestId('battle-pixi-scene')).toHaveAttribute('data-battle-pixi-ready', 'true'), {
+			timeout: 15_000,
+		});
+		await expect(canvas.getByTestId('battle-status')).toHaveTextContent('read-only because the expedition is closed');
+	},
 };

@@ -393,6 +393,7 @@ test('builds and saves a daily card plan', async ({ page, request }) => {
 	await expect(battlefield.getByTestId('battlefield-arena')).toBeAttached();
 	await expect(battlefield.getByTestId('battle-arena-actor')).toHaveCount(3);
 	await expect(battlefield.getByTestId('battle-arena-canvas')).toHaveAttribute('data-renderer', 'pixi');
+	await expect(battlefield.getByTestId('battle-pixi-scene')).toHaveAttribute('data-battle-pixi-ready', 'true');
 	await combatScene.scrollIntoViewIfNeeded();
 	const cardFan = page.getByTestId('battle-card-fan');
 	await cardFan.scrollIntoViewIfNeeded();

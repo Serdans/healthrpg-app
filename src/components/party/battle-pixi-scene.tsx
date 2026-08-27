@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { Application, useApplication } from '@pixi/react';
 import type { ApplicationRef } from '@pixi/react';
@@ -48,6 +48,7 @@ interface BattlePixiActor {
 interface BattlePixiRuntimeComponentProps {
 	props: BattlePixiSceneProps;
 	battleTerrain: BattleTerrain;
+	onReady: (ready: boolean) => void;
 }
 
 interface RenderableBattleApplication {
@@ -65,9 +66,10 @@ interface BattlePixiRuntime {
 	update: (props: BattlePixiSceneProps) => void;
 }
 
-function renderBattleApp(app: RenderableBattleApplication): void {
-	if (!app.renderer) return;
+function renderBattleApp(app: RenderableBattleApplication): boolean {
+	if (!app.renderer) return false;
 	app.render();
+	return true;
 }
 
 function setNearest(texture: PixiTexture): void {
@@ -301,7 +303,7 @@ function createBattlePixiScene(props: BattlePixiSceneProps, assets: BattlePixiAs
 	return scene;
 }
 
-function BattlePixiRuntime({ props, battleTerrain }: BattlePixiRuntimeComponentProps) {
+function BattlePixiRuntime({ props, battleTerrain, onReady }: BattlePixiRuntimeComponentProps) {
 	const { app } = useApplication();
 	const sceneRef = useRef<BattlePixiRuntime | null>(null);
 	const propsRef = useRef(props);
@@ -313,6 +315,7 @@ function BattlePixiRuntime({ props, battleTerrain }: BattlePixiRuntimeComponentP
 	useEffect(() => {
 		let active = true;
 		let created: BattlePixiRuntime | null = null;
+		onReady(false);
 		void loadBattleAssets(battleTerrain)
 			.then((assets) => {
 				if (!active) return;
@@ -320,7 +323,8 @@ function BattlePixiRuntime({ props, battleTerrain }: BattlePixiRuntimeComponentP
 					created = createBattlePixiScene(propsRef.current, assets, app.stage);
 					sceneRef.current = created;
 					created.update(propsRef.current);
-					renderBattleApp(app);
+					if (!renderBattleApp(app)) throw new Error('Battle renderer is not ready.');
+					onReady(true);
 				} catch (error) {
 					created?.destroy();
 					throw error;
@@ -336,7 +340,7 @@ function BattlePixiRuntime({ props, battleTerrain }: BattlePixiRuntimeComponentP
 			if (sceneRef.current === created) sceneRef.current = null;
 			created?.destroy();
 		};
-	}, [app, battleTerrain]);
+	}, [app, battleTerrain, onReady]);
 
 	useEffect(() => {
 		const scene = sceneRef.current;
@@ -349,6 +353,7 @@ function BattlePixiRuntime({ props, battleTerrain }: BattlePixiRuntimeComponentP
 
 export function BattlePixiScene(props: BattlePixiSceneProps) {
 	const applicationRef = useRef<ApplicationRef>(null);
+	const [ready, setReady] = useState(false);
 	const resolution = typeof window === 'undefined' ? 1 : Math.max(1, window.devicePixelRatio || 1);
 
 	useLayoutEffect(() => {
@@ -360,7 +365,7 @@ export function BattlePixiScene(props: BattlePixiSceneProps) {
 	}, []);
 
 	return (
-		<div className="battle-pixi-scene" data-testid="battle-pixi-scene" aria-hidden="true">
+		<div className="battle-pixi-scene" data-battle-pixi-ready={ready ? 'true' : 'false'} data-testid="battle-pixi-scene" aria-hidden="true">
 			<Application
 				ref={applicationRef}
 				className="battle-pixi-application"
@@ -373,7 +378,7 @@ export function BattlePixiScene(props: BattlePixiSceneProps) {
 				backgroundAlpha={0}
 				autoStart={false}
 			>
-				<BattlePixiRuntime props={props} battleTerrain={props.battleTerrain} />
+				<BattlePixiRuntime props={props} battleTerrain={props.battleTerrain} onReady={setReady} />
 			</Application>
 		</div>
 	);
