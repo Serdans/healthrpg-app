@@ -8,6 +8,7 @@ const party: Party = {
 	id: 'party-1',
 	name: 'Lantern Walkers',
 	status: 'active',
+	lastVillageNodeId: null,
 	memberCapacity: 6,
 	currentNode: {
 		id: 'node-1',

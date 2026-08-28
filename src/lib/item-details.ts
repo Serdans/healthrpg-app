@@ -14,6 +14,7 @@ export function itemEffectLabel(details: ItemDetails) {
 	const effect = details.effect;
 	if (!effect) return null;
 	if (effect.kind === 'heal') return `Restores ${effect.amount} HP`;
+	if (effect.kind === 'revive') return `Revives an ally to ${Math.round(effect.healthFraction * 100)}% HP`;
 
 	const modifiers = statKeys
 		.filter(([key]) => effect.modifiers[key] !== undefined)

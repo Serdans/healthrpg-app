@@ -23,10 +23,14 @@ function label(value: string) {
 function outcomeLabel(outcome: PartyRecap['resolution']['outcome']) {
 	if (outcome === 'advanced') return 'The party advanced';
 	if (outcome === 'route-selected') return 'The party chose a route';
+	if (outcome === 'defeated') return 'The party was defeated and returned to safety';
 	return 'The trail held';
 }
 
 function resolutionExplanation(resolution: PartyRecap['resolution']) {
+	if (resolution.outcome === 'defeated') {
+		return `The party recovered at ${resolution.destinationNode.name} with reduced health. The cleared dungeon progress remains available for a retry.`;
+	}
 	if (!resolution.movement.satisfied) {
 		return `Needs ${Math.max(0, resolution.movement.cost - resolution.movement.units)} more Momentum for the Travel requirement.`;
 	}

@@ -977,6 +977,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1002,6 +1006,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1025,6 +1033,10 @@ export interface paths {
                                         /** @enum {string} */
                                         kind: "heal";
                                         amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
                                     } | {
                                         /** @enum {string} */
                                         kind: "stat-modifiers";
@@ -1107,6 +1119,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1130,6 +1146,10 @@ export interface paths {
                                         /** @enum {string} */
                                         kind: "heal";
                                         amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
                                     } | {
                                         /** @enum {string} */
                                         kind: "stat-modifiers";
@@ -1157,6 +1177,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1180,6 +1204,10 @@ export interface paths {
                                         /** @enum {string} */
                                         kind: "heal";
                                         amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
                                     } | {
                                         /** @enum {string} */
                                         kind: "stat-modifiers";
@@ -1207,6 +1235,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1232,6 +1264,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1255,6 +1291,10 @@ export interface paths {
                                         /** @enum {string} */
                                         kind: "heal";
                                         amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
                                     } | {
                                         /** @enum {string} */
                                         kind: "stat-modifiers";
@@ -1346,6 +1386,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1369,6 +1413,10 @@ export interface paths {
                                         /** @enum {string} */
                                         kind: "heal";
                                         amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
                                     } | {
                                         /** @enum {string} */
                                         kind: "stat-modifiers";
@@ -1396,6 +1444,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1419,6 +1471,10 @@ export interface paths {
                                         /** @enum {string} */
                                         kind: "heal";
                                         amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
                                     } | {
                                         /** @enum {string} */
                                         kind: "stat-modifiers";
@@ -1446,6 +1502,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1471,6 +1531,10 @@ export interface paths {
                                         amount: number;
                                     } | {
                                         /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
+                                    } | {
+                                        /** @enum {string} */
                                         kind: "stat-modifiers";
                                         modifiers: {
                                             strength?: number;
@@ -1494,6 +1558,10 @@ export interface paths {
                                         /** @enum {string} */
                                         kind: "heal";
                                         amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
                                     } | {
                                         /** @enum {string} */
                                         kind: "stat-modifiers";
@@ -1894,6 +1962,7 @@ export interface paths {
                             id: string;
                             name: string;
                             status: "active" | "abandoned";
+                            lastVillageNodeId: string | null;
                             memberCapacity: number;
                             currentNode: {
                                 id: string;
@@ -1989,6 +2058,7 @@ export interface paths {
                             id: string;
                             name: string;
                             status: "active" | "abandoned";
+                            lastVillageNodeId: string | null;
                             memberCapacity: number;
                             currentNode: {
                                 id: string;
@@ -2130,6 +2200,7 @@ export interface paths {
                             id: string;
                             name: string;
                             status: "active" | "abandoned";
+                            lastVillageNodeId: string | null;
                             memberCapacity: number;
                             currentNode: {
                                 id: string;
@@ -2483,6 +2554,7 @@ export interface paths {
                             id: string;
                             name: string;
                             status: "active" | "abandoned";
+                            lastVillageNodeId: string | null;
                             memberCapacity: number;
                             currentNode: {
                                 id: string;
@@ -4037,7 +4109,7 @@ export interface paths {
                                     name: string;
                                     nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
                                 };
-                                outcome: "advanced" | "held" | "route-selected" | "returned";
+                                outcome: "advanced" | "held" | "route-selected" | "returned" | "defeated";
                                 movement: {
                                     units: number;
                                     cost: number;
@@ -4063,7 +4135,7 @@ export interface paths {
                                     selectionReason: "majority" | "deadline" | null;
                                 } | null;
                                 combats: {
-                                    completed: boolean;
+                                    outcome: "ongoing" | "victory" | "defeat";
                                     members: {
                                         userId: string;
                                         displayName: string;
@@ -4584,6 +4656,7 @@ export interface paths {
                             id: string;
                             name: string;
                             status: "active" | "abandoned";
+                            lastVillageNodeId: string | null;
                             memberCapacity: number;
                             currentNode: {
                                 id: string;
@@ -4642,6 +4715,7 @@ export interface paths {
                             id: string;
                             name: string;
                             status: "active" | "abandoned";
+                            lastVillageNodeId: string | null;
                             memberCapacity: number;
                             currentNode: {
                                 id: string;
@@ -5176,6 +5250,7 @@ export interface paths {
                             id: string;
                             name: string;
                             status: "active" | "abandoned";
+                            lastVillageNodeId: string | null;
                             memberCapacity: number;
                             currentNode: {
                                 id: string;
@@ -5361,6 +5436,7 @@ export interface paths {
                             id: string;
                             name: string;
                             status: "active" | "abandoned";
+                            lastVillageNodeId: string | null;
                             memberCapacity: number;
                             currentNode: {
                                 id: string;
@@ -5555,6 +5631,9 @@ export interface paths {
                                 displayName: string;
                                 balance: number;
                             };
+                            inn: {
+                                fee: number;
+                            };
                             offers: {
                                 key: string;
                                 kind: "item" | "equipment";
@@ -5566,6 +5645,10 @@ export interface paths {
                                         /** @enum {string} */
                                         kind: "heal";
                                         amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "revive";
+                                        healthFraction: number;
                                     } | {
                                         /** @enum {string} */
                                         kind: "stat-modifiers";
@@ -5718,6 +5801,10 @@ export interface paths {
                                     amount: number;
                                 } | {
                                     /** @enum {string} */
+                                    kind: "revive";
+                                    healthFraction: number;
+                                } | {
+                                    /** @enum {string} */
                                     kind: "stat-modifiers";
                                     modifiers: {
                                         strength?: number;
@@ -5756,6 +5843,128 @@ export interface paths {
                                 name: string;
                                 reason: string;
                             }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/village/inn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            nodeId: string;
+                            userId: string;
+                            fee: number;
+                            remainingGold: number;
+                            currentHealth: number;
+                            maxHealth: number;
+                            revived: boolean;
                         };
                     };
                 };
@@ -6025,8 +6234,9 @@ export interface paths {
                                     selectedCount: number;
                                     preview: {
                                         effects: {
-                                            kind: "damage" | "heal" | "guard" | "rally";
+                                            kind: "damage" | "heal" | "guard" | "rally" | "revive";
                                             baseAmount: number;
+                                            healthFraction: number | null;
                                             manualTargetBonus: number | null;
                                             rallyBonus: number | null;
                                             targetCount: number | null;
@@ -6206,8 +6416,9 @@ export interface paths {
                                     selectedCount: number;
                                     preview: {
                                         effects: {
-                                            kind: "damage" | "heal" | "guard" | "rally";
+                                            kind: "damage" | "heal" | "guard" | "rally" | "revive";
                                             baseAmount: number;
+                                            healthFraction: number | null;
                                             manualTargetBonus: number | null;
                                             rallyBonus: number | null;
                                             targetCount: number | null;

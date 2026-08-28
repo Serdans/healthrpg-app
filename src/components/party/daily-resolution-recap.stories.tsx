@@ -99,7 +99,7 @@ export const OngoingCombat: Story = {
 				},
 				combats: [
 					{
-						completed: false,
+						outcome: 'ongoing',
 						members: [
 							{
 								userId: 'user-1',
@@ -147,7 +147,7 @@ export const CompletedCombat: Story = {
 				},
 				combats: [
 					{
-						completed: true,
+						outcome: 'victory',
 						members: [],
 						enemies: [
 							{
@@ -177,7 +177,7 @@ export const MultipleEncounters: Story = {
 				...baseResolution,
 				combats: [
 					{
-						completed: true,
+						outcome: 'victory',
 						members: [],
 						enemies: [
 							{
@@ -193,7 +193,7 @@ export const MultipleEncounters: Story = {
 						],
 					},
 					{
-						completed: true,
+						outcome: 'victory',
 						members: [],
 						enemies: [
 							{

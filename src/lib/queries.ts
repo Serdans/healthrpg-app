@@ -34,6 +34,7 @@ import {
 	kickMember,
 	leaveParty,
 	purchaseVillage,
+	recoverAtVillageInn,
 	resetCharacterCreation,
 	revokeInvite,
 	releaseDungeonNavigator,
@@ -478,6 +479,22 @@ export function usePurchaseVillage(partyId: string) {
 			void queryClient.invalidateQueries({ queryKey: queryKeys.village(partyId) });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.inventory });
 			void queryClient.invalidateQueries({ queryKey: queryKeys.loadout });
+		},
+	});
+}
+
+export function useRecoverAtVillageInn(partyId: string) {
+	const queryClient = useQueryClient();
+	return useMutation({
+		mutationFn: () => recoverAtVillageInn(partyId),
+		onSuccess: () => {
+			void queryClient.invalidateQueries({ queryKey: queryKeys.village(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.inventory });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.party(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.partyRoster(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.encounter(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.daily(partyId) });
+			void queryClient.invalidateQueries({ queryKey: queryKeys.partyRecap(partyId) });
 		},
 	});
 }

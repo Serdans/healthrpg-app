@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Coins, DoorOpen, ShoppingBag } from 'lucide-react';
+import { Coins, DoorOpen, HeartPulse, ShoppingBag } from 'lucide-react';
 
 import { ErrorNotice } from '#/components/app-state';
 import { InventoryItemSprite } from '#/components/inventory/inventory-item-sprite';
@@ -10,7 +10,7 @@ import { FieldError } from '#/components/ui/field-error';
 import type { Village } from '#/lib/api';
 import { formatDateTime, formatTimeRemaining } from '#/lib/dates';
 import { itemEffectLabel } from '#/lib/item-details';
-import { usePurchaseVillage, useStartVillageDeparture } from '#/lib/queries';
+import { usePurchaseVillage, useRecoverAtVillageInn, useStartVillageDeparture } from '#/lib/queries';
 import { purchaseQuantitySchema } from '#/lib/validation';
 
 export function VillagePanel({
@@ -27,12 +27,13 @@ export function VillagePanel({
 	readOnly?: boolean;
 }) {
 	const purchaseMutation = usePurchaseVillage(partyId);
+	const innMutation = useRecoverAtVillageInn(partyId);
 	const departureMutation = useStartVillageDeparture(partyId);
 	const [quantities, setQuantities] = useState<Record<string, string>>({});
 	const [quantityErrors, setQuantityErrors] = useState<Record<string, string | undefined>>({});
 
-	const mutationError = purchaseMutation.error ?? departureMutation.error;
-	const villageBusy = purchaseMutation.isPending || departureMutation.isPending;
+	const mutationError = purchaseMutation.error ?? innMutation.error ?? departureMutation.error;
+	const villageBusy = purchaseMutation.isPending || innMutation.isPending || departureMutation.isPending;
 	const setQuantity = (key: string, value: string) => {
 		setQuantities((current) => ({ ...current, [key]: value }));
 		setQuantityErrors((current) => ({ ...current, [key]: undefined }));
@@ -76,6 +77,32 @@ export function VillagePanel({
 						<p role="status" className="game-inset game-inset-teal p-3 text-sm font-bold text-[var(--teal-deep)]">
 							Bought {purchaseMutation.data.quantity} × {purchaseMutation.data.displayName} for {purchaseMutation.data.totalPrice}{' '}
 							{purchaseMutation.data.currency.key}. Remaining balance: {purchaseMutation.data.currency.remainingBalance}.
+						</p>
+					)}
+
+					<div className="game-inset game-inset-teal flex flex-wrap items-center justify-between gap-4 p-4">
+						<div className="flex min-w-0 items-start gap-3">
+							<span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--surface)] text-[var(--teal-deep)]">
+								<HeartPulse className="size-5" aria-hidden="true" />
+							</span>
+							<div>
+								<p className="game-pixel-label text-[var(--teal-deep)]">The village inn</p>
+								<p className="mt-1 font-extrabold text-[var(--indigo)]">Restore your traveler to full health</p>
+								<p className="mt-1 text-xs leading-5 text-[var(--ink-soft)]">
+									Each party member pays their own {village.inn.fee} Gold. Knocked-out travelers wake here; Water of Life remains the combat
+									option.
+								</p>
+							</div>
+						</div>
+						<Button game className="shrink-0" disabled={readOnly || villageBusy} onClick={() => innMutation.mutate()}>
+							{innMutation.isPending ? 'Resting…' : `Rest · ${village.inn.fee} Gold`}
+						</Button>
+					</div>
+					{innMutation.data && (
+						<p role="status" className="game-inset game-inset-teal p-3 text-sm font-bold text-[var(--teal-deep)]">
+							Your traveler is at {innMutation.data.currentHealth}/{innMutation.data.maxHealth} HP.{' '}
+							{innMutation.data.revived ? 'They are back on their feet. ' : ''}
+							Remaining Gold: {innMutation.data.remainingGold}.
 						</p>
 					)}
 

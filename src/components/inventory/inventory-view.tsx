@@ -222,6 +222,7 @@ export function InventoryView({
 								const equipmentSlot =
 									item.kind === 'equipment' && isEquipmentSlot(item.details.equipmentSlot) ? item.details.equipmentSlot : null;
 								const isEquipped = equipmentSlot !== null && loadout[equipmentSlot]?.key === item.key;
+								const usableOutsideCombat = item.kind === 'item' && item.details.effect?.kind === 'heal';
 
 								return (
 									<div key={item.key} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
@@ -254,7 +255,7 @@ export function InventoryView({
 													{isEquipped ? 'Equipped' : 'Equip'}
 												</Button>
 											)}
-											{item.kind === 'item' && onUseItem && (
+											{item.kind === 'item' && onUseItem && usableOutsideCombat && (
 												<Button
 													size="sm"
 													variant="secondary"
@@ -263,6 +264,9 @@ export function InventoryView({
 												>
 													Use on traveler
 												</Button>
+											)}
+											{item.kind === 'item' && !usableOutsideCombat && (
+												<span className="text-xs font-bold text-[var(--ink-soft)]">Combat only</span>
 											)}
 										</div>
 									</div>

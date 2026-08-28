@@ -46,21 +46,37 @@ function selectedIndexAfterReorder(currentIndex: number | null, fromIndex: numbe
 }
 
 function cardForItem(item: Inventory['items'][number]): EncounterCard {
-	const preview =
-		item.details.effect?.kind === 'heal'
-			? {
-					effects: [
-						{
-							kind: 'heal' as const,
-							baseAmount: item.details.effect.amount,
-							manualTargetBonus: null,
-							rallyBonus: null,
-							targetCount: null,
-							distribution: null,
-						},
-					],
-				}
-			: null;
+	const effect = item.details.effect;
+	let preview: EncounterCard['preview'] = null;
+	if (effect?.kind === 'heal') {
+		preview = {
+			effects: [
+				{
+					kind: 'heal',
+					baseAmount: effect.amount,
+					healthFraction: null,
+					manualTargetBonus: null,
+					rallyBonus: null,
+					targetCount: null,
+					distribution: null,
+				},
+			],
+		};
+	} else if (effect?.kind === 'revive') {
+		preview = {
+			effects: [
+				{
+					kind: 'revive',
+					baseAmount: 0,
+					healthFraction: effect.healthFraction,
+					manualTargetBonus: null,
+					rallyBonus: null,
+					targetCount: null,
+					distribution: null,
+				},
+			],
+		};
+	}
 
 	return {
 		key: `item:${item.key}`,

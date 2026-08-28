@@ -71,6 +71,7 @@ type InventoryResponse = SuccessBody<paths['/api/v1/me/inventory']['get']>;
 type LoadoutResponse = SuccessBody<paths['/api/v1/me/loadout']['get']>;
 type VillageResponse = SuccessBody<paths['/api/v1/parties/{partyId}/village']['get']>;
 type VillagePurchaseResponse = SuccessBody<paths['/api/v1/parties/{partyId}/village/purchases']['post']>;
+type VillageInnRecoveryResponse = SuccessBody<paths['/api/v1/parties/{partyId}/village/inn']['post']>;
 type VillageDepartureResponse = SuccessBody<paths['/api/v1/parties/{partyId}/village/departures']['post']>;
 type EncounterResponse = SuccessBody<paths['/api/v1/parties/{partyId}/encounter']['get']>;
 type PartyItemUseResponse = SuccessBody<paths['/api/v1/parties/{partyId}/item-uses']['post']>;
@@ -288,6 +289,11 @@ export const purchaseVillage = (partyId: string, body: VillagePurchaseBody) =>
 		json: body,
 	});
 
+export const recoverAtVillageInn = (partyId: string) =>
+	requestJson<VillageInnRecoveryResponse>(partyPath(partyId, '/village/inn'), {
+		method: 'post',
+	});
+
 export const startVillageDeparture = (partyId: string) =>
 	requestJson<VillageDepartureResponse>(partyPath(partyId, '/village/departures'), {
 		method: 'post',
@@ -364,6 +370,7 @@ export type EquipmentSlot = LoadoutSlot;
 export type Village = VillageResponse;
 export type VillagePurchase = VillagePurchaseResponse;
 export type VillagePurchaseInput = VillagePurchaseBody;
+export type VillageInnRecovery = VillageInnRecoveryResponse;
 export type VillageDeparture = VillageDepartureResponse;
 export type Encounter = EncounterResponse;
 export type EncounterPlanInput = EncounterPlanBody;

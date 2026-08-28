@@ -159,6 +159,8 @@ function previewEffectBaseLabel(effect: PreviewEffect): string {
 			return `Guard ${effect.baseAmount}`;
 		case 'rally':
 			return `Rally +${effect.baseAmount}`;
+		case 'revive':
+			return `Revive to ${Math.round((effect.healthFraction ?? 0) * 100)}% HP`;
 	}
 }
 

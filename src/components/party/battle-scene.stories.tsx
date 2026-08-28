@@ -32,6 +32,7 @@ function effectPreview(
 			{
 				kind,
 				baseAmount,
+				healthFraction: null,
 				manualTargetBonus: null,
 				rallyBonus: null,
 				targetCount: null,
