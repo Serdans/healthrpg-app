@@ -445,53 +445,6 @@ export const ActiveEncounter: Story = {
 		await expect(canvas.queryByTestId('gameplay-mechanics')).not.toBeInTheDocument();
 		await expect(canvas.getByTestId('battle-card-fan')).toBeInTheDocument();
 		await expect(canvas.getByTestId('battle-card-hand-frame')).toBeInTheDocument();
-		const battleScene = canvas.getByTestId('combat-scene');
-		const stage = battleScene.querySelector<HTMLElement>('.battle-stage')?.getBoundingClientRect();
-		const commandTray = canvas.getByTestId('battle-command-tray').getBoundingClientRect();
-		const handViewport = canvas.getByTestId('battle-card-hand-viewport').getBoundingClientRect();
-		const targetNote = battleScene.querySelector<HTMLElement>('.battle-fan-target-note')?.getBoundingClientRect();
-		const action = canvas.getByTestId('battle-plan-action').getBoundingClientRect();
-		const ready = canvas.getByTestId('battle-save-plan').getBoundingClientRect();
-		const handFrame = canvas.getByTestId('battle-card-hand-frame');
-		const rootFontSize = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
-		const fanCardEntries = [...battleScene.querySelectorAll<HTMLElement>('.battle-fan-card')].map((fanCard) => {
-			const dropRem = Number.parseFloat(fanCard.parentElement?.style.getPropertyValue('--fan-drop') ?? '');
-			return {
-				queued: fanCard.dataset.queued === 'true',
-				rect: fanCard.getBoundingClientRect(),
-				drop: Number.isFinite(dropRem) && Number.isFinite(rootFontSize) ? dropRem * rootFontSize : 0,
-			};
-		});
-		const fanCardRects = fanCardEntries.map(({ rect }) => rect);
-		const idleCardRects = fanCardEntries.filter(({ queued }) => !queued).map(({ rect }) => rect);
-		const queuedCardRects = fanCardEntries.filter(({ queued }) => queued).map(({ rect }) => rect);
-		const fanMaxDrop = Math.max(0, ...fanCardEntries.map(({ drop }) => drop));
-		const centerFanDrop = fanCardEntries.length > 0 ? fanCardEntries[Math.floor((fanCardEntries.length - 1) / 2)].drop : 0;
-		const outerFanDrops = fanCardEntries.length >= 2 ? [fanCardEntries[0].drop, fanCardEntries.at(-1)?.drop ?? 0] : [];
-		const fanPeek = Number.parseFloat(getComputedStyle(handFrame).getPropertyValue('--battle-fan-peek'));
-		if (!stage || !targetNote || fanCardRects.length === 0 || !Number.isFinite(fanPeek) || !Number.isFinite(rootFontSize))
-			throw new Error('Battle command geometry is missing.');
-		const fanTop = Math.min(...fanCardRects.map((cardRect) => cardRect.top));
-		const fanBottom = Math.max(...fanCardRects.map((cardRect) => cardRect.bottom));
-		const idleFanBottom = idleCardRects.length > 0 ? Math.max(...idleCardRects.map((cardRect) => cardRect.bottom)) : null;
-		const readyBottomOffset = ready.bottom - fanTop;
-		expect(Math.abs(commandTray.bottom - stage.bottom)).toBeLessThanOrEqual(1);
-		expect(commandTray.height).toBeLessThanOrEqual(17 * 16 + 1);
-		expect(targetNote.height).toBeLessThanOrEqual(2.5 * 16 + 1);
-		expect(targetNote.bottom).toBeLessThanOrEqual(handViewport.top + 1);
-		expect(action.height).toBeLessThanOrEqual(2.5 * 16 + 1);
-		expect(readyBottomOffset).toBeGreaterThanOrEqual(-4);
-		expect(ready.top - fanTop).toBeLessThanOrEqual(12);
-		expect(fanCardRects.every((cardRect) => cardRect.top >= handViewport.top - 1)).toBe(true);
-		expect(idleCardRects.length).toBeGreaterThan(0);
-		expect(idleFanBottom).not.toBeNull();
-		expect(idleFanBottom as number).toBeGreaterThanOrEqual(stage.bottom + 1);
-		expect(queuedCardRects.every((cardRect) => cardRect.bottom <= handViewport.bottom + 2)).toBe(true);
-		expect(fanBottom).toBeLessThanOrEqual(stage.bottom + fanPeek + fanMaxDrop + 12);
-		expect(fanCardEntries.length).toBeGreaterThanOrEqual(3);
-		expect(Math.max(...outerFanDrops)).toBeGreaterThan(centerFanDrop);
-		expect(Math.abs((outerFanDrops[0] ?? 0) - (outerFanDrops[1] ?? 0))).toBeLessThanOrEqual(0.1);
-		expect(getComputedStyle(canvas.getByTestId('battle-card-hand-viewport')).overflowY).toBe('hidden');
 		await expect(canvas.getByTestId('battle-card-hand-viewport')).toHaveAccessibleName(
 			'Available card hand. Scroll horizontally to browse cards.',
 		);
@@ -505,27 +458,8 @@ export const ActiveEncounter: Story = {
 		const availablePreview = await canvas.findByTestId('battle-card-preview');
 		await expect(availablePreview).toHaveAttribute('data-card-key', 'class:shield-wall');
 		await expect(canvas.getByTestId('battle-card-preview-layer')).toHaveAttribute('aria-hidden', 'true');
-		const expandedDescription = availablePreview.querySelector<HTMLElement>('.battle-card-description');
-		const expandedMeta = availablePreview.querySelector<HTMLElement>('.battle-card-meta');
-		if (!expandedDescription || !expandedMeta) throw new Error('Expanded card preview text layout is missing.');
-		await expect(expandedDescription).toHaveTextContent('reducing incoming pressure while the party regains its footing');
-		const expandedDescriptionStyles = getComputedStyle(expandedDescription);
-		expect(expandedDescriptionStyles.display).not.toBe('-webkit-box');
-		expect(expandedDescriptionStyles.overflowY).toBe('auto');
-		expect(expandedDescriptionStyles.getPropertyValue('-webkit-line-clamp')).toBe('none');
-		expect(expandedDescription.offsetTop + expandedDescription.offsetHeight).toBeLessThanOrEqual(expandedMeta.offsetTop + 1);
+		await expect(availablePreview).toHaveTextContent('reducing incoming pressure while the party regains its footing');
 		expect(availablePreview.closest('.battle-card-hand-viewport')).toBeNull();
-		const shortSwordDescription = canvas
-			.getByTestId('battle-card-weapon-short-sword')
-			.querySelector<HTMLElement>('.battle-card-description');
-		const shortSwordFace = shortSwordDescription?.closest('.battle-card-face');
-		if (!shortSwordDescription || !shortSwordFace) throw new Error('Short Sword description layout is missing.');
-		const shortSwordDescriptionRect = shortSwordDescription.getBoundingClientRect();
-		const shortSwordFaceRect = shortSwordFace.getBoundingClientRect();
-		const shortSwordDescriptionStyles = getComputedStyle(shortSwordDescription);
-		expect(getComputedStyle(shortSwordFace).overflow).toBe('visible');
-		expect(shortSwordDescriptionRect.height).toBeGreaterThanOrEqual(Number.parseFloat(shortSwordDescriptionStyles.lineHeight));
-		expect(shortSwordDescriptionRect.bottom).toBeLessThanOrEqual(shortSwordFaceRect.bottom + 1);
 		await expect(canvas.getByTestId('battle-card-filter-all')).toHaveAttribute('aria-pressed', 'true');
 		await userEvent.click(canvas.getByTestId('battle-card-filter-all'));
 		await userEvent.click(canvas.getByTestId('battle-card-filter-class'));

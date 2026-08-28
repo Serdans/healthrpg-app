@@ -71,7 +71,9 @@ export function VillagePanel({
 								<p className="mt-1 font-extrabold text-[var(--indigo)]">{village.currency.displayName}</p>
 							</div>
 						</div>
-						<span className="font-mono text-2xl text-[var(--gold-deep)]">{village.currency.balance}</span>
+						<span data-testid="village-balance" className="font-mono text-2xl text-[var(--gold-deep)]">
+							{village.currency.balance}
+						</span>
 					</div>
 					{purchaseMutation.data && (
 						<p role="status" className="game-inset game-inset-teal p-3 text-sm font-bold text-[var(--teal-deep)]">

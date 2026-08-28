@@ -128,8 +128,9 @@ async function requestVoid(input: string, options?: Options): Promise<void> {
 	}
 }
 
-function partyPath(partyId: string, suffix = '') {
-	return `v1/parties/${encodeURIComponent(partyId)}${suffix}`;
+function partyPath(partyId: string, suffix?: string) {
+	const basePath = `v1/parties/${encodeURIComponent(partyId)}`;
+	return suffix === undefined ? basePath : `${basePath}${suffix}`;
 }
 
 export const getMe = () => requestJson<MeResponse>('v1/me');

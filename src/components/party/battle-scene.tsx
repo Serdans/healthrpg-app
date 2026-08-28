@@ -13,8 +13,10 @@ import { battleFloorCalibrationFor } from '#/lib/battle-terrain';
 import type { BattleTerrain } from '#/lib/battle-terrain';
 import { cardPlanAdditionIssue, cardPlanIssueLabel, cardsForPlanFan, reviewCardPlan } from '#/lib/battle-cards';
 import type { CardPlanIssue } from '#/lib/battle-cards';
+import { centeredFanPosition } from '#/lib/battle-fan';
 import type { CombatCommandState } from '#/lib/combat-command-state';
 import { battleTerrainWorldSize } from '#/lib/game-art';
+import { prefersReducedMotion } from '#/lib/gameplay-navigation';
 import { BattlePixiScene } from './battle-pixi-scene';
 
 type EncounterMember = Encounter['members'][number];
@@ -393,24 +395,6 @@ function BattleStatusMessage({ state, queuedCount, playSlots }: { state: CombatC
 				</>
 			);
 	}
-}
-
-function prefersReducedMotion(): boolean {
-	return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
-
-function centeredFanPosition(index: number, cardCount: number, maxRotation: number, horizontalStep: number, maxDrop: number) {
-	const centeredIndex = index - (cardCount - 1) / 2;
-	const maxIndex = Math.max((cardCount - 1) / 2, 1);
-	const normalizedIndex = centeredIndex / maxIndex;
-	const edgeFactor = cardCount > 1 ? normalizedIndex ** 2 : 0;
-
-	return {
-		centeredIndex,
-		rotation: cardCount > 1 ? normalizedIndex * maxRotation : 0,
-		offset: cardCount > 1 ? centeredIndex * horizontalStep : 0,
-		drop: edgeFactor * maxDrop,
-	};
 }
 
 function fanStackOrder(focused: boolean, queued: boolean, cardCount: number, baseZIndex: number): number {
@@ -1008,7 +992,8 @@ function BattleCommandTray({
 		const target = document
 			.elementFromPoint(event.clientX, event.clientY)
 			?.closest<HTMLElement>('.battle-fan-card-slot[data-queued="true"]');
-		const targetIndex = target ? Number.parseInt(target.dataset.playIndex ?? '', 10) : Number.NaN;
+		const rawTargetIndex = target?.dataset.playIndex;
+		const targetIndex = rawTargetIndex === undefined ? Number.NaN : Number.parseInt(rawTargetIndex, 10);
 		const nextDropIndex = Number.isInteger(targetIndex) && targetIndex !== pointer.playIndex ? targetIndex : null;
 		if (pointer.dropIndex === nextDropIndex) return;
 		pointer.dropIndex = nextDropIndex;

@@ -10,6 +10,16 @@ const user = {
 };
 
 const initialHealthSync = '2026-01-01T00:00:00.000Z';
+const initialVillageGold = 120;
+const initialVillageOwnedQuantities = new Map([
+	['herb', 1],
+	['nut', 0],
+	['short-sword', 0],
+	['leather-armor', 0],
+	['leather-armlet', 0],
+	['padded-vest', 0],
+	['copper-band', 0],
+]);
 const state = {
 	scenario: 'branch',
 	decisionStartedAt: '2026-08-20T00:00:00.000Z',
@@ -20,6 +30,8 @@ const state = {
 	lastMutation: { path: null, body: null },
 	healthLastSyncAt: initialHealthSync,
 	healthSyncReadyAt: null,
+	villageGold: initialVillageGold,
+	villageOwnedQuantities: new Map(initialVillageOwnedQuantities),
 	dungeonWalkDelayMs: 0,
 	dungeonRejectNext: false,
 	walkedTo: null,
@@ -37,6 +49,8 @@ function resetState() {
 	state.lastMutation = { path: null, body: null };
 	state.healthLastSyncAt = initialHealthSync;
 	state.healthSyncReadyAt = null;
+	state.villageGold = initialVillageGold;
+	state.villageOwnedQuantities = new Map(initialVillageOwnedQuantities);
 	state.dungeonWalkDelayMs = 0;
 	state.dungeonRejectNext = false;
 	state.walkedTo = null;
@@ -70,6 +84,25 @@ function isCombatScenario() {
 	return state.scenario === 'combat' || state.scenario === 'combat-stale';
 }
 
+function currentNodeName(insideVillage) {
+	if (insideVillage) return 'Lantern Square';
+	if (state.scenario === 'village') return 'Mossway Village';
+	return 'Mossway Crossing';
+}
+
+function overworldNodeEvent() {
+	if (isCombatScenario()) return { eventType: 'combat' };
+
+	switch (state.scenario) {
+		case 'village':
+			return { eventType: 'village', settlementKey: 'mossway' };
+		case 'event':
+			return { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] };
+		default:
+			return undefined;
+	}
+}
+
 function dungeonNavigation() {
 	return {
 		navigatorUserId: 'user-1',
@@ -89,40 +122,18 @@ function party() {
 		name: 'Lantern Walkers',
 		status: 'active',
 		memberCapacity: 6,
+		lastVillageNodeId: null,
 		currentNode: {
 			id: insideVillage ? 'village-entry' : 'node-1',
 			chapterNo: 1,
 			regionNo: 1,
-			name: insideVillage ? 'Lantern Square' : state.scenario === 'village' ? 'Mossway Village' : 'Mossway Crossing',
+			name: currentNodeName(insideVillage),
 			nodeType: currentNodeType(),
 			templateKey: `${currentNodeType()}-v1`,
 			config: {
 				movementCost: 10,
 				challengeCost: 0,
-				event: isCombatScenario()
-					? { eventType: 'combat' }
-					: state.scenario === 'village' || state.scenario === 'village-interior'
-						? { eventType: 'village', settlementKey: 'mossway' }
-						: state.scenario === 'event'
-							? {
-									eventType: 'narrative',
-									prompt: 'Which light do you follow?',
-									choices: [
-										{
-											key: 'lantern',
-											displayName: 'Follow the lanterns',
-											description: 'Take the warm road.',
-											requirements: { movementUnits: 0, recoveryPoints: 0 },
-										},
-										{
-											key: 'stars',
-											displayName: 'Read the stars',
-											description: 'Trust the high path.',
-											requirements: { movementUnits: 1, recoveryPoints: 0 },
-										},
-									],
-								}
-							: undefined,
+				event: currentNodeEvent(),
 			},
 		},
 		challengeProgress: 0,
@@ -134,6 +145,37 @@ function party() {
 			{ userId: 'user-2', role: 'member', displayName: 'Mira' },
 		],
 	};
+}
+
+function currentNodeEvent() {
+	if (isCombatScenario()) return { eventType: 'combat' };
+
+	switch (state.scenario) {
+		case 'village':
+		case 'village-interior':
+			return { eventType: 'village', settlementKey: 'mossway' };
+		case 'event':
+			return {
+				eventType: 'narrative',
+				prompt: 'Which light do you follow?',
+				choices: [
+					{
+						key: 'lantern',
+						displayName: 'Follow the lanterns',
+						description: 'Take the warm road.',
+						requirements: { movementUnits: 0, recoveryPoints: 0 },
+					},
+					{
+						key: 'stars',
+						displayName: 'Read the stars',
+						description: 'Trust the high path.',
+						requirements: { movementUnits: 1, recoveryPoints: 0 },
+					},
+				],
+			};
+		default:
+			return undefined;
+	}
 }
 
 function partyRoster() {
@@ -374,13 +416,7 @@ function map() {
 				config: {
 					movementCost: 10,
 					challengeCost: 0,
-					event: isCombatScenario()
-						? { eventType: 'combat' }
-						: state.scenario === 'village'
-							? { eventType: 'village', settlementKey: 'mossway' }
-							: state.scenario === 'event'
-								? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
-								: undefined,
+					event: overworldNodeEvent(),
 				},
 				discovered: true,
 				adjacent: true,
@@ -560,7 +596,8 @@ function village() {
 		nodeId: 'node-1',
 		settlement: { key: 'mossway', displayName: 'Mossway Village', description: 'A warm market at the edge of the mist.' },
 		merchant: { key: 'wayfarer-market', displayName: 'The Wayfarer Market', role: 'Traveling merchant' },
-		currency: { key: 'gold', displayName: 'Gold', balance: 120 },
+		currency: { key: 'gold', displayName: 'Gold', balance: state.villageGold },
+		inn: { fee: 75 },
 		offers: [
 			{
 				key: 'herb',
@@ -573,7 +610,7 @@ function village() {
 				},
 				currencyKey: 'gold',
 				unitPrice: 10,
-				ownedQuantity: 1,
+				ownedQuantity: state.villageOwnedQuantities.get('herb') ?? 0,
 			},
 			{
 				key: 'nut',
@@ -586,7 +623,7 @@ function village() {
 				},
 				currencyKey: 'gold',
 				unitPrice: 25,
-				ownedQuantity: 0,
+				ownedQuantity: state.villageOwnedQuantities.get('nut') ?? 0,
 			},
 			{
 				key: 'short-sword',
@@ -599,7 +636,7 @@ function village() {
 				},
 				currencyKey: 'gold',
 				unitPrice: 100,
-				ownedQuantity: 0,
+				ownedQuantity: state.villageOwnedQuantities.get('short-sword') ?? 0,
 			},
 			{
 				key: 'leather-armor',
@@ -612,7 +649,7 @@ function village() {
 				},
 				currencyKey: 'gold',
 				unitPrice: 80,
-				ownedQuantity: 0,
+				ownedQuantity: state.villageOwnedQuantities.get('leather-armor') ?? 0,
 			},
 			{
 				key: 'leather-armlet',
@@ -625,7 +662,7 @@ function village() {
 				},
 				currencyKey: 'gold',
 				unitPrice: 60,
-				ownedQuantity: 0,
+				ownedQuantity: state.villageOwnedQuantities.get('leather-armlet') ?? 0,
 			},
 			{
 				key: 'padded-vest',
@@ -638,7 +675,7 @@ function village() {
 				},
 				currencyKey: 'gold',
 				unitPrice: 90,
-				ownedQuantity: 0,
+				ownedQuantity: state.villageOwnedQuantities.get('padded-vest') ?? 0,
 			},
 			{
 				key: 'copper-band',
@@ -651,7 +688,7 @@ function village() {
 				},
 				currencyKey: 'gold',
 				unitPrice: 75,
-				ownedQuantity: 0,
+				ownedQuantity: state.villageOwnedQuantities.get('copper-band') ?? 0,
 			},
 		],
 	};
@@ -1029,6 +1066,47 @@ async function handler(request) {
 	if (path === '/api/v1/parties/party-1/village/departures' && request.method === 'POST') {
 		state.decisionStartedAt = '2026-08-20T00:00:00.000Z';
 		return json(voteState());
+	}
+	if (path === '/api/v1/parties/party-1/village/inn' && request.method === 'POST') {
+		const fee = village().inn.fee;
+		state.villageGold -= fee;
+		state.lastMutation = { path, body: null };
+		return json({
+			partyId: 'party-1',
+			nodeId: 'node-1',
+			userId: 'user-1',
+			fee,
+			remainingGold: state.villageGold,
+			currentHealth: 20,
+			maxHealth: 20,
+			revived: false,
+		});
+	}
+	if (path === '/api/v1/parties/party-1/village/purchases' && request.method === 'POST') {
+		const payload = await body(request);
+		const offer = village().offers.find((candidate) => candidate.key === payload.catalogKey);
+		if (!offer) return json({ error: `Mock offer not found: ${payload.catalogKey}` }, 404);
+		const totalPrice = offer.unitPrice * payload.quantity;
+		const inventoryQuantity = (state.villageOwnedQuantities.get(offer.key) ?? 0) + payload.quantity;
+		state.villageGold -= totalPrice;
+		state.villageOwnedQuantities.set(offer.key, inventoryQuantity);
+		state.lastMutation = { path, body: payload };
+		return json({
+			partyId: 'party-1',
+			nodeId: 'node-1',
+			itemKey: offer.key,
+			displayName: offer.displayName,
+			details: offer.details,
+			quantity: payload.quantity,
+			unitPrice: offer.unitPrice,
+			totalPrice,
+			currency: {
+				key: 'gold',
+				displayName: 'Gold',
+				remainingBalance: state.villageGold,
+			},
+			inventoryQuantity,
+		});
 	}
 	if (path === '/api/v1/parties/party-1/branch-votes/node-1' && request.method === 'PUT') {
 		const payload = await body(request);

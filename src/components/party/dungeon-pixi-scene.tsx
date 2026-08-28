@@ -107,8 +107,8 @@ interface DungeonPixiRuntime {
 	partyFrameKey: string;
 	partyGroundY: number;
 	monsterActors: Map<string, MonsterActor>;
-	monsterStateKey: string;
-	monsterMoveKey: string;
+	monsterStateKey: string | null;
+	monsterMoveKey: string | null;
 	layoutKey: string;
 	refreshLayout: (layout: DungeonGridLayout, monsters: PartyMap['monsters']) => void;
 	destroy: () => void;
@@ -751,8 +751,8 @@ function createScene(
 		partyFrameKey: frameKey('south', 0),
 		partyGroundY: 0,
 		monsterActors,
-		monsterStateKey: '',
-		monsterMoveKey: '',
+		monsterStateKey: null,
+		monsterMoveKey: null,
 		layoutKey: dungeonLayoutRenderKey(layout),
 		destroy: () => {
 			if (destroyed) return;
@@ -769,8 +769,8 @@ function createScene(
 			clearChildren(monsterLayer);
 			scene.monsterActors.clear();
 			drawStaticBosses(monsterLayer, nextLayout, assets);
-			scene.monsterStateKey = '';
-			scene.monsterMoveKey = '';
+			scene.monsterStateKey = null;
+			scene.monsterMoveKey = null;
 			syncMonsterActors(monsterLayer, nextLayout, assets, nextMonsters, [], scene.monsterActors, performance.now());
 			for (const mote of scene.motes) mote.graphic.destroy();
 			scene.motes = createMotes(nextLayout, world);
