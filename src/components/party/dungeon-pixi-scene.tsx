@@ -10,7 +10,13 @@ import type { DungeonGridCell, DungeonGridLayout, DungeonGridTile } from '#/lib/
 import { dungeonMarkerPresentationForTile } from '#/lib/dungeon-markers';
 import { dungeonZoom, followDungeonCamera, snapCamera } from '#/lib/dungeon-camera';
 import type { CameraState } from '#/lib/dungeon-camera';
-import { DUNGEON_ARRIVAL_BOB_PX, sampleDungeonMotion, walkFrameForElapsed, walkFrameForMotion } from '#/lib/dungeon-motion';
+import {
+	DUNGEON_ARRIVAL_BOB_PX,
+	DUNGEON_STEP_DURATION_MS,
+	sampleDungeonMotion,
+	walkFrameForElapsed,
+	walkFrameForMotion,
+} from '#/lib/dungeon-motion';
 import type { DungeonRecoveryMotion } from '#/lib/dungeon-motion';
 import { dungeonMapMonsterArtForArchetype, dungeonMapPartyArt, dungeonPropsArt, dungeonTilesetArt, enemyArchetypes } from '#/lib/game-art';
 import type { PartyTravelerDirection } from '#/lib/game-art';
@@ -27,12 +33,15 @@ import {
 import { groundedAnchor } from '#/lib/sprite-grounding';
 import type { AlphaBounds, SpriteFrameRect } from '#/lib/sprite-grounding';
 import type { DungeonMovementController } from '#/lib/dungeon-movement';
+import type { DungeonWalk, PartyMap } from '#/lib/api';
 
 export interface DungeonPixiSceneProps {
 	layout: DungeonGridLayout;
 	movement: DungeonMovementController;
 	direction: PartyTravelerDirection;
 	partyMemberCount: number;
+	monsters: PartyMap['monsters'];
+	monsterMoves: DungeonWalk['monsterMoves'];
 	recovery: DungeonRecoveryMotion | null;
 	viewportRef: RefObject<HTMLDivElement | null>;
 	cameraRef: MutableRefObject<CameraState | null>;
@@ -97,10 +106,30 @@ interface DungeonPixiRuntime {
 	direction: PartyTravelerDirection;
 	partyFrameKey: string;
 	partyGroundY: number;
+	monsterActors: Map<string, MonsterActor>;
+	monsterStateKey: string;
+	monsterMoveKey: string;
 	layoutKey: string;
-	refreshLayout: (layout: DungeonGridLayout) => void;
+	refreshLayout: (layout: DungeonGridLayout, monsters: PartyMap['monsters']) => void;
 	destroy: () => void;
 	update: (props: DungeonPixiRuntimeProps, now: number, elapsedMs: number) => void;
+}
+
+interface MonsterMotion {
+	fromNodeId: string | null;
+	toNodeId: string | null;
+	startedAt: number;
+}
+
+interface MonsterActor {
+	sprite: Sprite;
+	shadow: Graphics;
+	alert: Graphics | null;
+	currentNodeId: string;
+	mode: PartyMap['monsters'][number]['mode'];
+	motion: MonsterMotion | null;
+	alertStartedAt: number | null;
+	lastMoveKey: string | null;
 }
 
 const DIRECTION_ROW: Record<PartyTravelerDirection, number> = { south: 0, east: 1, north: 2, west: 3 };
@@ -412,18 +441,16 @@ function positionPartyPips(
 	}
 }
 
-function drawMonsters(monsterLayer: Container, layout: DungeonGridLayout, assets: DungeonPixiAssets): void {
-	clearChildren(monsterLayer);
+function drawStaticBosses(monsterLayer: Container, layout: DungeonGridLayout, assets: DungeonPixiAssets): void {
 	for (const tile of layout.tiles) {
-		if (!tile.archetypeKey || !tile.discovered || tile.node.encounterCleared) continue;
+		if (tile.kind !== 'boss' || !tile.archetypeKey || !tile.discovered || tile.node.encounterCleared) continue;
 		const grounded = assets.monsterFrames.get(tile.archetypeKey);
 		if (!grounded) continue;
 		const sprite = new Sprite(grounded.texture);
 		setGroundedSpriteTexture(sprite, grounded);
 		const center = tileCenter(layout, tile);
 		const groundY = center.y + layout.tileSize * 0.25;
-		const role = tile.kind === 'boss' ? 'boss' : 'regular';
-		const scale = dungeonMonsterScale(grounded.alpha, grounded.frame, layout.tileSize, role);
+		const scale = dungeonMonsterScale(grounded.alpha, grounded.frame, layout.tileSize, 'boss');
 		const visibleSize = dungeonMonsterVisibleSize(grounded.alpha, scale, grounded.frame);
 		sprite.scale.set(scale);
 		sprite.position.set(center.x, groundY);
@@ -436,6 +463,198 @@ function drawMonsters(monsterLayer: Container, layout: DungeonGridLayout, assets
 		shadow.zIndex = groundY - 0.2;
 		monsterLayer.addChild(shadow, sprite);
 	}
+}
+
+function monsterPoint(layout: DungeonGridLayout, nodeId: string): { x: number; y: number } | null {
+	const tile = layout.tiles.find((candidate) => candidate.node.id === nodeId);
+	if (!tile) return null;
+	const center = tileCenter(layout, tile);
+	return { x: center.x, y: center.y + layout.tileSize * 0.25 };
+}
+
+function createMonsterActor(
+	monsterLayer: Container,
+	layout: DungeonGridLayout,
+	assets: DungeonPixiAssets,
+	monster: PartyMap['monsters'][number],
+): MonsterActor | null {
+	const grounded = assets.monsterFrames.get(monster.archetypeKey);
+	const point = monsterPoint(layout, monster.nodeId);
+	if (!grounded || !point) return null;
+	const sprite = new Sprite(grounded.texture);
+	setGroundedSpriteTexture(sprite, grounded);
+	const scale = dungeonMonsterScale(grounded.alpha, grounded.frame, layout.tileSize, 'regular');
+	const visibleSize = dungeonMonsterVisibleSize(grounded.alpha, scale, grounded.frame);
+	sprite.scale.set(scale);
+	const shadow = createActorShadow(point, dungeonMonsterShadowWidth(visibleSize.width, layout.tileSize), layout.tileSize * 0.1);
+	shadow.zIndex = point.y - 0.2;
+	sprite.position.set(point.x, point.y);
+	sprite.zIndex = point.y;
+	monsterLayer.addChild(shadow, sprite);
+	return {
+		sprite,
+		shadow,
+		alert: null,
+		currentNodeId: monster.nodeId,
+		mode: monster.mode,
+		motion: null,
+		alertStartedAt: null,
+		lastMoveKey: null,
+	};
+}
+
+function destroyMonsterActor(monsterLayer: Container, actor: MonsterActor): void {
+	monsterLayer.removeChild(actor.shadow, actor.sprite);
+	actor.shadow.destroy();
+	actor.sprite.destroy();
+	if (actor.alert) {
+		monsterLayer.removeChild(actor.alert);
+		actor.alert.destroy();
+	}
+}
+
+function monsterStateKey(monsters: PartyMap['monsters']): string {
+	return monsters
+		.map((monster) => [monster.id, monster.nodeId, monster.floorNo, monster.mode].join(':'))
+		.sort()
+		.join('|');
+}
+
+function monsterMoveKey(moves: DungeonWalk['monsterMoves']): string {
+	return JSON.stringify(moves.map((move) => [move.monsterId, move.fromNodeId, move.toNodeId, move.mode]));
+}
+
+function monsterMoveIdentity(move: DungeonWalk['monsterMoves'][number]): string {
+	return JSON.stringify([move.monsterId, move.fromNodeId, move.toNodeId, move.mode]);
+}
+
+function startMonsterAlert(monsterLayer: Container, actor: MonsterActor, layout: DungeonGridLayout, now: number): void {
+	if (!actor.alert) {
+		actor.alert = new Graphics()
+			.circle(0, 0, layout.tileSize * 0.42)
+			.stroke({ width: Math.max(1.5, layout.tileSize * 0.045), color: 0xf1be4e, alpha: 0.85 });
+		monsterLayer.addChild(actor.alert);
+	}
+	actor.alertStartedAt = now;
+}
+
+function syncMonsterActors(
+	monsterLayer: Container,
+	layout: DungeonGridLayout,
+	assets: DungeonPixiAssets,
+	monsters: PartyMap['monsters'],
+	moves: DungeonWalk['monsterMoves'],
+	monsterActors: Map<string, MonsterActor>,
+	now: number,
+): void {
+	const visibleMonsters = monsters.filter((monster) => monster.floorNo === layout.activeFloorNo);
+	const monstersById = new Map(visibleMonsters.map((monster) => [monster.id, monster]));
+	const moveIds = new Set(moves.map((move) => move.monsterId));
+	if (moves.length === 0) {
+		for (const actor of monsterActors.values()) actor.lastMoveKey = null;
+	}
+
+	for (const [monsterId, actor] of monsterActors) {
+		if (!monstersById.has(monsterId) && !moveIds.has(monsterId)) {
+			destroyMonsterActor(monsterLayer, actor);
+			monsterActors.delete(monsterId);
+		}
+	}
+
+	for (const monster of visibleMonsters) {
+		let actor = monsterActors.get(monster.id);
+		if (!actor) {
+			const createdActor = createMonsterActor(monsterLayer, layout, assets, monster);
+			if (!createdActor) continue;
+			actor = createdActor;
+			monsterActors.set(monster.id, createdActor);
+		}
+		if (!moves.some((move) => move.monsterId === monster.id)) {
+			if (actor.mode !== monster.mode) startMonsterAlert(monsterLayer, actor, layout, now);
+			actor.mode = monster.mode;
+			actor.currentNodeId = monster.nodeId;
+			actor.motion = null;
+		}
+	}
+
+	for (const move of moves) {
+		const monster = monstersById.get(move.monsterId);
+		let actor = monsterActors.get(move.monsterId);
+		if (!actor && monster) {
+			const createdActor = createMonsterActor(monsterLayer, layout, assets, monster);
+			if (createdActor) {
+				actor = createdActor;
+				monsterActors.set(move.monsterId, createdActor);
+			}
+		}
+		if (!actor) continue;
+		const moveKey = monsterMoveIdentity(move);
+		if (actor.lastMoveKey === moveKey) continue;
+		const fromNodeId = move.fromNodeId ?? actor.currentNodeId;
+		const toNodeId = move.toNodeId;
+		if (actor.mode !== move.mode) startMonsterAlert(monsterLayer, actor, layout, now);
+		actor.motion = { fromNodeId, toNodeId, startedAt: now };
+		actor.currentNodeId = toNodeId ?? fromNodeId;
+		actor.mode = move.mode;
+		actor.lastMoveKey = moveKey;
+	}
+
+	for (const [monsterId, actor] of monsterActors) {
+		if (!updateMonsterActor(monsterLayer, actor, layout, now)) {
+			destroyMonsterActor(monsterLayer, actor);
+			monsterActors.delete(monsterId);
+		}
+	}
+}
+
+function updateMonsterActor(monsterLayer: Container, actor: MonsterActor, layout: DungeonGridLayout, now: number): boolean {
+	const motion = actor.motion;
+	if (motion) {
+		const progress = Math.min(1, Math.max(0, (now - motion.startedAt) / DUNGEON_STEP_DURATION_MS));
+		const from = motion.fromNodeId ? monsterPoint(layout, motion.fromNodeId) : null;
+		const to = motion.toNodeId ? monsterPoint(layout, motion.toNodeId) : null;
+		if (!from && !to) return false;
+		const position = from && to ? { x: from.x + (to.x - from.x) * progress, y: from.y + (to.y - from.y) * progress } : (to ?? from);
+		if (!position) return false;
+		setMonsterActorPosition(actor, position);
+		actor.sprite.alpha = motion.toNodeId === null ? 1 - progress : motion.fromNodeId === null ? progress : 1;
+		actor.shadow.alpha = actor.sprite.alpha;
+		if (progress >= 1) {
+			if (motion.toNodeId === null) return false;
+			actor.motion = null;
+			actor.sprite.alpha = 1;
+			actor.shadow.alpha = 1;
+		}
+	} else {
+		const position = monsterPoint(layout, actor.currentNodeId);
+		if (!position) return false;
+		setMonsterActorPosition(actor, position);
+	}
+
+	if (actor.alert && actor.alertStartedAt !== null) {
+		const alertProgress = Math.min(1, Math.max(0, (now - actor.alertStartedAt) / 700));
+		const point = monsterPoint(layout, actor.currentNodeId);
+		if (point) {
+			actor.alert.position.set(point.x, point.y);
+			actor.alert.alpha = 1 - alertProgress;
+			actor.alert.scale.set(1 + alertProgress * 0.35);
+			actor.alert.zIndex = point.y - 0.25;
+		}
+		if (alertProgress >= 1) {
+			monsterLayer.removeChild(actor.alert);
+			actor.alert.destroy();
+			actor.alert = null;
+			actor.alertStartedAt = null;
+		}
+	}
+	return true;
+}
+
+function setMonsterActorPosition(actor: MonsterActor, point: { x: number; y: number }): void {
+	actor.sprite.position.set(point.x, point.y);
+	actor.shadow.position.set(point.x, point.y);
+	actor.sprite.zIndex = point.y;
+	actor.shadow.zIndex = point.y - 0.2;
 }
 
 function createMotes(layout: DungeonGridLayout, world: Container): MoteGraphic[] {
@@ -465,6 +684,8 @@ function createScene(
 	assets: DungeonPixiAssets,
 	stage: Container,
 	partyMemberCount: number,
+	monsters: PartyMap['monsters'],
+	monsterMoves: DungeonWalk['monsterMoves'],
 	initialCamera: CameraState | null = null,
 ): DungeonPixiRuntime {
 	const root = new Container();
@@ -503,8 +724,9 @@ function createScene(
 	partyHighlight.zIndex = -0.1;
 	actors.addChild(partyHighlight);
 
-	drawMonsters(monsterLayer, layout, assets);
+	drawStaticBosses(monsterLayer, layout, assets);
 	const motes = createMotes(layout, world);
+	const monsterActors = new Map<string, MonsterActor>();
 
 	let destroyed = false;
 	const scene: DungeonPixiRuntime = {
@@ -528,6 +750,9 @@ function createScene(
 		direction: 'south',
 		partyFrameKey: frameKey('south', 0),
 		partyGroundY: 0,
+		monsterActors,
+		monsterStateKey: '',
+		monsterMoveKey: '',
 		layoutKey: dungeonLayoutRenderKey(layout),
 		destroy: () => {
 			if (destroyed) return;
@@ -535,13 +760,18 @@ function createScene(
 			root.destroy({ children: true });
 			destroyDungeonAssets(assets);
 		},
-		refreshLayout(nextLayout) {
+		refreshLayout(nextLayout, nextMonsters) {
 			scene.layout = nextLayout;
 			scene.layoutKey = dungeonLayoutRenderKey(nextLayout);
 			clearChildren(terrain);
 			terrain.addChild(drawBackdrop(nextLayout), drawPlane(nextLayout, assets));
 			drawMarkers(markers, nextLayout, assets, pulses);
-			drawMonsters(monsterLayer, nextLayout, assets);
+			clearChildren(monsterLayer);
+			scene.monsterActors.clear();
+			drawStaticBosses(monsterLayer, nextLayout, assets);
+			scene.monsterStateKey = '';
+			scene.monsterMoveKey = '';
+			syncMonsterActors(monsterLayer, nextLayout, assets, nextMonsters, [], scene.monsterActors, performance.now());
 			for (const mote of scene.motes) mote.graphic.destroy();
 			scene.motes = createMotes(nextLayout, world);
 		},
@@ -555,7 +785,21 @@ function createScene(
 				scene.partyPips = createPartyPips(actors, props.partyMemberCount);
 				scene.partyPipCount = props.partyMemberCount;
 			}
-			if (scene.layoutKey !== props.layoutKey) scene.refreshLayout(currentLayout);
+			if (scene.layoutKey !== props.layoutKey) scene.refreshLayout(currentLayout, props.monsters);
+			const nextMonsterStateKey = monsterStateKey(props.monsters);
+			const nextMonsterMoveKey = monsterMoveKey(props.monsterMoves);
+			if (scene.monsterStateKey !== nextMonsterStateKey || scene.monsterMoveKey !== nextMonsterMoveKey) {
+				syncMonsterActors(monsterLayer, currentLayout, assets, props.monsters, props.monsterMoves, scene.monsterActors, now);
+				scene.monsterStateKey = nextMonsterStateKey;
+				scene.monsterMoveKey = nextMonsterMoveKey;
+			} else {
+				for (const [monsterId, actor] of scene.monsterActors) {
+					if (!updateMonsterActor(monsterLayer, actor, currentLayout, now)) {
+						destroyMonsterActor(monsterLayer, actor);
+						scene.monsterActors.delete(monsterId);
+					}
+				}
+			}
 			const viewport = props.viewportRef.current;
 			if (!viewport) return;
 			const width = Math.max(1, viewport.clientWidth);
@@ -635,6 +879,9 @@ function createScene(
 			actors.sortChildren();
 		},
 	};
+	syncMonsterActors(monsterLayer, layout, assets, monsters, monsterMoves, monsterActors, performance.now());
+	scene.monsterStateKey = monsterStateKey(monsters);
+	scene.monsterMoveKey = monsterMoveKey(monsterMoves);
 
 	return scene;
 }
@@ -645,6 +892,8 @@ function DungeonPixiRuntime({
 	movement,
 	direction,
 	partyMemberCount,
+	monsters,
+	monsterMoves,
 	recovery,
 	viewportRef,
 	cameraRef,
@@ -661,6 +910,8 @@ function DungeonPixiRuntime({
 		movement,
 		direction,
 		partyMemberCount,
+		monsters,
+		monsterMoves,
 		recovery,
 		viewportRef,
 		cameraRef,
@@ -676,13 +927,28 @@ function DungeonPixiRuntime({
 			movement,
 			direction,
 			partyMemberCount,
+			monsters,
+			monsterMoves,
 			recovery,
 			viewportRef,
 			cameraRef,
 			onReady,
 			onError,
 		};
-	}, [cameraRef, direction, layout, layoutKey, movement, onError, onReady, partyMemberCount, recovery, viewportRef]);
+	}, [
+		cameraRef,
+		direction,
+		layout,
+		layoutKey,
+		movement,
+		monsterMoves,
+		monsters,
+		onError,
+		onReady,
+		partyMemberCount,
+		recovery,
+		viewportRef,
+	]);
 
 	useEffect(() => {
 		let active = true;
@@ -697,7 +963,15 @@ function DungeonPixiRuntime({
 				try {
 					const currentLayout = layoutRef.current;
 					const initialCamera = cameraFloorRef.current === currentLayout.activeFloorNo ? cameraRef.current : null;
-					created = createScene(currentLayout, assets, app.stage, propsRef.current.partyMemberCount, initialCamera);
+					created = createScene(
+						currentLayout,
+						assets,
+						app.stage,
+						propsRef.current.partyMemberCount,
+						propsRef.current.monsters,
+						propsRef.current.monsterMoves,
+						initialCamera,
+					);
 					sceneRef.current = created;
 					cameraFloorRef.current = currentLayout.activeFloorNo;
 					propsRef.current.onReady?.(true);

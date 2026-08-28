@@ -49,6 +49,7 @@ function motionLayout() {
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 0,
+		monsters: [],
 		navigation: null,
 	});
 }

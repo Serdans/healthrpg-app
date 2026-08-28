@@ -96,6 +96,7 @@ const map: PartyMap = {
 	objectives: [],
 	completedObjectiveIds: [],
 	tileBalance: 12,
+	monsters: [],
 	navigation: null,
 };
 

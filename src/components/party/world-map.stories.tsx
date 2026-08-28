@@ -10,7 +10,7 @@ type StoryNode = Omit<PartyMap['nodes'][number], 'mapMetadata' | 'encounterClear
 	Partial<Pick<PartyMap['nodes'][number], 'encounterCleared'>>;
 type StoryMap = Omit<
 	PartyMap,
-	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation'
+	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation' | 'monsters'
 > & {
 	nodes: StoryNode[];
 };
@@ -30,6 +30,7 @@ function withMapDefaults(value: StoryMap): PartyMap {
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 12,
+		monsters: [],
 		navigation: null,
 		nodes: value.nodes.map((node, index) => ({
 			...node,
@@ -352,6 +353,7 @@ const interiorVillageMap: PartyMap = {
 	],
 	completedObjectiveIds: [],
 	tileBalance: 12,
+	monsters: [],
 	navigation: null,
 };
 

@@ -23,7 +23,7 @@ export interface DungeonGridTile {
 	state: DungeonGridTileState;
 	discovered: boolean;
 	kind: DungeonGridTileKind;
-	/** Monster archetype rendered on spawn/boss tiles. */
+	/** Stationary boss archetype; routine monsters come from the live map state. */
 	archetypeKey?: string;
 	floorNo: number;
 	col: number;
@@ -110,7 +110,7 @@ export function createDungeonGridLayout(map: PartyMap): DungeonGridLayout {
 			state: node.id === map.currentNodeId ? 'current' : 'revealed',
 			discovered: node.discovered,
 			kind,
-			archetypeKey: (kind === 'spawn' || kind === 'boss') && metadata.spawnArchetype ? metadata.spawnArchetype : undefined,
+			archetypeKey: kind === 'boss' && metadata.spawnArchetype ? metadata.spawnArchetype : undefined,
 			floorNo: metadata.floorNo,
 			col: metadata.tileX,
 			row: metadata.tileY,

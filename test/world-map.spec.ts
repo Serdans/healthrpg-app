@@ -10,7 +10,7 @@ type TestNode = Omit<PartyMap['nodes'][number], 'mapMetadata' | 'encounterCleare
 	Partial<Pick<PartyMap['nodes'][number], 'encounterCleared'>>;
 type TestMap = Omit<
 	PartyMap,
-	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation'
+	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation' | 'monsters'
 > & {
 	nodes: TestNode[];
 };
@@ -30,6 +30,7 @@ function withMapDefaults(value: TestMap): PartyMap {
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 12,
+		monsters: [],
 		navigation: null,
 		nodes: value.nodes.map((item, index) => ({
 			...item,
@@ -116,6 +117,7 @@ function interiorMap(mapType: 'village' | 'dungeon', currentNodeId: string, node
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 12,
+		monsters: [],
 		navigation: null,
 	};
 }

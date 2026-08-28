@@ -127,6 +127,7 @@ function party() {
 		},
 		challengeProgress: 0,
 		tileBalance: 9,
+		activeEncounterNodeId: isCombatScenario() ? 'node-1' : null,
 		decisionStartedAt: state.decisionStartedAt,
 		members: [
 			{ userId: 'user-1', role: 'leader', displayName: 'Hero' },
@@ -201,6 +202,7 @@ function map() {
 					spawnArchetype: archetype,
 				},
 				discovered: isDiscovered,
+				encounterCleared: false,
 			};
 		};
 		return {
@@ -229,6 +231,7 @@ function map() {
 			],
 			completedObjectiveIds: [],
 			tileBalance: 9,
+			monsters: [],
 			navigation: dungeonNavigation(),
 			nodes: [
 				tile('tile-entry', 'entry', 2, 2, 'entrance'),
@@ -278,6 +281,7 @@ function map() {
 			enterableLocation: null,
 			objectives: [],
 			completedObjectiveIds: [],
+			monsters: [],
 			navigation: null,
 			nodes: [
 				{
@@ -357,6 +361,7 @@ function map() {
 				: null,
 		objectives: [],
 		completedObjectiveIds: [],
+		monsters: [],
 		navigation: null,
 		nodes: [
 			{
@@ -979,6 +984,7 @@ async function handler(request) {
 				floorChanged: false,
 				encounterTriggeredNodeId: null,
 				haltedReason,
+				monsterMoves: [],
 				navigation: dungeonNavigation(),
 			});
 		}
@@ -998,6 +1004,7 @@ async function handler(request) {
 			floorChanged: false,
 			encounterTriggeredNodeId: null,
 			haltedReason: null,
+			monsterMoves: [],
 			navigation: dungeonNavigation(),
 		});
 	}

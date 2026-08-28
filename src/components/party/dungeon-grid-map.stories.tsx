@@ -82,6 +82,7 @@ const dungeonMap: PartyMap = {
 	objectives: [],
 	completedObjectiveIds: [],
 	tileBalance: 9,
+	monsters: [],
 	navigation: null,
 };
 
@@ -132,6 +133,7 @@ function InteractiveWalkView() {
 							floorChanged: false,
 							encounterTriggeredNodeId: null,
 							haltedReason: null,
+							monsterMoves: [],
 							navigation: walkNavigation,
 						};
 					}
@@ -147,6 +149,7 @@ function InteractiveWalkView() {
 							floorChanged: false,
 							encounterTriggeredNodeId: null,
 							haltedReason: null,
+							monsterMoves: [],
 							navigation: walkNavigation,
 						};
 					}
@@ -175,6 +178,7 @@ function InteractiveWalkView() {
 						floorChanged: false,
 						encounterTriggeredNodeId: null,
 						haltedReason: null,
+						monsterMoves: [],
 						navigation: walkNavigation,
 					};
 				},
@@ -228,6 +232,7 @@ export const NavigatorGated: StoryObj<typeof DungeonGridMap> = {
 					floorChanged: false,
 					encounterTriggeredNodeId: null,
 					haltedReason: null,
+					monsterMoves: [],
 					navigation: walkNavigation,
 				}),
 			}}

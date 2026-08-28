@@ -52,6 +52,7 @@ import {
 import type { DungeonNavigation, DungeonNavigatorTransferInput, DungeonRoutePolicyInput, DungeonWalkInput, PartyMap } from './api';
 
 const partyRefreshInterval = 15_000;
+const dungeonRefreshInterval = 5_000;
 const decisionRefreshInterval = 10_000;
 const villageRefreshInterval = 30_000;
 
@@ -124,11 +125,11 @@ export function useParties() {
 	return useQuery({ queryKey: queryKeys.parties, queryFn: getParties });
 }
 
-export function useParty(partyId: string) {
+export function useParty(partyId: string, dungeonActive = false) {
 	return useQuery({
 		queryKey: queryKeys.party(partyId),
 		queryFn: () => getParty(partyId),
-		refetchInterval: partyRefreshInterval,
+		refetchInterval: dungeonActive ? dungeonRefreshInterval : partyRefreshInterval,
 		refetchIntervalInBackground: false,
 	});
 }
@@ -161,7 +162,7 @@ export function usePartyMap(partyId: string) {
 	return useQuery({
 		queryKey: queryKeys.map(partyId),
 		queryFn: () => getMap(partyId),
-		refetchInterval: partyRefreshInterval,
+		refetchInterval: (query) => (query.state.data?.currentMap.mapType === 'dungeon' ? dungeonRefreshInterval : partyRefreshInterval),
 		refetchIntervalInBackground: false,
 	});
 }

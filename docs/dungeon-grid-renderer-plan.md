@@ -51,6 +51,13 @@ one-tile manual nudge.
   nearest discovered campsite, then resumes Mission after recovery. The
   current tile remains the single source of truth for the next daily
   resolution.
+- Each accepted party step resolves exactly one deterministic monster phase;
+  manual movement and daily autoplay use the same server-side turn resolver.
+  A floor gets a small persistent monster pool when first entered, with no
+  realtime or mid-floor respawn. Monsters wander without a target, chase once
+  the party is within range, and create an immediate encounter on contact.
+  Bosses remain stationary, and monster movement endpoints are redacted until
+  fog-of-war reveals them.
 - Tile dungeons never create overworld branch votes or silently follow graph
   edges during daily projection. The tile graph owns movement while the party
   is inside the location session.
@@ -138,7 +145,8 @@ one-tile manual nudge.
 - Unit tests cover active-floor selection, terrain edge masks, fog, chunk atlas
   invariants, camera zoom/dead zones/pixel snapping, projected movement,
   constant-velocity sampling, rejection, floor changes, and alpha-grounded
-  sprite anchors.
+  sprite anchors, deterministic monster phases, chase/contact behavior,
+  occupancy, and fog-redacted movement.
 - Storybook covers an atmospheric room/corridor floor and interactive walking.
 - E2E covers the HUD, delayed optimistic movement, rejection recovery, queued
   input discard, and dungeon request payloads.

@@ -186,6 +186,7 @@ export function DungeonGridMap({
 	const [recoveryCount, setRecoveryCount] = useState(0);
 	const [pixiReady, setPixiReady] = useState(false);
 	const [pixiError, setPixiError] = useState<string | null>(null);
+	const [monsterMoves, setMonsterMoves] = useState<DungeonWalk['monsterMoves']>([]);
 	const [now, setNow] = useState(() => Date.now());
 	const [transferTargetUserId, setTransferTargetUserId] = useState<string | null>(null);
 	const [routePolicy, setRoutePolicy] = useState<DungeonRoutePolicy>('mission');
@@ -258,6 +259,12 @@ export function DungeonGridMap({
 		setRoutePolicy(map.navigation?.routeIntent?.policy ?? 'mission');
 	}, [map.navigation?.routeIntent?.policy]);
 
+	useEffect(() => {
+		if (monsterMoves.length === 0) return;
+		const timer = window.setTimeout(() => setMonsterMoves([]), DUNGEON_STEP_DURATION_MS);
+		return () => window.clearTimeout(timer);
+	}, [monsterMoves]);
+
 	const clearHeld = useCallback(() => {
 		const held = heldRef.current;
 		if (held) window.clearInterval(held.timer);
@@ -313,6 +320,7 @@ export function DungeonGridMap({
 			.mutateAsync({ mode: 'manual', steps: [intent.step] })
 			.then((result) => {
 				if (!mountedRef.current) return;
+				setMonsterMoves(result.monsterMoves);
 				const frameNow = performance.now();
 				const fromPoint = sampleDungeonMotion(viewRef.current.layout, movement, recoveryRef.current, frameNow).point;
 				const acknowledgement = movement.acknowledge(result);
@@ -347,6 +355,7 @@ export function DungeonGridMap({
 			.mutateAsync({ mode: 'auto' })
 			.then((result) => {
 				if (!mountedRef.current) return;
+				setMonsterMoves(result.monsterMoves);
 				const frameNow = performance.now();
 				movement.queueServerPath(viewRef.current.layout, result.pathNodeIds, result.nodeId, frameNow);
 				setSelectedNodeId(result.nodeId);
@@ -573,6 +582,8 @@ export function DungeonGridMap({
 					movement={movement}
 					direction={spriteDirection}
 					partyMemberCount={partySize}
+					monsters={map.monsters}
+					monsterMoves={monsterMoves}
 					recovery={recoveryRef.current}
 					viewportRef={viewportRef}
 					cameraRef={cameraRef}

@@ -57,6 +57,7 @@ function dungeonMap(currentNodeId: string, nodes: MapNode[]): PartyMap {
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 9,
+		monsters: [],
 		navigation: null,
 	};
 }
@@ -327,10 +328,10 @@ describe('monster archetypes', () => {
 		expect(cell).toMatchObject({ walkable: true, discovered: false });
 	});
 
-	it('carries the spawn archetype through the layout', () => {
+	it('leaves routine monster rendering to the live map state', () => {
 		const layout = createDungeonGridLayout(dungeonMap('a', [...corridor.nodes, tileNode('mob', 'spawn', 0, 4, 0)]));
 		const spawn = layout.tiles.find((tile) => tile.kind === 'spawn');
-		expect(spawn?.archetypeKey).toBe('vermin');
+		expect(spawn?.archetypeKey).toBeUndefined();
 		const plain = layout.tiles.find((tile) => tile.kind === 'entry');
 		expect(plain?.archetypeKey).toBeUndefined();
 	});

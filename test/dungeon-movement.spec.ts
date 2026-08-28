@@ -48,6 +48,7 @@ function layoutFor(...nodes: PartyMap['nodes']): ReturnType<typeof createDungeon
 		objectives: [],
 		completedObjectiveIds: [],
 		tileBalance: 9,
+		monsters: [],
 		navigation: null,
 	});
 }

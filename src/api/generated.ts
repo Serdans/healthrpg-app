@@ -1933,6 +1933,7 @@ export interface paths {
                             challengeProgress: number;
                             tileBalance: number;
                             decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
                             members: {
                                 userId: string;
                                 role: "leader" | "member";
@@ -2027,6 +2028,7 @@ export interface paths {
                             challengeProgress: number;
                             tileBalance: number;
                             decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
                             members: {
                                 userId: string;
                                 role: "leader" | "member";
@@ -2167,6 +2169,7 @@ export interface paths {
                             challengeProgress: number;
                             tileBalance: number;
                             decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
                             members: {
                                 userId: string;
                                 role: "leader" | "member";
@@ -2353,6 +2356,14 @@ export interface paths {
                             }[];
                             completedObjectiveIds: string[];
                             tileBalance: number;
+                            monsters: {
+                                id: string;
+                                nodeId: string;
+                                floorNo: number;
+                                archetypeKey: string;
+                                displayName: string;
+                                mode: "wandering" | "chasing";
+                            }[];
                             navigation: {
                                 navigatorUserId: string | null;
                                 navigatorDisplayName: string | null;
@@ -2511,6 +2522,7 @@ export interface paths {
                             challengeProgress: number;
                             tileBalance: number;
                             decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
                             members: {
                                 userId: string;
                                 role: "leader" | "member";
@@ -2652,6 +2664,12 @@ export interface paths {
                             floorChanged: boolean;
                             encounterTriggeredNodeId: string | null;
                             haltedReason: ("pinned-encounter" | "insufficient-balance" | "wall" | "step-cap" | "event" | "encounter" | "boss" | "retreat" | "checkpoint" | "safe-boundary") | null;
+                            monsterMoves: {
+                                monsterId: string;
+                                fromNodeId: string | null;
+                                toNodeId: string | null;
+                                mode: "wandering" | "chasing";
+                            }[];
                             navigation: {
                                 navigatorUserId: string | null;
                                 navigatorDisplayName: string | null;
@@ -4605,6 +4623,7 @@ export interface paths {
                             challengeProgress: number;
                             tileBalance: number;
                             decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
                             members: {
                                 userId: string;
                                 role: "leader" | "member";
@@ -4662,6 +4681,7 @@ export interface paths {
                             challengeProgress: number;
                             tileBalance: number;
                             decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
                             members: {
                                 userId: string;
                                 role: "leader" | "member";
@@ -5195,6 +5215,7 @@ export interface paths {
                             challengeProgress: number;
                             tileBalance: number;
                             decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
                             members: {
                                 userId: string;
                                 role: "leader" | "member";
@@ -5379,6 +5400,7 @@ export interface paths {
                             challengeProgress: number;
                             tileBalance: number;
                             decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
                             members: {
                                 userId: string;
                                 role: "leader" | "member";

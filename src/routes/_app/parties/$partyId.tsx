@@ -48,8 +48,8 @@ export const Route = createFileRoute('/_app/parties/$partyId')({
 function PartyDashboard() {
 	const { partyId } = Route.useParams();
 	const { user } = Route.useRouteContext();
-	const partyQuery = useParty(partyId);
 	const mapQuery = usePartyMap(partyId);
+	const partyQuery = useParty(partyId, mapQuery.data?.currentMap.mapType === 'dungeon');
 	const enterLocationMutation = useEnterLocation(partyId);
 	const walkDungeonMutation = useWalkDungeon(partyId);
 	const claimDungeonNavigatorMutation = useClaimDungeonNavigator(partyId);
@@ -64,7 +64,7 @@ function PartyDashboard() {
 	const recapQuery = usePartyRecap(partyId);
 	const currentNodeId = partyQuery.data?.currentNode.id ?? null;
 	const currentEventType = partyQuery.data?.currentNode.config.event?.eventType;
-	const isCombat = currentEventType === 'combat';
+	const isCombat = currentEventType === 'combat' || Boolean(partyQuery.data?.activeEncounterNodeId);
 	const isVillage = currentEventType === 'village';
 	const villageEnabled = isVillage && partyQuery.data?.status === 'active';
 	const eventEnabled = currentEventType === 'narrative' || currentEventType === 'treasure' || currentEventType === 'rest';
