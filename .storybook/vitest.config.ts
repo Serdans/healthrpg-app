@@ -11,6 +11,7 @@ export default defineConfig({
 	plugins: [storybookTest({ configDir: dirname })],
 	test: {
 		name: 'storybook',
+		testTimeout: 30_000,
 		browser: {
 			enabled: true,
 			headless: true,

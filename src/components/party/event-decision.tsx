@@ -1,4 +1,4 @@
-import { Check, Sparkles } from 'lucide-react';
+import { Check, LockKeyhole, Sparkles } from 'lucide-react';
 
 import { ErrorNotice } from '#/components/app-state';
 import { Badge } from '#/components/ui/badge';
@@ -27,6 +27,12 @@ export function EventDecision({
 						This expedition is no longer active. The event history is available to view, but new choices are closed.
 					</p>
 				)}
+				{event.resolved && (
+					<p role="status" className="game-action-status game-action-status-success flex items-center gap-2" aria-live="polite">
+						<LockKeyhole className="size-4" aria-hidden="true" />
+						This event has resolved for today. The party will continue when the daily projection runs.
+					</p>
+				)}
 				{mutation.isPending && (
 					<p className="game-action-status" role="status" aria-live="polite">
 						Saving your event choice…
@@ -48,10 +54,20 @@ export function EventDecision({
 							type="button"
 							className="choice-card game-choice-card p-5 text-left"
 							data-selected={selected}
-							data-choice-state={mutation.isPending ? 'pending' : mutation.isError ? 'error' : selected ? 'selected' : 'available'}
+							data-choice-state={
+								event.resolved
+									? 'resolved'
+									: mutation.isPending
+										? 'pending'
+										: mutation.isError
+											? 'error'
+											: selected
+												? 'selected'
+												: 'available'
+							}
 							aria-pressed={selected}
 							aria-busy={mutation.isPending}
-							disabled={readOnly || mutation.isPending}
+							disabled={readOnly || event.resolved || mutation.isPending}
 							onClick={() => mutation.mutate(choice.key)}
 						>
 							<div className="flex items-start justify-between gap-3">
@@ -64,7 +80,9 @@ export function EventDecision({
 								{choice.requirements.movementUnits} Momentum · {choice.requirements.recoveryPoints} Recovery
 							</p>
 							<p className="mt-2 text-xs font-bold text-[var(--ink-soft)]">
-								{voteCount} vote{voteCount === 1 ? '' : 's'} · your choice can change before the day closes
+								{event.resolved
+									? 'Resolved for today'
+									: `${voteCount} vote${voteCount === 1 ? '' : 's'} · your choice can change before the day closes`}
 							</p>
 						</button>
 					);

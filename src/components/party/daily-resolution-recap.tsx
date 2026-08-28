@@ -4,10 +4,13 @@ import { ArrowRight, HeartPulse, MapPinned, Shield, Sparkles, Swords } from 'luc
 
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { InventoryItemSprite } from '#/components/inventory/inventory-item-sprite';
+import { BattleArt } from '#/components/party/battle-art';
 import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import type { PartyRecap } from '#/lib/api';
+import { battleArtVariant } from '#/lib/battle-art';
 import { formatDateTime } from '#/lib/dates';
+import { battleEnemyArtForArchetype, battlePartyArtForClass } from '#/lib/game-art';
 import type { InventoryItemKind } from '#/lib/game-art';
 
 function label(value: string) {
@@ -25,13 +28,13 @@ function outcomeLabel(outcome: PartyRecap['resolution']['outcome']) {
 
 function resolutionExplanation(resolution: PartyRecap['resolution']) {
 	if (!resolution.movement.satisfied) {
-		return `Needs ${Math.max(0, resolution.movement.cost - resolution.movement.units)} more Momentum for the Journey.`;
+		return `Needs ${Math.max(0, resolution.movement.cost - resolution.movement.units)} more Momentum for the Travel requirement.`;
 	}
 	if (resolution.challenge.cost > 0 && !resolution.challenge.cleared) {
 		return `The Challenge needs ${Math.max(0, resolution.challenge.cost - resolution.challenge.progressAfter)} more progress.`;
 	}
 	if (resolution.event?.outcome === 'failed') return 'The event choice did not succeed.';
-	return resolution.outcome === 'held' ? 'The party is ready for the next resolution.' : 'The Journey requirement was met.';
+	return resolution.outcome === 'held' ? 'The party is ready for the next resolution.' : 'The Travel requirement was met.';
 }
 
 function rewardSummary(reward: PartyRecap['resolution']['rewards'][number]) {
@@ -55,18 +58,66 @@ function rewardVisuals(reward: PartyRecap['resolution']['rewards'][number]) {
 }
 
 function rewardKey(reward: PartyRecap['resolution']['rewards'][number]) {
-	return [
-		reward.experience ?? '',
-		reward.currency ? `${reward.currency.key}:${reward.currency.amount}` : '',
-		reward.item ? `${reward.item.key}:${reward.item.quantity}` : '',
-		reward.equipment?.key ?? '',
-		reward.unlockKey ?? '',
-		reward.milestoneKey ?? '',
-	].join('|');
+	return JSON.stringify({
+		experience: reward.experience ?? null,
+		currency: reward.currency ? { key: reward.currency.key, amount: reward.currency.amount } : null,
+		item: reward.item ? { key: reward.item.key, quantity: reward.item.quantity } : null,
+		equipmentKey: reward.equipment?.key ?? null,
+		unlockKey: reward.unlockKey ?? null,
+		milestoneKey: reward.milestoneKey ?? null,
+	});
 }
 
 function signedHealth(value: number) {
 	return value > 0 ? `+${value}` : String(value);
+}
+
+type NavigationHaltReason = NonNullable<PartyRecap['resolution']['navigation']>['haltedReason'];
+
+function navigationHaltLabel(reason: NavigationHaltReason) {
+	switch (reason) {
+		case 'pinned-encounter':
+			return 'waiting for the pinned encounter';
+		case 'checkpoint':
+			return 'waiting for the next daily signal';
+		case 'encounter':
+			return 'paused at an encounter for the party';
+		case 'event':
+			return 'paused at a landmark event';
+		case 'boss':
+			return 'waiting for the boss battle';
+		case 'retreat':
+			return 'retreating toward safety';
+		case 'safe-boundary':
+			return 'at a safe checkpoint';
+		case 'insufficient-balance':
+			return 'waiting for more Explore energy';
+		case 'wall':
+			return 'blocked by a wall';
+		case 'step-cap':
+			return 'at the movement limit for this resolution';
+	}
+	return exhaustive(reason);
+}
+
+type NavigationPolicy = NonNullable<PartyRecap['resolution']['navigation']>['policy'];
+
+function navigationPolicyLabel(policy: NavigationPolicy) {
+	switch (policy) {
+		case 'mission':
+			return 'Mission';
+		case 'explore':
+			return 'Explore';
+		case 'treasure':
+			return 'Treasure';
+		case 'rest':
+			return 'Rest';
+	}
+	return exhaustive(policy);
+}
+
+function exhaustive(value: never): never {
+	throw new Error('Unhandled dungeon navigation value: ' + String(value));
 }
 
 export function DailyResolutionRecap({
@@ -120,8 +171,8 @@ export function DailyResolutionRecap({
 	}
 
 	const resolution = recap.resolution;
-	const combat = resolution.combat;
-	const journeyValue = resolution.movement.cost > 0 ? `${resolution.movement.units} / ${resolution.movement.cost} Momentum` : 'Ready';
+	const travelRequirementValue =
+		resolution.movement.cost > 0 ? `${resolution.movement.units} / ${resolution.movement.cost} Momentum` : 'Ready';
 
 	return (
 		<Card variant="game" tone="history" data-testid="daily-resolution-recap">
@@ -152,7 +203,7 @@ export function DailyResolutionRecap({
 				</div>
 
 				<div className="grid gap-3 sm:grid-cols-3">
-					<SummaryStat label="Journey" value={journeyValue} icon={<MapPinned className="size-4" />} />
+					<SummaryStat label="Travel requirement" value={travelRequirementValue} icon={<MapPinned className="size-4" />} />
 					<SummaryStat label="Recovery" value={`${resolution.recoveryPoints} points`} icon={<HeartPulse className="size-4" />} />
 					{resolution.challenge.cost > 0 && (
 						<SummaryStat
@@ -165,6 +216,13 @@ export function DailyResolutionRecap({
 
 				{resolution.route && (
 					<DetailRow label="Route selected" value={`${label(resolution.route.optionKey)} · ${resolution.route.reason}`} />
+				)}
+
+				{resolution.navigation?.mode === 'safe-autopilot' && (
+					<DetailRow
+						label="Automatic expedition"
+						value={`${navigationPolicyLabel(resolution.navigation.policy)} · ${resolution.navigation.steps} tile steps · ${resolution.navigation.retreating ? 'retreating to safety' : navigationHaltLabel(resolution.navigation.haltedReason)}`}
+					/>
 				)}
 
 				{resolution.challenge.cost > 0 && (
@@ -181,28 +239,49 @@ export function DailyResolutionRecap({
 					/>
 				)}
 
-				{combat && (
-					<div className="game-inset game-inset-muted space-y-3 p-4">
+				{resolution.combats.map((combat, index) => (
+					<div key={'encounter-' + String(index)} className="game-inset game-inset-muted space-y-3 p-4">
 						<div className="flex items-center gap-2">
 							<Swords className="size-4 text-[var(--danger)]" aria-hidden="true" />
-							<p className="game-pixel-label text-[var(--ink-soft)]">Encounter recap</p>
+							<p className="game-pixel-label text-[var(--ink-soft)]">
+								{resolution.combats.length > 1 ? 'Encounter ' + String(index + 1) + ' recap' : 'Encounter recap'}
+							</p>
 						</div>
 						<div className="space-y-2">
 							{combat.members.map((member) => (
-								<div key={member.userId} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-									<span className="font-extrabold text-[var(--indigo)]">{member.displayName}</span>
+								<div key={member.userId} className="battle-recap-combatant flex flex-wrap items-center justify-between gap-2 text-sm">
+									<div className="flex min-w-0 items-center gap-2">
+										<BattleArt
+											art={battlePartyArtForClass(member.classKey)}
+											label={member.displayName}
+											variant={battleArtVariant(member.healthAfter, member.maxHealth)}
+											className="battle-recap-art battle-recap-party-art"
+											testId={`daily-recap-member-art-${member.userId}`}
+										/>
+										<span className="font-extrabold text-[var(--indigo)]">{member.displayName}</span>
+									</div>
 									<span className="text-[var(--ink-soft)]">
-										{member.actionName} · {signedHealth(member.recovery)} recovery
-										{member.actionHealing > 0 ? ` · +${member.actionHealing} healing` : ''}
-										{member.damageTaken > 0 ? ` · -${member.damageTaken} damage` : ''} · {member.healthAfter}/{member.maxHealth} HP
+										{member.cards.length > 0 ? member.cards.map((card) => card.displayName).join(', ') : 'No cards recorded'} ·{' '}
+										{signedHealth(member.recovery)} recovery
+										{member.cardHealing > 0 && <> · +{member.cardHealing} healing</>}
+										{member.damageTaken > 0 && <> · -{member.damageTaken} damage</>} · {member.healthAfter}/{member.maxHealth} HP
 									</span>
 								</div>
 							))}
 						</div>
 						<div className="border-t border-[var(--line)] pt-3">
 							{combat.enemies.map((enemy) => (
-								<div key={enemy.id} className="flex flex-wrap items-center justify-between gap-2 text-sm">
-									<span className="font-extrabold text-[var(--indigo)]">{enemy.displayName}</span>
+								<div key={enemy.id} className="battle-recap-combatant flex flex-wrap items-center justify-between gap-2 text-sm">
+									<div className="flex min-w-0 items-center gap-2">
+										<BattleArt
+											art={battleEnemyArtForArchetype(enemy.archetypeKey)}
+											label={enemy.displayName}
+											variant={enemy.defeated ? 'defeated' : battleArtVariant(enemy.healthAfter, enemy.maxHealth)}
+											className="battle-recap-art battle-recap-enemy-art"
+											testId={`daily-recap-enemy-art-${enemy.id}`}
+										/>
+										<span className="font-extrabold text-[var(--indigo)]">{enemy.displayName}</span>
+									</div>
 									<span className="text-[var(--ink-soft)]">
 										{enemy.damageTaken > 0 ? `-${enemy.damageTaken} damage` : 'No damage'} · {enemy.healthAfter}/{enemy.maxHealth} HP
 										{enemy.defeated ? ' · defeated' : ''}
@@ -211,7 +290,7 @@ export function DailyResolutionRecap({
 							))}
 						</div>
 					</div>
-				)}
+				))}
 
 				{resolution.rewards.length > 0 && (
 					<div className="game-inset game-inset-teal p-4">

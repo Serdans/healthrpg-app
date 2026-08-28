@@ -78,7 +78,7 @@ type PartyProgressionResponse = SuccessBody<paths['/api/v1/parties/{partyId}/pro
 type HealthSyncBody = RequestBody<paths['/api/v1/me/health/sync']['post']>;
 type PreferencesBody = RequestBody<paths['/api/v1/me']['patch']>;
 type VillagePurchaseBody = RequestBody<paths['/api/v1/parties/{partyId}/village/purchases']['post']>;
-type EncounterActionBody = RequestBody<paths['/api/v1/parties/{partyId}/encounter/actions/me']['put']>;
+type EncounterPlanBody = RequestBody<paths['/api/v1/parties/{partyId}/encounter/plan/me']['put']>;
 type PartyItemUseBody = RequestBody<paths['/api/v1/parties/{partyId}/item-uses']['post']>;
 type LeaderTransferBody = RequestBody<paths['/api/v1/parties/{partyId}/leader']['put']>;
 type LoadoutSlot = paths['/api/v1/me/loadout/{slot}']['put']['parameters']['path']['slot'];
@@ -105,15 +105,17 @@ function errorMessage(value: unknown) {
 	return 'The request could not be completed.';
 }
 
+function toApiError(error: unknown): ApiError {
+	if (error instanceof ApiError) return error;
+	if (isHTTPError(error)) return new ApiError(errorMessage(error.data), error.response.status);
+	return new ApiError('Network request failed. Check your connection and try again.', 0);
+}
+
 async function requestJson<T>(input: string, options?: Options): Promise<T> {
 	try {
 		return await http(input, options).json<T>();
 	} catch (error) {
-		if (isHTTPError(error)) {
-			throw new ApiError(errorMessage(error.data), error.response.status);
-		}
-
-		throw new ApiError('Network request failed. Check your connection and try again.', 0);
+		throw toApiError(error);
 	}
 }
 
@@ -121,11 +123,7 @@ async function requestVoid(input: string, options?: Options): Promise<void> {
 	try {
 		await http(input, options);
 	} catch (error) {
-		if (isHTTPError(error)) {
-			throw new ApiError(errorMessage(error.data), error.response.status);
-		}
-
-		throw new ApiError('Network request failed. Check your connection and try again.', 0);
+		throw toApiError(error);
 	}
 }
 
@@ -181,6 +179,49 @@ export const getMap = (partyId: string) => requestJson<MapResponse>(partyPath(pa
 export const enterLocation = (partyId: string, locationId: string) =>
 	requestJson<EnterLocationResponse>(partyPath(partyId, `/locations/${encodeURIComponent(locationId)}/enter`), {
 		method: 'post',
+	});
+
+type DungeonWalkResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/walk']['post']>;
+type DungeonNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/navigator/claim']['post']>;
+type DungeonReleaseNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/navigator/release']['post']>;
+type DungeonNavigatorTransferBody = RequestBody<paths['/api/v1/parties/{partyId}/dungeon/navigator']['put']>;
+type DungeonRoutePolicyBody = RequestBody<paths['/api/v1/parties/{partyId}/dungeon/route-votes']['put']>;
+type DungeonRouteNavigationResponse = SuccessBody<paths['/api/v1/parties/{partyId}/dungeon/route-votes']['put']>;
+
+export const walkDungeon = (partyId: string, input: RequestBody<paths['/api/v1/parties/{partyId}/dungeon/walk']['post']>) =>
+	requestJson<DungeonWalkResponse>(partyPath(partyId, '/dungeon/walk'), { method: 'post', json: input });
+
+export const claimDungeonNavigator = (partyId: string) =>
+	requestJson<DungeonNavigationResponse>(partyPath(partyId, '/dungeon/navigator/claim'), {
+		method: 'post',
+	});
+
+export const releaseDungeonNavigator = (partyId: string) =>
+	requestJson<DungeonReleaseNavigationResponse>(partyPath(partyId, '/dungeon/navigator/release'), {
+		method: 'post',
+	});
+
+export const transferDungeonNavigator = (partyId: string, body: DungeonNavigatorTransferBody) =>
+	requestJson<DungeonNavigationResponse>(partyPath(partyId, '/dungeon/navigator'), {
+		method: 'put',
+		json: body,
+	});
+
+export const voteDungeonRoute = (partyId: string, body: DungeonRoutePolicyBody) =>
+	requestJson<DungeonRouteNavigationResponse>(partyPath(partyId, '/dungeon/route-votes'), {
+		method: 'put',
+		json: body,
+	});
+
+export const setDungeonRouteIntent = (partyId: string, body: DungeonRoutePolicyBody) =>
+	requestJson<DungeonRouteNavigationResponse>(partyPath(partyId, '/dungeon/route-intent'), {
+		method: 'put',
+		json: body,
+	});
+
+export const clearDungeonRouteIntent = (partyId: string) =>
+	requestJson<DungeonRouteNavigationResponse>(partyPath(partyId, '/dungeon/route-intent'), {
+		method: 'delete',
 	});
 
 export const getAdventure = (partyId: string) => requestJson<AdventureResponse>(partyPath(partyId, '/adventure'));
@@ -254,13 +295,13 @@ export const startVillageDeparture = (partyId: string) =>
 
 export const getEncounter = (partyId: string) => requestJson<EncounterResponse>(partyPath(partyId, '/encounter'));
 
-export const setEncounterAction = (partyId: string, body: EncounterActionBody) =>
-	requestJson<EncounterResponse>(partyPath(partyId, '/encounter/actions/me'), {
+export const setEncounterPlan = (partyId: string, body: EncounterPlanBody) =>
+	requestJson<EncounterResponse>(partyPath(partyId, '/encounter/plan/me'), {
 		method: 'put',
 		json: body,
 	});
 
-export const usePartyItem = (partyId: string, body: PartyItemUseBody) =>
+export const partyItemUse = (partyId: string, body: PartyItemUseBody) =>
 	requestJson<PartyItemUseResponse>(partyPath(partyId, '/item-uses'), {
 		method: 'post',
 		json: body,
@@ -298,6 +339,11 @@ export type PartyRoster = PartyRosterResponse;
 export type PartyRecap = Exclude<PartyRecapResponse, null>;
 export type PartyMap = MapResponse;
 export type EnterLocation = EnterLocationResponse;
+export type DungeonWalk = DungeonWalkResponse;
+export type DungeonWalkInput = Parameters<typeof walkDungeon>[1];
+export type DungeonNavigation = DungeonNavigationResponse;
+export type DungeonNavigatorTransferInput = DungeonNavigatorTransferBody;
+export type DungeonRoutePolicyInput = DungeonRoutePolicyBody;
 export type Adventure = AdventureResponse;
 export type Character = CharacterResponse;
 export type CharacterCreation = CharacterCreationResponse;
@@ -320,7 +366,7 @@ export type VillagePurchase = VillagePurchaseResponse;
 export type VillagePurchaseInput = VillagePurchaseBody;
 export type VillageDeparture = VillageDepartureResponse;
 export type Encounter = EncounterResponse;
-export type EncounterActionInput = EncounterActionBody;
+export type EncounterPlanInput = EncounterPlanBody;
 export type PartyItemUse = PartyItemUseResponse;
 export type PartyItemUseInput = PartyItemUseBody;
 export type PartyProgression = PartyProgressionResponse;

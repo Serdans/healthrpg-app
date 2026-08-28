@@ -76,7 +76,7 @@ function SignalNotice({ daily, signal }: { daily?: DailyProgress; signal?: Daily
 	return (
 		<div className="daily-command-center-signal">
 			<Compass className="size-4" aria-hidden="true" />
-			<span>Momentum and Journey details will appear when today’s signal is available.</span>
+			<span>Momentum and Travel requirement details will appear when today’s signal is available.</span>
 		</div>
 	);
 }

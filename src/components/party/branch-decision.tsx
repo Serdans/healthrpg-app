@@ -29,9 +29,8 @@ export function BranchDecision({
 	const targetName = new Map(map.nodes.map((node) => [node.id, node.name]));
 	const userVote = votes?.votes.find((vote) => vote.userId === userId)?.edgeId;
 	const resolved = Boolean(votes?.resolvedEdgeId);
-	const resolvedName = votes?.resolvedEdgeId
-		? (targetName.get(edges.find((edge) => edge.id === votes.resolvedEdgeId)?.toNodeId ?? '') ?? 'the chosen route')
-		: null;
+	const resolvedTargetNodeId = votes?.resolvedEdgeId ? (edges.find((edge) => edge.id === votes.resolvedEdgeId)?.toNodeId ?? null) : null;
+	const resolvedName = resolvedTargetNodeId ? (targetName.get(resolvedTargetNodeId) ?? 'the chosen route') : null;
 	const totalVotes = votes?.votes.length ?? 0;
 	return (
 		<Card variant="game" tone="arcane">

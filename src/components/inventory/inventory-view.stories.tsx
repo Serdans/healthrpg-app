@@ -45,6 +45,39 @@ const inventory: Inventory = {
 			},
 			quantity: 1,
 		},
+		{
+			key: 'mace',
+			kind: 'equipment',
+			displayName: 'Mace',
+			details: {
+				description: 'A compact iron-headed weapon that asks little of its wielder.',
+				equipmentSlot: 'weapon',
+				effect: { kind: 'stat-modifiers', modifiers: { strength: 1 } },
+			},
+			quantity: 1,
+		},
+		{
+			key: 'leather-armor',
+			kind: 'equipment',
+			displayName: 'Leather Armor',
+			details: {
+				description: 'Supple hide that turns a glancing blow into a survivable one.',
+				equipmentSlot: 'body',
+				effect: { kind: 'stat-modifiers', modifiers: { defense: 1, vitality: 1 } },
+			},
+			quantity: 1,
+		},
+		{
+			key: 'traveler-sandals',
+			kind: 'equipment',
+			displayName: 'Traveler Sandals',
+			details: {
+				description: 'Soft-soled sandals that make the first miles feel less demanding.',
+				equipmentSlot: 'boots',
+				effect: { kind: 'stat-modifiers', modifiers: { agility: 1 } },
+			},
+			quantity: 1,
+		},
 	],
 };
 
@@ -70,8 +103,12 @@ const unknownItemInventory: Inventory = {
 
 const emptyLoadout: Loadout = {
 	weapon: null,
-	armor: null,
-	accessory: null,
+	body: null,
+	head: null,
+	arm: null,
+	boots: null,
+	ring: null,
+	shirt: null,
 };
 
 const roster: PartyRoster = {
@@ -88,6 +125,7 @@ const roster: PartyRoster = {
 				backgroundKey: 'wanderer',
 				backgroundName: 'Wanderer',
 				stats: { strength: 4, agility: 3, vitality: 4, insight: 2 },
+				combatStats: { strength: 5, agility: 3, vitality: 5, insight: 2, defense: 2 },
 			},
 			progression: { experience: 120, level: 2, nextLevelExperience: 400 },
 			health: { currentHealth: 20, maxHealth: 20 },
@@ -103,6 +141,7 @@ const roster: PartyRoster = {
 				backgroundKey: 'caretaker',
 				backgroundName: 'Caretaker',
 				stats: { strength: 3, agility: 4, vitality: 5, insight: 8 },
+				combatStats: { strength: 3, agility: 4, vitality: 5, insight: 8, defense: 1 },
 			},
 			progression: { experience: 400, level: 3, nextLevelExperience: 900 },
 			health: { currentHealth: 38, maxHealth: 50 },
@@ -120,6 +159,17 @@ const equippedLoadout: Loadout = {
 			description: 'A dependable light blade made for a traveler’s first real battles.',
 			equipmentSlot: 'weapon',
 			effect: { kind: 'stat-modifiers', modifiers: { strength: 1 } },
+		},
+		quantity: 1,
+	},
+	body: {
+		slot: 'body',
+		key: 'leather-armor',
+		displayName: 'Leather Armor',
+		details: {
+			description: 'Supple hide that turns a glancing blow into a survivable one.',
+			equipmentSlot: 'body',
+			effect: { kind: 'stat-modifiers', modifiers: { defense: 1, vitality: 1 } },
 		},
 		quantity: 1,
 	},
@@ -148,7 +198,7 @@ export const Ready: Story = {
 		onEquip: fn<InventoryViewProps['onEquip']>(),
 	},
 	play: async ({ args, canvas, userEvent }) => {
-		await userEvent.click(canvas.getByRole('button', { name: 'Equip Short Sword' }));
+		await userEvent.click(canvas.getAllByRole('button', { name: 'Equip' })[0]);
 		await expect(args.onEquip).toHaveBeenCalledWith('weapon', 'short-sword');
 	},
 };
@@ -176,7 +226,7 @@ export const Equipped: Story = {
 		onUnequip: fn<InventoryViewProps['onUnequip']>(),
 	},
 	play: async ({ args, canvas, userEvent }) => {
-		await userEvent.click(canvas.getByRole('button', { name: 'Unequip' }));
+		await userEvent.click(canvas.getAllByRole('button', { name: 'Unequip' })[0]);
 		const dialog = screen.getByRole('alertdialog');
 		await expect(dialog).toBeVisible();
 		await userEvent.click(within(dialog).getByRole('button', { name: 'Unequip' }));
@@ -195,6 +245,9 @@ export const SpriteAssets: Story = {
 		await expect(canvas.getByTestId('inventory-item-sprite-gold')).toHaveAttribute('data-item-sprite', 'gold');
 		await expect(canvas.getByTestId('inventory-item-sprite-herb')).toHaveAttribute('data-item-sprite', 'herb');
 		await expect(canvas.getAllByTestId('inventory-item-sprite-short-sword')).not.toHaveLength(0);
+		await expect(canvas.getAllByTestId('inventory-item-sprite-mace')).not.toHaveLength(0);
+		await expect(canvas.getAllByTestId('inventory-item-sprite-leather-armor')).not.toHaveLength(0);
+		await expect(canvas.getAllByTestId('inventory-item-sprite-traveler-sandals')).not.toHaveLength(0);
 	},
 };
 

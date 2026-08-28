@@ -93,7 +93,7 @@ describe('API client', () => {
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
-			if (request.url.endsWith('/api/v1/parties/party-1/encounter/actions/me')) {
+			if (request.url.endsWith('/api/v1/parties/party-1/encounter/plan/me')) {
 				return new Response(JSON.stringify({ partyId: 'party-1', nodeId: 'node-1', worldDate: '2026-08-20', status: 'active' }), {
 					status: 200,
 					headers: { 'Content-Type': 'application/json' },
@@ -103,20 +103,28 @@ describe('API client', () => {
 		});
 		vi.stubGlobal('fetch', fetchMock);
 
-		const { getHealthStatus, getProgress, setEncounterAction, unequipLoadout } = await import('#/lib/api');
+		const { getHealthStatus, getProgress, setEncounterPlan, unequipLoadout } = await import('#/lib/api');
 
 		await expect(getProgress('2026-08-20')).resolves.toMatchObject({ movementUnits: 8 });
 		await expect(getHealthStatus()).resolves.toMatchObject({ status: null });
-		await expect(setEncounterAction('party-1', { actionKey: null, targetEnemyId: 'enemy-1', targetUserId: null })).resolves.toMatchObject({
+		await expect(
+			setEncounterPlan('party-1', {
+				itemLoadoutKeys: [],
+				plays: [{ cardKey: 'class:basic-attack', targetEnemyId: 'enemy-1', targetUserId: null }],
+			}),
+		).resolves.toMatchObject({
 			status: 'active',
 		});
 		await expect(unequipLoadout('weapon')).resolves.toBeUndefined();
 
 		expect(calls[2]).toMatchObject({
-			url: 'http://localhost:3001/api/v1/parties/party-1/encounter/actions/me',
+			url: 'http://localhost:3001/api/v1/parties/party-1/encounter/plan/me',
 			method: 'PUT',
 		});
-		expect(JSON.parse(calls[2].body)).toEqual({ actionKey: null, targetEnemyId: 'enemy-1', targetUserId: null });
+		expect(JSON.parse(calls[2].body)).toEqual({
+			itemLoadoutKeys: [],
+			plays: [{ cardKey: 'class:basic-attack', targetEnemyId: 'enemy-1', targetUserId: null }],
+		});
 		expect(calls[3]).toMatchObject({ url: 'http://localhost:3001/api/v1/me/loadout/weapon', method: 'DELETE' });
 	});
 

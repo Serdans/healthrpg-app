@@ -1,7 +1,16 @@
 import { Coins, Leaf, Sword } from 'lucide-react';
 
 import { cn } from '#/lib/utils';
-import { inventoryItemArtForKey, inventoryItemSpriteArt } from '#/lib/game-art';
+import {
+	accessoryItemArtForKey,
+	accessorySpriteArt,
+	armorItemArtForKey,
+	armorSpriteArt,
+	inventoryItemArtForKey,
+	inventoryItemSpriteArt,
+	weaponItemArtForKey,
+	weaponSpriteArt,
+} from '#/lib/game-art';
 import type { InventoryItemKind } from '#/lib/game-art';
 
 const sizeClasses = {
@@ -19,7 +28,12 @@ export type InventoryItemSpriteProps = {
 };
 
 export function InventoryItemSprite({ itemKey, kind, size = 'md', className }: InventoryItemSpriteProps) {
-	const art = inventoryItemArtForKey(itemKey);
+	const itemArt = inventoryItemArtForKey(itemKey);
+	const weaponArt = kind === 'equipment' ? weaponItemArtForKey(itemKey) : undefined;
+	const armorArt = kind === 'equipment' ? armorItemArtForKey(itemKey) : undefined;
+	const accessoryArt = kind === 'equipment' ? accessoryItemArtForKey(itemKey) : undefined;
+	const art = weaponArt ?? armorArt ?? accessoryArt ?? itemArt;
+	const spriteArt = weaponArt ? weaponSpriteArt : armorArt ? armorSpriteArt : accessoryArt ? accessorySpriteArt : inventoryItemSpriteArt;
 	const sharedClassName = cn('shrink-0 rounded-xl bg-[var(--surface)]', sizeClasses[size], className);
 
 	if (!art) {
@@ -42,9 +56,10 @@ export function InventoryItemSprite({ itemKey, kind, size = 'md', className }: I
 		<span
 			className={cn('inventory-item-sprite', sharedClassName)}
 			style={{
-				backgroundImage: `url('${inventoryItemSpriteArt.src}')`,
+				backgroundImage: `url('${spriteArt.src}')`,
 				backgroundPosition: art.position,
-				backgroundSize: inventoryItemSpriteArt.backgroundSize,
+				backgroundSize: spriteArt.backgroundSize,
+				backgroundRepeat: 'no-repeat',
 			}}
 			data-item-sprite={itemKey}
 			data-testid={`inventory-item-sprite-${itemKey}`}

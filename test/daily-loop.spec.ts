@@ -54,6 +54,7 @@ const event: PartyEvent = {
 		},
 	],
 	selectedChoiceKey: null,
+	resolved: false,
 	votes: [],
 };
 
@@ -66,33 +67,45 @@ function derive(
 
 describe('daily loop state', () => {
 	it('keeps review mode ahead of daily signal and action state', () => {
-		expect(derive({ kind: 'combat', data: activeEncounter, isLoading: false, hasError: false }, { readOnly: true })).toMatchObject({
+		expect(
+			derive({ kind: 'combat', data: activeEncounter, isLoading: false, hasError: false, isBoss: false }, { readOnly: true }),
+		).toMatchObject({
 			kind: 'review-only',
 			actionHref: '#party-field',
 		});
 	});
 
 	it('surfaces unavailable daily signal before action details', () => {
-		expect(derive({ kind: 'combat', data: activeEncounter, isLoading: false, hasError: false }, { daily: undefined })).toMatchObject({
+		expect(
+			derive({ kind: 'combat', data: activeEncounter, isLoading: false, hasError: false, isBoss: false }, { daily: undefined }),
+		).toMatchObject({
 			kind: 'signal-unavailable',
 			tone: 'village',
 		});
 	});
 
 	it('distinguishes active and completed encounters', () => {
-		expect(derive({ kind: 'combat', data: activeEncounter, isLoading: false, hasError: false })).toMatchObject({
+		expect(derive({ kind: 'combat', data: activeEncounter, isLoading: false, hasError: false, isBoss: false })).toMatchObject({
 			kind: 'command-required',
-			actionLabel: 'Choose a command',
+			actionLabel: 'Build card plan',
 		});
-		expect(derive({ kind: 'combat', data: completedEncounter, isLoading: false, hasError: false })).toMatchObject({
+		expect(derive({ kind: 'combat', data: completedEncounter, isLoading: false, hasError: false, isBoss: false })).toMatchObject({
 			kind: 'resolved',
 			actionHref: '#party-chronicle',
 		});
 	});
 
 	it('reports loading and error states for combat', () => {
-		expect(derive({ kind: 'combat', isLoading: true, hasError: false })).toMatchObject({ kind: 'preparing-action' });
-		expect(derive({ kind: 'combat', isLoading: false, hasError: true })).toMatchObject({ kind: 'action-unavailable' });
+		expect(derive({ kind: 'combat', isLoading: true, hasError: false, isBoss: false })).toMatchObject({ kind: 'preparing-action' });
+		expect(derive({ kind: 'combat', isLoading: false, hasError: true, isBoss: false })).toMatchObject({ kind: 'action-unavailable' });
+	});
+
+	it('makes the boss opt-in explicit in the daily command center', () => {
+		expect(derive({ kind: 'combat', data: activeEncounter, isLoading: false, hasError: false, isBoss: true })).toMatchObject({
+			kind: 'command-required',
+			badge: 'Boss plan required',
+			title: 'Build a card plan to engage the boss.',
+		});
 	});
 
 	it('tracks route votes for the current traveler', () => {
@@ -113,6 +126,10 @@ describe('daily loop state', () => {
 
 	it('tracks event choices for the current traveler', () => {
 		expect(derive({ kind: 'event', data: event, isLoading: false, hasError: false })).toMatchObject({ kind: 'choice-required' });
+		expect(derive({ kind: 'event', data: { ...event, resolved: true }, isLoading: false, hasError: false })).toMatchObject({
+			kind: 'resolved',
+			actionHref: '#party-field',
+		});
 		expect(
 			derive({
 				kind: 'event',

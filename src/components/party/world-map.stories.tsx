@@ -6,8 +6,12 @@ import { LocationPanel } from './location-panel';
 import { WorldMap } from './world-map';
 import type { PartyMap } from '#/lib/api';
 
-type StoryNode = Omit<PartyMap['nodes'][number], 'mapMetadata'>;
-type StoryMap = Omit<PartyMap, 'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds'> & {
+type StoryNode = Omit<PartyMap['nodes'][number], 'mapMetadata' | 'encounterCleared'> &
+	Partial<Pick<PartyMap['nodes'][number], 'encounterCleared'>>;
+type StoryMap = Omit<
+	PartyMap,
+	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation' | 'monsters'
+> & {
 	nodes: StoryNode[];
 };
 
@@ -25,8 +29,12 @@ function withMapDefaults(value: StoryMap): PartyMap {
 		enterableLocation: null,
 		objectives: [],
 		completedObjectiveIds: [],
+		tileBalance: 12,
+		monsters: [],
+		navigation: null,
 		nodes: value.nodes.map((node, index) => ({
 			...node,
+			encounterCleared: false,
 			mapMetadata: {
 				mapId: 'overworld',
 				nodeId: node.id,
@@ -34,6 +42,9 @@ function withMapDefaults(value: StoryMap): PartyMap {
 				role: 'overworld',
 				sortOrder: index,
 				isEntry: index === 0,
+				tileX: null,
+				tileY: null,
+				spawnArchetype: null,
 				isExit: false,
 			},
 		})),
@@ -52,8 +63,12 @@ const map: PartyMap = withMapDefaults({
 			nodeType: 'travel',
 			templateKey: 'travel-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
+			discovered: true,
+			encounterCleared: false,
 			id: 'crossing',
 			chapterNo: 1,
 			regionNo: 1,
@@ -74,6 +89,8 @@ const map: PartyMap = withMapDefaults({
 			nodeType: 'village',
 			templateKey: 'village-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'ruins',
@@ -83,6 +100,8 @@ const map: PartyMap = withMapDefaults({
 			nodeType: 'dungeon',
 			templateKey: 'dungeon-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'challenge',
@@ -92,6 +111,8 @@ const map: PartyMap = withMapDefaults({
 			nodeType: 'challenge',
 			templateKey: 'challenge-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 	],
 	edges: [
@@ -115,6 +136,8 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'rest',
 			templateKey: 'rest-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'high-road',
@@ -124,6 +147,8 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'travel',
 			templateKey: 'travel-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'low-road',
@@ -133,6 +158,8 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'combat',
 			templateKey: 'combat-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'sunlit-grove',
@@ -142,6 +169,8 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'village',
 			templateKey: 'village-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'mirror-cavern',
@@ -151,6 +180,8 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'dungeon',
 			templateKey: 'dungeon-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'mist-steps',
@@ -160,6 +191,8 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'narrative',
 			templateKey: 'narrative-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'lantern-gate',
@@ -169,6 +202,8 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'challenge',
 			templateKey: 'challenge-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'starfall-cache',
@@ -178,6 +213,8 @@ const twoDimensionalMap: PartyMap = withMapDefaults({
 			nodeType: 'treasure',
 			templateKey: 'treasure-v1',
 			config: null,
+			discovered: true,
+			encounterCleared: false,
 		},
 	],
 	edges: [
@@ -217,6 +254,10 @@ const interiorMetadata = (
 	sortOrder: number,
 	isEntry = false,
 	isExit = false,
+	tileX = null,
+	tileY = null,
+	spawnArchetype: string | null = null,
+	discovered = true,
 ) => ({
 	mapId,
 	nodeId,
@@ -225,6 +266,10 @@ const interiorMetadata = (
 	sortOrder,
 	isEntry,
 	isExit,
+	tileX,
+	tileY,
+	spawnArchetype,
+	discovered,
 });
 
 const interiorVillageMap: PartyMap = {
@@ -241,6 +286,8 @@ const interiorVillageMap: PartyMap = {
 	enterableLocation: null,
 	nodes: [
 		{
+			discovered: true,
+			encounterCleared: false,
 			id: 'village-hub',
 			chapterNo: 1,
 			regionNo: 2,
@@ -251,6 +298,8 @@ const interiorVillageMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-village', 'village-hub', 0, 'hub', 0, true),
 		},
 		{
+			discovered: true,
+			encounterCleared: false,
 			id: 'village-shop',
 			chapterNo: 1,
 			regionNo: 2,
@@ -261,6 +310,8 @@ const interiorVillageMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-village', 'village-shop', 0, 'shop', 1),
 		},
 		{
+			discovered: true,
+			encounterCleared: false,
 			id: 'village-rest',
 			chapterNo: 1,
 			regionNo: 2,
@@ -271,6 +322,8 @@ const interiorVillageMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-village', 'village-rest', 0, 'rest', 2),
 		},
 		{
+			discovered: true,
+			encounterCleared: false,
 			id: 'village-exit',
 			chapterNo: 1,
 			regionNo: 2,
@@ -299,6 +352,9 @@ const interiorVillageMap: PartyMap = {
 		},
 	],
 	completedObjectiveIds: [],
+	tileBalance: 12,
+	monsters: [],
+	navigation: null,
 };
 
 const interiorDungeonMap: PartyMap = {
@@ -314,6 +370,8 @@ const interiorDungeonMap: PartyMap = {
 	},
 	nodes: [
 		{
+			discovered: true,
+			encounterCleared: false,
 			id: 'dungeon-entry',
 			chapterNo: 1,
 			regionNo: 3,
@@ -324,6 +382,8 @@ const interiorDungeonMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-ruins', 'dungeon-entry', 0, 'entrance', 0, true),
 		},
 		{
+			discovered: true,
+			encounterCleared: false,
 			id: 'dungeon-puzzle',
 			chapterNo: 1,
 			regionNo: 3,
@@ -334,6 +394,8 @@ const interiorDungeonMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-ruins', 'dungeon-puzzle', 1, 'puzzle', 0),
 		},
 		{
+			discovered: true,
+			encounterCleared: false,
 			id: 'dungeon-guard',
 			chapterNo: 1,
 			regionNo: 3,
@@ -344,6 +406,8 @@ const interiorDungeonMap: PartyMap = {
 			mapMetadata: interiorMetadata('map-ruins', 'dungeon-guard', 2, 'combat', 0),
 		},
 		{
+			discovered: true,
+			encounterCleared: false,
 			id: 'dungeon-reliquary',
 			chapterNo: 1,
 			regionNo: 3,
@@ -353,22 +417,11 @@ const interiorDungeonMap: PartyMap = {
 			config: null,
 			mapMetadata: interiorMetadata('map-ruins', 'dungeon-reliquary', 2, 'treasure', 1),
 		},
-		{
-			id: 'dungeon-exit',
-			chapterNo: 1,
-			regionNo: 3,
-			name: 'Road Back',
-			nodeType: 'travel',
-			templateKey: 'dungeon-exit-v1',
-			config: null,
-			mapMetadata: interiorMetadata('map-ruins', 'dungeon-exit', 3, 'exit', 0, false, true),
-		},
 	],
 	edges: [
 		{ id: 'dungeon-puzzle-edge', fromNodeId: 'dungeon-entry', toNodeId: 'dungeon-puzzle', optionKey: 'turning-stones', sortOrder: 0 },
 		{ id: 'dungeon-guard-edge', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-guard', optionKey: 'mossbound-guard', sortOrder: 0 },
 		{ id: 'dungeon-reliquary-edge', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-reliquary', optionKey: 'reliquary', sortOrder: 1 },
-		{ id: 'dungeon-exit-edge', fromNodeId: 'dungeon-guard', toNodeId: 'dungeon-exit', optionKey: 'road-back', sortOrder: 2 },
 	],
 	objectives: [
 		{
@@ -383,6 +436,7 @@ const interiorDungeonMap: PartyMap = {
 		},
 	],
 	completedObjectiveIds: [],
+	tileBalance: 12,
 };
 
 function TravelerPreview() {
@@ -484,6 +538,7 @@ export const LandmarkGallery: Story = {
 			currentNodeId: 'landmark-village',
 			nodes: [
 				...(['travel', 'dungeon', 'challenge', 'rest', 'combat', 'treasure', 'narrative', 'village'] as const).map((nodeType, index) => ({
+					discovered: true,
 					id: `landmark-${nodeType}`,
 					chapterNo: 1,
 					regionNo: index + 1,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shield, Sparkles, Sword, UsersRound } from 'lucide-react';
+import { CircleDot, Footprints, Shield, Shirt, Sword, UsersRound } from 'lucide-react';
 
 import { EmptyState, ErrorNotice, SuccessNotice } from '#/components/app-state';
 import { InventoryItemSprite } from '#/components/inventory/inventory-item-sprite';
@@ -12,12 +12,22 @@ import { LabelledSelect } from '#/components/ui/select-field';
 import type { EquipmentSlot, Inventory, Loadout, PartyRoster } from '#/lib/api';
 import { itemEffectLabel, itemKindLabel } from '#/lib/item-details';
 
-const slots: EquipmentSlot[] = ['weapon', 'armor', 'accessory'];
+const slots: EquipmentSlot[] = ['weapon', 'body', 'head', 'arm', 'boots', 'ring', 'shirt'];
 const slotLabels: Record<EquipmentSlot, string> = {
 	weapon: 'Weapon',
-	armor: 'Armor',
-	accessory: 'Accessory',
+	body: 'Body',
+	head: 'Head',
+	arm: 'Arms',
+	boots: 'Boots',
+	ring: 'Ring',
+	shirt: 'Shirt',
 };
+
+const slotGroups: { label: string; slots: EquipmentSlot[] }[] = [
+	{ label: 'Weapons', slots: ['weapon'] },
+	{ label: 'Protection', slots: ['body', 'head', 'arm'] },
+	{ label: 'Travel gear', slots: ['boots', 'ring', 'shirt'] },
+];
 
 export type InventoryViewProps = {
 	inventory: Inventory;
@@ -58,11 +68,12 @@ export function InventoryView({
 	onPartyChange,
 	onUseItem,
 }: InventoryViewProps) {
-	const [selectedSlot, setSelectedSlot] = useState<EquipmentSlot>('weapon');
 	const [unequipSlot, setUnequipSlot] = useState<EquipmentSlot | null>(null);
 	const [useItemKey, setUseItemKey] = useState<string | null>(null);
 	const useItem = inventory.items.find((item) => item.key === useItemKey) ?? null;
+	const selectedParty = activeParties.find((party) => party.id === selectedPartyId) ?? activeParties.at(0) ?? null;
 	const canUseItems = Boolean(onUseItem && selectedPartyId && roster && !partyLoading);
+	const defense = Object.values(loadout).reduce((total, item) => total + modifierFor(item, 'defense'), 0);
 
 	return (
 		<div className="space-y-8">
@@ -95,7 +106,7 @@ export function InventoryView({
 					<CardContent>
 						<LabelledSelect
 							label="Active expedition"
-							value={selectedPartyId ?? activeParties.at(0)?.id ?? ''}
+							value={selectedParty?.id ?? null}
 							options={activeParties.map((party) => ({ value: party.id, label: party.name }))}
 							onChange={(partyId) => onPartyChange?.(partyId)}
 						/>
@@ -127,43 +138,57 @@ export function InventoryView({
 					<CardHeader>
 						<Badge>Current loadout</Badge>
 						<CardTitle className="mt-3">Ready for the trail</CardTitle>
-						<CardDescription>Equip owned gear into its matching combat slot.</CardDescription>
+						<CardDescription>Your equipped gear, organized by combat slot.</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{slots.map((slot) => {
-							const equipped = loadout[slot];
-							return (
-								<div key={slot} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
-									<div className="flex items-center justify-between gap-3">
-										<div className="flex items-center gap-3">
-											{equipped ? (
-												<InventoryItemSprite itemKey={equipped.key} kind="equipment" size="md" />
-											) : (
-												<span className="grid size-10 place-items-center rounded-xl bg-[var(--indigo)] text-[var(--gold)]">
-													{slot === 'weapon' ? (
-														<Sword className="size-5" />
-													) : slot === 'armor' ? (
-														<Shield className="size-5" />
-													) : (
-														<Sparkles className="size-5" />
+						<div className="mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(10rem,0.65fr)]">
+							<div className="rounded-2xl border border-[var(--gold-line)] bg-[var(--gold-wash)] p-4">
+								<p className="eyebrow">Physical defense</p>
+								<p className="mt-2 font-mono text-3xl font-bold text-[var(--indigo)]">{defense}</p>
+								<p className="mt-1 text-xs leading-5 text-[var(--ink-soft)]">Reduces incoming enemy attacks.</p>
+							</div>
+							<div className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+								<p className="eyebrow">Loadout</p>
+								<p className="mt-2 font-extrabold text-[var(--indigo)]">
+									{slots.filter((slot) => loadout[slot]).length} / {slots.length} slots filled
+								</p>
+							</div>
+						</div>
+						{slotGroups.map((group) => (
+							<section key={group.label} className="mb-5 last:mb-0">
+								<p className="eyebrow mb-2">{group.label}</p>
+								<div className="grid gap-3 sm:grid-cols-2">
+									{group.slots.map((slot) => {
+										const equipped = loadout[slot];
+										return (
+											<div key={slot} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+												<div className="flex items-center justify-between gap-3">
+													<div className="flex items-center gap-3">
+														{equipped ? (
+															<InventoryItemSprite itemKey={equipped.key} kind="equipment" size="md" />
+														) : (
+															<span className="grid size-10 place-items-center rounded-xl bg-[var(--indigo)] text-[var(--gold)]">
+																<SlotIcon slot={slot} />
+															</span>
+														)}
+														<div>
+															<p className="eyebrow">{slotLabels[slot]}</p>
+															<p className="mt-1 font-extrabold text-[var(--indigo)]">{equipped?.displayName ?? 'Empty slot'}</p>
+															{equipped && <ItemDetailLine item={equipped} />}
+														</div>
+													</div>
+													{equipped && (
+														<Button variant="ghost" size="sm" disabled={isBusy} onClick={() => setUnequipSlot(slot)}>
+															Unequip
+														</Button>
 													)}
-												</span>
-											)}
-											<div>
-												<p className="eyebrow">{slotLabels[slot]}</p>
-												<p className="mt-1 font-extrabold text-[var(--indigo)]">{equipped?.displayName ?? 'Empty slot'}</p>
-												{equipped && <ItemDetailLine item={equipped} />}
+												</div>
 											</div>
-										</div>
-										{equipped && (
-											<Button variant="ghost" size="sm" disabled={isBusy} onClick={() => setUnequipSlot(slot)}>
-												Unequip
-											</Button>
-										)}
-									</div>
+										);
+									})}
 								</div>
-							);
-						})}
+							</section>
+						))}
 					</CardContent>
 				</Card>
 
@@ -193,65 +218,60 @@ export function InventoryView({
 						</div>
 
 						<div className="grid gap-3 sm:grid-cols-2">
-							{[...inventory.items, ...inventory.equipment].map((item) => (
-								<div key={item.key} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
-									<div className="flex items-start justify-between gap-3">
-										<div className="flex min-w-0 items-center gap-3">
-											<InventoryItemSprite itemKey={item.key} kind={item.kind} size="sm" className="bg-[var(--amethyst-wash)]" />
-											<div className="min-w-0">
-												<p className="eyebrow">{itemKindLabel(item.kind)}</p>
-												<p className="truncate font-bold text-[var(--indigo)]">{item.displayName}</p>
+							{[...inventory.items, ...inventory.equipment].map((item) => {
+								const equipmentSlot =
+									item.kind === 'equipment' && isEquipmentSlot(item.details.equipmentSlot) ? item.details.equipmentSlot : null;
+								const isEquipped = equipmentSlot !== null && loadout[equipmentSlot]?.key === item.key;
+
+								return (
+									<div key={item.key} className="rounded-2xl border border-[var(--line)] bg-[var(--surface)] p-4">
+										<div className="flex items-start justify-between gap-3">
+											<div className="flex min-w-0 items-center gap-3">
+												<InventoryItemSprite itemKey={item.key} kind={item.kind} size="sm" className="bg-[var(--amethyst-wash)]" />
+												<div className="min-w-0">
+													<p className="eyebrow">{itemKindLabel(item.kind)}</p>
+													<p className="truncate font-bold text-[var(--indigo)]">{item.displayName}</p>
+												</div>
 											</div>
+											<span className="shrink-0 font-mono text-sm text-[var(--ink-soft)]">×{item.quantity}</span>
 										</div>
-										<span className="shrink-0 font-mono text-sm text-[var(--ink-soft)]">×{item.quantity}</span>
+										<p className="mt-3 text-xs leading-5 text-[var(--ink-soft)]">{item.details.description}</p>
+										<div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+											{itemEffectLabel(item.details) ? (
+												<span className="rounded-full bg-[var(--gold-wash)] px-2.5 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--gold-deep)]">
+													{itemEffectLabel(item.details)}
+												</span>
+											) : (
+												<span />
+											)}
+											{equipmentSlot && (
+												<Button
+													size="sm"
+													variant="secondary"
+													disabled={isBusy || isEquipped}
+													onClick={() => onEquip(equipmentSlot, item.key)}
+												>
+													{isEquipped ? 'Equipped' : 'Equip'}
+												</Button>
+											)}
+											{item.kind === 'item' && onUseItem && (
+												<Button
+													size="sm"
+													variant="secondary"
+													disabled={!canUseItems || itemUsePending}
+													onClick={() => setUseItemKey(item.key)}
+												>
+													Use on traveler
+												</Button>
+											)}
+										</div>
 									</div>
-									<p className="mt-3 text-xs leading-5 text-[var(--ink-soft)]">{item.details.description}</p>
-									<div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-										{itemEffectLabel(item.details) ? (
-											<span className="rounded-full bg-[var(--gold-wash)] px-2.5 py-1 text-[0.65rem] font-extrabold uppercase tracking-[0.12em] text-[var(--gold-deep)]">
-												{itemEffectLabel(item.details)}
-											</span>
-										) : (
-											<span />
-										)}
-										{item.kind === 'item' && onUseItem && (
-											<Button
-												size="sm"
-												variant="secondary"
-												disabled={!canUseItems || itemUsePending}
-												onClick={() => setUseItemKey(item.key)}
-											>
-												Use on traveler
-											</Button>
-										)}
-									</div>
-								</div>
-							))}
+								);
+							})}
 						</div>
 
 						{inventory.items.length === 0 && inventory.equipment.length === 0 && (
 							<EmptyState title="The satchel is light." copy="Complete events and visit villages to find useful things." />
-						)}
-
-						{inventory.equipment.length > 0 && (
-							<div className="rounded-2xl border border-[var(--gold-line)] bg-[var(--gold-wash)] p-4">
-								<LabelledSelect
-									label="Equip an item"
-									value={selectedSlot}
-									options={slots.map((slot) => ({ value: slot, label: slotLabels[slot] }))}
-									onChange={(value) => {
-										if (isEquipmentSlot(value)) setSelectedSlot(value);
-									}}
-								/>
-								<div className="mt-3 flex flex-wrap gap-2">
-									{inventory.equipment.map((item) => (
-										<Button key={item.key} size="sm" disabled={isBusy} onClick={() => onEquip(selectedSlot, item.key)}>
-											<InventoryItemSprite itemKey={item.key} kind={item.kind} size="xs" className="bg-[var(--indigo-light)]" />
-											Equip {item.displayName}
-										</Button>
-									))}
-								</div>
-							</div>
 						)}
 					</CardContent>
 				</Card>
@@ -296,6 +316,19 @@ function ItemDetailLine({ item }: { item: Loadout[EquipmentSlot] }) {
 	);
 }
 
-function isEquipmentSlot(value: string): value is EquipmentSlot {
-	return slots.some((slot) => slot === value);
+function isEquipmentSlot(value: string | null): value is EquipmentSlot {
+	return value !== null && slots.some((slot) => slot === value);
+}
+
+function modifierFor(item: Loadout[EquipmentSlot], key: 'defense') {
+	const effect = item?.details.effect;
+	return effect?.kind === 'stat-modifiers' ? (effect.modifiers[key] ?? 0) : 0;
+}
+
+function SlotIcon({ slot }: { slot: EquipmentSlot }) {
+	if (slot === 'weapon') return <Sword className="size-5" />;
+	if (slot === 'boots') return <Footprints className="size-5" />;
+	if (slot === 'ring') return <CircleDot className="size-5" />;
+	if (slot === 'shirt') return <Shirt className="size-5" />;
+	return <Shield className="size-5" />;
 }

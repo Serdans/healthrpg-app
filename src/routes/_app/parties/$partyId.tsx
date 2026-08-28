@@ -16,7 +16,9 @@ import { Badge } from '#/components/ui/badge';
 import {
 	useAdventure,
 	useCastVote,
+	useClaimDungeonNavigator,
 	useChooseEvent,
+	useClearDungeonRouteIntent,
 	useDailyProgress,
 	useEncounter,
 	useEnterLocation,
@@ -26,7 +28,12 @@ import {
 	usePartyRecap,
 	usePartyRoster,
 	usePartyVotes,
+	useReleaseDungeonNavigator,
+	useSetDungeonRouteIntent,
+	useTransferDungeonNavigator,
+	useVoteDungeonRoute,
 	useVillage,
+	useWalkDungeon,
 } from '#/lib/queries';
 import { isPartyReadOnly } from '#/lib/party-state';
 import type { DailyLoopAction } from '#/lib/daily-loop';
@@ -41,16 +48,23 @@ export const Route = createFileRoute('/_app/parties/$partyId')({
 function PartyDashboard() {
 	const { partyId } = Route.useParams();
 	const { user } = Route.useRouteContext();
-	const partyQuery = useParty(partyId);
 	const mapQuery = usePartyMap(partyId);
+	const partyQuery = useParty(partyId, mapQuery.data?.currentMap.mapType === 'dungeon');
 	const enterLocationMutation = useEnterLocation(partyId);
+	const walkDungeonMutation = useWalkDungeon(partyId);
+	const claimDungeonNavigatorMutation = useClaimDungeonNavigator(partyId);
+	const releaseDungeonNavigatorMutation = useReleaseDungeonNavigator(partyId);
+	const transferDungeonNavigatorMutation = useTransferDungeonNavigator(partyId);
+	const voteDungeonRouteMutation = useVoteDungeonRoute(partyId);
+	const setDungeonRouteIntentMutation = useSetDungeonRouteIntent(partyId);
+	const clearDungeonRouteIntentMutation = useClearDungeonRouteIntent(partyId);
 	const adventureQuery = useAdventure(partyId);
 	const dailyQuery = useDailyProgress(partyId);
 	const rosterQuery = usePartyRoster(partyId);
 	const recapQuery = usePartyRecap(partyId);
-	const currentNodeId = partyQuery.data?.currentNode.id ?? '';
+	const currentNodeId = partyQuery.data?.currentNode.id ?? null;
 	const currentEventType = partyQuery.data?.currentNode.config.event?.eventType;
-	const isCombat = currentEventType === 'combat';
+	const isCombat = currentEventType === 'combat' || Boolean(partyQuery.data?.activeEncounterNodeId);
 	const isVillage = currentEventType === 'village';
 	const villageEnabled = isVillage && partyQuery.data?.status === 'active';
 	const eventEnabled = currentEventType === 'narrative' || currentEventType === 'treasure' || currentEventType === 'rest';
@@ -58,9 +72,12 @@ function PartyDashboard() {
 	const encounterQuery = useEncounter(partyId, isCombat);
 	const villageQuery = useVillage(partyId, villageEnabled);
 	const mapEdges = mapQuery.data?.edges.filter((edge) => edge.fromNodeId === mapQuery.data.currentNodeId) ?? [];
+	const insideTileDungeon =
+		mapQuery.data?.currentMap.mapType === 'dungeon' && Boolean(mapQuery.data.nodes.some((node) => node.mapMetadata.tileX !== null));
 	const votesEnabled =
 		Boolean(partyQuery.data) &&
 		mapEdges.length > 0 &&
+		!insideTileDungeon &&
 		!isCombat &&
 		!eventEnabled &&
 		(!isVillage || Boolean(partyQuery.data?.decisionStartedAt));
@@ -95,10 +112,21 @@ function PartyDashboard() {
 	const daily = dailyQuery.data;
 	const roster = rosterQuery.data;
 	const readOnly = isPartyReadOnly(party.status);
+	const navigatorControls = {
+		userId: user.id,
+		members: party.members,
+		claimMutation: claimDungeonNavigatorMutation,
+		releaseMutation: releaseDungeonNavigatorMutation,
+		transferMutation: transferDungeonNavigatorMutation,
+		voteRouteMutation: voteDungeonRouteMutation,
+		setRouteIntentMutation: setDungeonRouteIntentMutation,
+		clearRouteIntentMutation: clearDungeonRouteIntentMutation,
+	};
 	const currentEdges = map.edges.filter((edge) => edge.fromNodeId === map.currentNodeId);
 	const currentVotes = votesQuery.data;
 	const currentEvent = eventQuery.data;
-	const hasBranchDecision = !isCombat && !eventEnabled && currentEdges.length > 0 && (!isVillage || Boolean(party.decisionStartedAt));
+	const hasBranchDecision =
+		!isCombat && !eventEnabled && !insideTileDungeon && currentEdges.length > 0 && (!isVillage || Boolean(party.decisionStartedAt));
 	const hasCurrentAction = isCombat || eventEnabled || hasBranchDecision;
 	const currentMapNode = map.nodes.find((node) => node.id === map.currentNodeId);
 	const mapTypeLabel = map.currentMap.mapType === 'overworld' ? 'Overworld' : map.currentMap.mapType === 'dungeon' ? 'Dungeon' : 'Village';
@@ -108,6 +136,7 @@ function PartyDashboard() {
 				data: encounterQuery.data,
 				isLoading: encounterQuery.isPending,
 				hasError: encounterQuery.isError,
+				isBoss: currentMapNode?.mapMetadata.role === 'boss',
 			}
 		: hasBranchDecision
 			? {
@@ -123,9 +152,11 @@ function PartyDashboard() {
 						isLoading: eventQuery.isPending,
 						hasError: eventQuery.isError,
 					}
-				: isVillage
-					? { kind: 'village' }
-					: { kind: 'field' };
+				: insideTileDungeon
+					? { kind: 'explore', tileBalance: map.tileBalance }
+					: isVillage
+						? { kind: 'village' }
+						: { kind: 'field' };
 	const dailyLoopState = deriveDailyLoopState({ daily, readOnly, userId: user.id, action: dailyAction });
 	const dailySignal: DailySignalStatus = {
 		isPending: dailyQuery.isPending,
@@ -136,7 +167,7 @@ function PartyDashboard() {
 	};
 
 	return (
-		<div className="gameplay-surface gameplay-shell space-y-8">
+		<div className={`gameplay-surface gameplay-shell ${isCombat ? 'space-y-4' : 'space-y-8'}`}>
 			<a
 				className="skip-link"
 				href="#party-field"
@@ -203,7 +234,6 @@ function PartyDashboard() {
 					userId={user.id}
 					timeZone={user.timezone}
 					party={party}
-					daily={daily}
 					map={map}
 					readOnly={readOnly}
 					isCombat={isCombat}
@@ -229,6 +259,8 @@ function PartyDashboard() {
 				currentMapNode={currentMapNode}
 				readOnly={readOnly}
 				enterLocationMutation={enterLocationMutation}
+				walkMutation={walkDungeonMutation}
+				navigatorControls={navigatorControls}
 				adventureQuery={adventureQuery}
 				isVillage={isVillage}
 				villageEnabled={villageEnabled}

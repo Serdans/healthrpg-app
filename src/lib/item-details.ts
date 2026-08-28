@@ -7,6 +7,7 @@ const statKeys = [
 	['agility', 'Agility'],
 	['vitality', 'Vitality'],
 	['insight', 'Insight'],
+	['defense', 'Defense'],
 ] as const;
 
 export function itemEffectLabel(details: ItemDetails) {

@@ -2,4 +2,5 @@ package-lock.json
 pnpm-lock.yaml
 yarn.lock
 src/routeTree.gen.ts
+src/api/generated.ts
 .output

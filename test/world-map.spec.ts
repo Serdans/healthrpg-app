@@ -6,8 +6,12 @@ import { createInteriorMapLayout, createInteriorMapTravel } from '#/lib/interior
 import type { InteriorMapLayout } from '#/lib/interior-map';
 import { createWorldMapLayout, createWorldMapTravel, getWorldMapTravelDirection } from '#/lib/world-map';
 
-type TestNode = Omit<PartyMap['nodes'][number], 'mapMetadata'>;
-type TestMap = Omit<PartyMap, 'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds'> & {
+type TestNode = Omit<PartyMap['nodes'][number], 'mapMetadata' | 'encounterCleared'> &
+	Partial<Pick<PartyMap['nodes'][number], 'encounterCleared'>>;
+type TestMap = Omit<
+	PartyMap,
+	'currentMap' | 'enterableLocation' | 'nodes' | 'objectives' | 'completedObjectiveIds' | 'tileBalance' | 'navigation' | 'monsters'
+> & {
 	nodes: TestNode[];
 };
 
@@ -25,8 +29,13 @@ function withMapDefaults(value: TestMap): PartyMap {
 		enterableLocation: null,
 		objectives: [],
 		completedObjectiveIds: [],
+		tileBalance: 12,
+		monsters: [],
+		navigation: null,
 		nodes: value.nodes.map((item, index) => ({
 			...item,
+			encounterCleared: false,
+			discovered: true,
 			mapMetadata: {
 				mapId: 'overworld',
 				nodeId: item.id,
@@ -35,6 +44,9 @@ function withMapDefaults(value: TestMap): PartyMap {
 				sortOrder: index,
 				isEntry: index === 0,
 				isExit: false,
+				tileX: null,
+				tileY: null,
+				spawnArchetype: null,
 			},
 		})),
 	};
@@ -42,6 +54,8 @@ function withMapDefaults(value: TestMap): PartyMap {
 
 function node(id: string, regionNo: number, name = id): TestNode {
 	return {
+		discovered: true,
+		encounterCleared: false,
 		id,
 		chapterNo: 1,
 		regionNo,
@@ -68,6 +82,7 @@ function interiorNode(
 		nodeType,
 		templateKey: `${role}-v1`,
 		config: null,
+		encounterCleared: false,
 		mapMetadata: {
 			mapId: 'interior',
 			nodeId: id,
@@ -76,7 +91,11 @@ function interiorNode(
 			sortOrder,
 			isEntry: role === 'entrance',
 			isExit: role === 'exit',
+			tileX: null,
+			tileY: null,
+			spawnArchetype: null,
 		},
+		discovered: true,
 	};
 }
 
@@ -97,6 +116,9 @@ function interiorMap(mapType: 'village' | 'dungeon', currentNodeId: string, node
 		edges,
 		objectives: [],
 		completedObjectiveIds: [],
+		tileBalance: 12,
+		monsters: [],
+		navigation: null,
 	};
 }
 
@@ -250,13 +272,11 @@ describe('interior map layout', () => {
 				interiorNode('dungeon-puzzle', 'Turning Stones', 'puzzle', 1, 0, 'narrative'),
 				interiorNode('dungeon-treasure', 'Sealed Reliquary', 'treasure', 1, 1, 'treasure'),
 				interiorNode('dungeon-combat', 'Mossbound Guard', 'combat', 2, 0, 'combat'),
-				interiorNode('dungeon-exit', 'Road Back', 'exit', 2, 1),
 			],
 			[
 				{ id: 'edge-puzzle', fromNodeId: 'dungeon-entry', toNodeId: 'dungeon-puzzle', optionKey: 'turning-stones', sortOrder: 0 },
 				{ id: 'edge-treasure', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-treasure', optionKey: 'reliquary', sortOrder: 1 },
 				{ id: 'edge-combat', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-combat', optionKey: 'mossbound-guard', sortOrder: 2 },
-				{ id: 'edge-exit', fromNodeId: 'dungeon-combat', toNodeId: 'dungeon-exit', optionKey: 'road-back', sortOrder: 3 },
 			],
 		);
 

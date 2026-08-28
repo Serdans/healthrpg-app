@@ -3,9 +3,10 @@ import { match } from 'ts-pattern';
 import type { DailyProgress, Encounter, PartyEvent, PartyVotes } from '#/lib/api';
 
 export type DailyLoopAction =
-	| { kind: 'combat'; data?: Encounter; isLoading: boolean; hasError: boolean }
+	| { kind: 'combat'; data?: Encounter; isLoading: boolean; hasError: boolean; isBoss: boolean }
 	| { kind: 'route'; data?: PartyVotes; isLoading: boolean; hasError: boolean }
 	| { kind: 'event'; data?: PartyEvent; isLoading: boolean; hasError: boolean }
+	| { kind: 'explore'; tileBalance: number }
 	| { kind: 'village' }
 	| { kind: 'field' };
 
@@ -25,6 +26,7 @@ export type DailyLoopStateKind =
 	| 'route-vote-required'
 	| 'waiting-for-party'
 	| 'choice-required'
+	| 'steps-required'
 	| 'resolved'
 	| 'field-awaiting-resolution';
 
@@ -42,6 +44,7 @@ const actionHrefByKind: Record<DailyLoopAction['kind'], DailyLoopState['actionHr
 	combat: '#party-action',
 	route: '#party-action',
 	event: '#party-action',
+	explore: '#party-field',
 	village: '#party-field',
 	field: '#party-field',
 };
@@ -53,6 +56,7 @@ function actionLink(action: DailyLoopAction, label: string) {
 type CombatAction = Extract<DailyLoopAction, { kind: 'combat' }>;
 type RouteAction = Extract<DailyLoopAction, { kind: 'route' }>;
 type EventAction = Extract<DailyLoopAction, { kind: 'event' }>;
+type ExploreAction = Extract<DailyLoopAction, { kind: 'explore' }>;
 type VillageAction = Extract<DailyLoopAction, { kind: 'village' }>;
 type FieldAction = Extract<DailyLoopAction, { kind: 'field' }>;
 
@@ -63,7 +67,7 @@ function combatState(action: CombatAction): DailyLoopState {
 			tone: 'combat',
 			badge: 'Preparing encounter',
 			title: 'The field is taking shape.',
-			description: 'Reading the encounter before the party chooses its commands.',
+			description: 'Reading the encounter before the party builds its card plans.',
 			...actionLink(action, 'Open battle'),
 		};
 	}
@@ -91,10 +95,12 @@ function combatState(action: CombatAction): DailyLoopState {
 	return {
 		kind: 'command-required',
 		tone: 'combat',
-		badge: 'Your command is needed',
-		title: 'Choose one command for today’s encounter.',
-		description: 'Read the field, choose an action, and lock in your traveler’s move before the day closes.',
-		...actionLink(action, 'Choose a command'),
+		badge: action.isBoss ? 'Boss plan required' : 'Your card plan is needed',
+		title: action.isBoss ? 'Build a card plan to engage the boss.' : 'Queue cards for today’s encounter.',
+		description: action.isBoss
+			? 'The party will remain at the optional boss until a member explicitly saves a card plan.'
+			: 'Read the field, queue cards, and lock in your traveler’s plan before the day closes.',
+		...actionLink(action, 'Build card plan'),
 	};
 }
 
@@ -171,6 +177,17 @@ function eventState(action: EventAction, userId: string): DailyLoopState {
 			...actionLink(action, 'Open the scene'),
 		};
 	}
+	if (action.data.resolved) {
+		return {
+			kind: 'resolved',
+			tone: 'history',
+			badge: 'Event resolved',
+			title: 'The scene has resolved for today.',
+			description: 'The party’s daily projection will apply the result and move the expedition forward.',
+			actionHref: '#party-field',
+			actionLabel: 'Review the field',
+		};
+	}
 	if (action.data.votes.some((vote) => vote.userId === userId)) {
 		return {
 			kind: 'waiting-for-party',
@@ -188,6 +205,17 @@ function eventState(action: EventAction, userId: string): DailyLoopState {
 		title: 'Choose how the party responds.',
 		description: 'Read the scene and select the response that carries the party forward.',
 		...actionLink(action, 'Choose a response'),
+	};
+}
+
+function exploreState(action: ExploreAction): DailyLoopState {
+	return {
+		kind: 'steps-required',
+		tone: 'combat',
+		badge: action.tileBalance > 0 ? `${action.tileBalance} Explore energy` : 'No Explore energy',
+		title: 'The dungeon waits in the dark.',
+		description: 'Send the party deeper with auto-explore, or step tile by tile. Every tile costs one unit of Explore energy.',
+		...actionLink(action, 'Delve the dungeon'),
 	};
 }
 
@@ -239,6 +267,7 @@ export function deriveDailyLoopState({ daily, readOnly, userId, action }: DailyL
 		.with({ kind: 'combat' }, combatState)
 		.with({ kind: 'route' }, (currentAction) => routeState(currentAction, userId))
 		.with({ kind: 'event' }, (currentAction) => eventState(currentAction, userId))
+		.with({ kind: 'explore' }, exploreState)
 		.with({ kind: 'village' }, villageState)
 		.with({ kind: 'field' }, (currentAction) => fieldState(currentAction, daily))
 		.exhaustive();

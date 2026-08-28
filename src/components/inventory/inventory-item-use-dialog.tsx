@@ -28,9 +28,9 @@ export interface InventoryItemUseDialogProps {
 }
 
 export function InventoryItemUseDialog({ open, item, roster, pending = false, onOpenChange, onConfirm }: InventoryItemUseDialogProps) {
-	const [targetUserId, setTargetUserId] = useState('');
+	const [targetUserId, setTargetUserId] = useState<string | null>(null);
 	const members = roster?.members ?? [];
-	const firstMemberId = members[0]?.userId ?? '';
+	const firstMemberId = members[0]?.userId ?? null;
 
 	useEffect(() => {
 		if (open) setTargetUserId(firstMemberId);

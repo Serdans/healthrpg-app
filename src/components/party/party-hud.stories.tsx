@@ -23,7 +23,9 @@ const party: Party = {
 		},
 	},
 	challengeProgress: 12,
+	tileBalance: 12,
 	decisionStartedAt: null,
+	activeEncounterNodeId: null,
 	members: [
 		{ userId: 'user-1', role: 'leader', displayName: 'Hero' },
 		{ userId: 'user-2', role: 'member', displayName: 'Mira' },

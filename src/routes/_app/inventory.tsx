@@ -4,7 +4,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { ErrorNotice, LoadingState } from '#/components/app-state';
 import { InventoryView } from '#/components/inventory/inventory-view';
 import type { EquipmentSlot } from '#/lib/api';
-import { useEquipLoadout, useInventory, useLoadout, useParties, usePartyRoster, useUnequipLoadout, useUsePartyItem } from '#/lib/queries';
+import { useEquipLoadout, useInventory, useLoadout, useParties, usePartyItemUse, usePartyRoster, useUnequipLoadout } from '#/lib/queries';
 
 export const Route = createFileRoute('/_app/inventory')({
 	head: () => ({ meta: [{ title: 'Kit · HealthRPG' }] }),
@@ -13,8 +13,12 @@ export const Route = createFileRoute('/_app/inventory')({
 
 const slotLabels: Record<EquipmentSlot, string> = {
 	weapon: 'Weapon',
-	armor: 'Armor',
-	accessory: 'Accessory',
+	body: 'Body',
+	head: 'Head',
+	arm: 'Arms',
+	boots: 'Boots',
+	ring: 'Ring',
+	shirt: 'Shirt',
 };
 
 function InventoryPage() {
@@ -25,10 +29,10 @@ function InventoryPage() {
 	const unequipMutation = useUnequipLoadout();
 	const activeParties = partiesQuery.data?.filter((party) => party.status === 'active') ?? [];
 	const [selectedPartyId, setSelectedPartyId] = useState<string | null>(null);
-	const activeParty = activeParties.find((party) => party.id === selectedPartyId) ?? activeParties.at(0);
-	const activePartyId = activeParty?.id ?? '';
-	const rosterQuery = usePartyRoster(activePartyId, Boolean(activePartyId));
-	const itemUseMutation = useUsePartyItem(activePartyId);
+	const activeParty = activeParties.find((party) => party.id === selectedPartyId) ?? activeParties.at(0) ?? null;
+	const activePartyId = activeParty?.id ?? null;
+	const rosterQuery = usePartyRoster(activePartyId);
+	const itemUseMutation = usePartyItemUse(activePartyId);
 	const [status, setStatus] = useState<string | null>(null);
 
 	if (inventoryQuery.isPending || loadoutQuery.isPending || partiesQuery.isPending) return <LoadingState label="Opening your satchel…" />;
@@ -73,7 +77,7 @@ function InventoryPage() {
 			inventory={inventory}
 			loadout={loadout}
 			activeParties={activeParties.map((party) => ({ id: party.id, name: party.name }))}
-			selectedPartyId={activePartyId || null}
+			selectedPartyId={activePartyId}
 			roster={rosterQuery.data ?? null}
 			partyLoading={rosterQuery.isPending}
 			partyError={rosterQuery.error}

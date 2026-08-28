@@ -12,6 +12,10 @@ const metadata = (
 	sortOrder: number,
 	isEntry = false,
 	isExit = false,
+	tileX = null,
+	tileY = null,
+	spawnArchetype: string | null = null,
+	discovered = true,
 ) => ({
 	mapId,
 	nodeId,
@@ -20,6 +24,10 @@ const metadata = (
 	sortOrder,
 	isEntry,
 	isExit,
+	tileX,
+	tileY,
+	spawnArchetype,
+	discovered,
 });
 
 const dungeonMap: PartyMap = {
@@ -44,6 +52,8 @@ const dungeonMap: PartyMap = {
 			templateKey: 'dungeon-entrance-v1',
 			config: null,
 			mapMetadata: metadata('map-ruins', 'dungeon-entry', 0, 'entrance', 0, true),
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'dungeon-puzzle',
@@ -54,6 +64,8 @@ const dungeonMap: PartyMap = {
 			templateKey: 'dungeon-puzzle-v1',
 			config: null,
 			mapMetadata: metadata('map-ruins', 'dungeon-puzzle', 1, 'puzzle', 1),
+			discovered: true,
+			encounterCleared: false,
 		},
 		{
 			id: 'dungeon-goal',
@@ -64,22 +76,13 @@ const dungeonMap: PartyMap = {
 			templateKey: 'dungeon-goal-v1',
 			config: null,
 			mapMetadata: metadata('map-ruins', 'dungeon-goal', 2, 'goal', 2),
-		},
-		{
-			id: 'dungeon-exit',
-			chapterNo: 1,
-			regionNo: 4,
-			name: 'Road Back',
-			nodeType: 'travel',
-			templateKey: 'dungeon-exit-v1',
-			config: null,
-			mapMetadata: metadata('map-ruins', 'dungeon-exit', 2, 'exit', 3, false, true),
+			discovered: true,
+			encounterCleared: false,
 		},
 	],
 	edges: [
 		{ id: 'edge-puzzle', fromNodeId: 'dungeon-entry', toNodeId: 'dungeon-puzzle', optionKey: 'turning-stones', sortOrder: 0 },
 		{ id: 'edge-goal', fromNodeId: 'dungeon-puzzle', toNodeId: 'dungeon-goal', optionKey: 'memory-well', sortOrder: 1 },
-		{ id: 'edge-exit', fromNodeId: 'dungeon-goal', toNodeId: 'dungeon-exit', optionKey: 'road-back', sortOrder: 2 },
 	],
 	objectives: [
 		{
@@ -104,6 +107,9 @@ const dungeonMap: PartyMap = {
 		},
 	],
 	completedObjectiveIds: [],
+	tileBalance: 12,
+	monsters: [],
+	navigation: null,
 };
 
 const villageInteriorMap: PartyMap = {
@@ -128,11 +134,16 @@ const villageInteriorMap: PartyMap = {
 			templateKey: 'village-hub-v1',
 			config: null,
 			mapMetadata: metadata('map-village', 'village-hub', 0, 'hub', 0, true),
+			discovered: true,
+			encounterCleared: false,
 		},
 	],
 	edges: [],
 	objectives: [],
 	completedObjectiveIds: [],
+	tileBalance: 12,
+	monsters: [],
+	navigation: null,
 };
 
 const meta = {

@@ -5,6 +5,7 @@ import { Badge } from '#/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '#/components/ui/card';
 import { Progress } from '#/components/ui/progress';
 import type { PartyRoster } from '#/lib/api';
+import { battleArtBackgroundStyle } from '#/lib/battle-art';
 import { battlePartyArtForClass } from '#/lib/game-art';
 
 const statLabels = [
@@ -12,6 +13,7 @@ const statLabels = [
 	['agility', 'Agility'],
 	['vitality', 'Vitality'],
 	['insight', 'Insight'],
+	['defense', 'Defense'],
 ] as const;
 
 function memberName(member: PartyRoster['members'][number]) {
@@ -72,8 +74,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 												memberArt
 													? {
 															backgroundImage: `url('${memberArt.src}')`,
-															backgroundPosition: memberArt.position,
-															backgroundSize: memberArt.backgroundSize,
+															...battleArtBackgroundStyle(memberArt),
 														}
 													: undefined
 											}
@@ -123,8 +124,7 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 										selectedMemberArt
 											? {
 													backgroundImage: `url('${selectedMemberArt.src}')`,
-													backgroundPosition: selectedMemberArt.position,
-													backgroundSize: selectedMemberArt.backgroundSize,
+													...battleArtBackgroundStyle(selectedMemberArt),
 												}
 											: undefined
 									}
@@ -186,11 +186,11 @@ export function Roster({ roster, currentUserId }: { roster: PartyRoster; current
 									</div>
 								</div>
 
-								<div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+								<div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
 									{statLabels.map(([key, label]) => (
 										<div key={key} className="game-inset game-inset-muted p-3 text-center">
 											<p className="game-pixel-label text-[var(--ink-soft)]">{label}</p>
-											<p className="display-title mt-2 text-2xl text-[var(--indigo)]">{selectedMember.character?.stats[key]}</p>
+											<p className="display-title mt-2 text-2xl text-[var(--indigo)]">{selectedMember.character?.combatStats[key]}</p>
 										</div>
 									))}
 								</div>

@@ -4,5651 +4,6924 @@
  */
 
 export interface paths {
-	'/healthz': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							/** @enum {string} */
-							status: 'ok';
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/readyz': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							/** @enum {string} */
-							status: 'ready';
-						};
-					};
-				};
-				/** @description Default Response */
-				503: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/auth/google': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content?: never;
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/auth/google/callback': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query: {
-					code?: unknown;
-					state: string;
-					scope?: string;
-					authuser?: string;
-					prompt?: string;
-					error: string;
-					error_description?: string;
-					error_uri?: string;
-				};
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							accessToken: string;
-							user: {
-								id: string;
-								googleSubject: string;
-								email: string;
-								displayName: string | null;
-								timezone: string;
-							};
-							healthSync: {
-								queued: boolean;
-								/** Format: date */
-								from: string;
-								/** Format: date */
-								to: string;
-							};
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				502: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							googleSubject: string;
-							email: string;
-							displayName: string | null;
-							timezone: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						timezone: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							googleSubject: string;
-							email: string;
-							displayName: string | null;
-							timezone: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		trace?: never;
-	};
-	'/api/v1/me/character': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							userId: string;
-							name: string;
-							classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
-							className: string;
-							backgroundKey: 'exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper';
-							backgroundName: string;
-							backgroundTags: ('exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper')[];
-							stats: {
-								strength: number;
-								agility: number;
-								vitality: number;
-								insight: number;
-							};
-							flavorTitle: string;
-							flavorSummary: string;
-							backstory: string;
-							/** Format: date-time */
-							createdAt: string;
-						} | null;
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						name: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				201: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							userId: string;
-							name: string;
-							classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
-							className: string;
-							backgroundKey: 'exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper';
-							backgroundName: string;
-							backgroundTags: ('exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper')[];
-							stats: {
-								strength: number;
-								agility: number;
-								vitality: number;
-								insight: number;
-							};
-							flavorTitle: string;
-							flavorSummary: string;
-							backstory: string;
-							/** Format: date-time */
-							createdAt: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me/character-creation': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json':
-							| {
-									/** @enum {string} */
-									status: 'in_progress';
-									answeredCount: number;
-									/** @enum {number} */
-									totalQuestions: 8;
-									question: {
-										id: string;
-										prompt: string;
-										options: {
-											id: string;
-											label: string;
-										}[];
-									};
-									preview: null;
-							  }
-							| {
-									/** @enum {string} */
-									status: 'ready';
-									/** @enum {number} */
-									answeredCount: 8;
-									/** @enum {number} */
-									totalQuestions: 8;
-									question: null;
-									preview: {
-										classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
-										className: string;
-										backgroundKey: 'exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper';
-										backgroundName: string;
-										backgroundTags: ('exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper')[];
-										stats: {
-											strength: number;
-											agility: number;
-											vitality: number;
-											insight: number;
-										};
-										flavorTitle: string;
-										flavorSummary: string;
-										backstory: string;
-									};
-							  };
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': unknown;
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me/character-creation/answers': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						questionId: string;
-						answerId: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json':
-							| {
-									/** @enum {string} */
-									status: 'in_progress';
-									answeredCount: number;
-									/** @enum {number} */
-									totalQuestions: 8;
-									question: {
-										id: string;
-										prompt: string;
-										options: {
-											id: string;
-											label: string;
-										}[];
-									};
-									preview: null;
-							  }
-							| {
-									/** @enum {string} */
-									status: 'ready';
-									/** @enum {number} */
-									answeredCount: 8;
-									/** @enum {number} */
-									totalQuestions: 8;
-									question: null;
-									preview: {
-										classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
-										className: string;
-										backgroundKey: 'exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper';
-										backgroundName: string;
-										backgroundTags: ('exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper')[];
-										stats: {
-											strength: number;
-											agility: number;
-											vitality: number;
-											insight: number;
-										};
-										flavorTitle: string;
-										flavorSummary: string;
-										backstory: string;
-									};
-							  };
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me/progression': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							userId: string;
-							experience: number;
-							level: number;
-							nextLevelExperience: number;
-							unlocks: {
-								unlockType: 'unlock' | 'milestone';
-								key: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me/inventory': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							currencies: {
-								key: string;
-								kind: 'currency' | 'item' | 'equipment';
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								quantity: number;
-							}[];
-							items: {
-								key: string;
-								kind: 'currency' | 'item' | 'equipment';
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								quantity: number;
-							}[];
-							equipment: {
-								key: string;
-								kind: 'currency' | 'item' | 'equipment';
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								quantity: number;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me/loadout': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							weapon: {
-								slot: 'weapon' | 'armor' | 'accessory';
-								key: string;
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								quantity: number;
-							} | null;
-							armor: {
-								slot: 'weapon' | 'armor' | 'accessory';
-								key: string;
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								quantity: number;
-							} | null;
-							accessory: {
-								slot: 'weapon' | 'armor' | 'accessory';
-								key: string;
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								quantity: number;
-							} | null;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me/loadout/{slot}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					slot: 'weapon' | 'armor' | 'accessory';
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						catalogKey: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							weapon: {
-								slot: 'weapon' | 'armor' | 'accessory';
-								key: string;
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								quantity: number;
-							} | null;
-							armor: {
-								slot: 'weapon' | 'armor' | 'accessory';
-								key: string;
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								quantity: number;
-							} | null;
-							accessory: {
-								slot: 'weapon' | 'armor' | 'accessory';
-								key: string;
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								quantity: number;
-							} | null;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		post?: never;
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					slot: 'weapon' | 'armor' | 'accessory';
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': unknown;
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me/health': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							status: ('active' | 'revoked') | null;
-							lastSyncAt: string | null;
-							healthUserId: string | null;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me/health/sync': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						/** Format: date */
-						from?: string;
-						/** Format: date */
-						to?: string;
-						dataTypes?: ('steps' | 'sleep')[];
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							queued: boolean;
-							/** Format: date */
-							from: string;
-							/** Format: date */
-							to: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/me/progress/{localDate}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					localDate: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							userId: string;
-							/** Format: date */
-							localDate: string;
-							rulesetId: string;
-							steps: number | null;
-							sleepMinutes: number | null;
-							movementUnits: number;
-							recoveryPoints: number;
-							status: 'provisional' | 'complete';
-						} | null;
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									challengeCost: number;
-									landmark?: {
-										key: string;
-									};
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							challengeProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						}[];
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						name: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				201: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									challengeCost: number;
-									landmark?: {
-										key: string;
-									};
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							challengeProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									challengeCost: number;
-									landmark?: {
-										key: string;
-									};
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							challengeProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/map': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							currentChapter: number;
-							currentNodeId: string;
-							currentMap: {
-								id: string;
-								mapType: 'overworld' | 'village' | 'dungeon';
-								name: string;
-								templateKey: string;
-								parentNodeId: string | null;
-								entryNodeId: string;
-							};
-							enterableLocation: {
-								id: string;
-								mapType: 'overworld' | 'village' | 'dungeon';
-								name: string;
-								templateKey: string;
-								parentNodeId: string | null;
-								entryNodeId: string;
-							} | null;
-							nodes: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									challengeCost: number;
-									landmark?: {
-										key: string;
-									};
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								} | null;
-								mapMetadata: {
-									mapId: string;
-									nodeId: string;
-									floorNo: number;
-									role:
-										| 'overworld'
-										| 'entrance'
-										| 'hub'
-										| 'room'
-										| 'puzzle'
-										| 'combat'
-										| 'treasure'
-										| 'rest'
-										| 'shop'
-										| 'story'
-										| 'shortcut'
-										| 'goal'
-										| 'exit'
-										| 'boss';
-									sortOrder: number;
-									isEntry: boolean;
-									isExit: boolean;
-								};
-							}[];
-							edges: {
-								id: string;
-								fromNodeId: string;
-								toNodeId: string;
-								optionKey: string;
-								sortOrder: number;
-							}[];
-							objectives: {
-								id: string;
-								mapId: string;
-								key: string;
-								type: 'reach-node' | 'resolve-event' | 'collect-reward' | 'defeat-boss' | 'explore';
-								targetNodeId: string | null;
-								required: boolean;
-								displayName: string;
-								description: string;
-							}[];
-							completedObjectiveIds: string[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/locations/{locationId}/enter': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-					locationId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									challengeCost: number;
-									landmark?: {
-										key: string;
-									};
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							challengeProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/roster': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-								character: {
-									name: string;
-									classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
-									className: string;
-									backgroundKey: 'exile' | 'caretaker' | 'scholar' | 'wanderer' | 'artisan' | 'oathkeeper';
-									backgroundName: string;
-									stats: {
-										strength: number;
-										agility: number;
-										vitality: number;
-										insight: number;
-									};
-								} | null;
-								progression: {
-									experience: number;
-									level: number;
-									nextLevelExperience: number;
-								};
-								health: {
-									currentHealth: number;
-									maxHealth: number;
-								} | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/adventure': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							currentNodeId: string;
-							land: {
-								key: string;
-								chapterNo: number;
-								displayName: string;
-								description: string;
-							};
-							currentObjective: {
-								key: string;
-								displayName: string;
-								description: string;
-								landmarkKey: string;
-							} | null;
-							history: {
-								landKey: string;
-								objectiveKey: string;
-								displayName: string;
-								description: string;
-								landmarkKey: string;
-								nodeId: string;
-								/** Format: date-time */
-								completedAt: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/progress': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							/** Format: date */
-							worldDate: string;
-							movementUnits: number;
-							movementCost: number;
-							movementSatisfied: boolean;
-							recoveryPoints: number;
-							challengeContribution: number;
-							challengeProgress: number;
-							challengeCost: number;
-							challengeCleared: boolean;
-							status: 'provisional' | 'complete';
-							members: {
-								userId: string;
-								movementUnits: number;
-								recoveryPoints: number;
-								status: 'provisional' | 'complete';
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/recap': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							/** Format: date */
-							worldDate: string;
-							/** Format: date-time */
-							resolvedAt: string;
-							resolution: {
-								sourceNode: {
-									id: string;
-									name: string;
-									nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								};
-								destinationNode: {
-									id: string;
-									name: string;
-									nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								};
-								outcome: 'advanced' | 'held' | 'route-selected';
-								movement: {
-									units: number;
-									cost: number;
-									satisfied: boolean;
-								};
-								recoveryPoints: number;
-								challenge: {
-									progressBefore: number;
-									contribution: number;
-									progressAfter: number;
-									cost: number;
-									cleared: boolean;
-								};
-								route: {
-									edgeId: string;
-									optionKey: string;
-									reason: 'majority' | 'deadline';
-								} | null;
-								event: {
-									eventType: 'combat' | 'treasure' | 'narrative' | 'rest' | 'village';
-									outcome: 'succeeded' | 'failed' | 'ongoing';
-									selectedChoiceKey: string | null;
-									selectionReason: 'majority' | 'deadline' | null;
-								} | null;
-								combat: {
-									completed: boolean;
-									members: {
-										userId: string;
-										displayName: string;
-										actionKey: ('shield-wall' | 'ambush' | 'volley' | 'mend' | 'arcane-burst' | 'rally') | null;
-										actionName: string;
-										healthBefore: number;
-										recovery: number;
-										actionHealing: number;
-										damageTaken: number;
-										healthAfter: number;
-										maxHealth: number;
-									}[];
-									enemies: {
-										id: string;
-										displayName: string;
-										healthBefore: number;
-										damageTaken: number;
-										healthAfter: number;
-										maxHealth: number;
-										defeated: boolean;
-									}[];
-								} | null;
-								rewards: {
-									experience?: number;
-									unlockKey?: string;
-									milestoneKey?: string;
-									currency?: {
-										key: string;
-										amount: number;
-									};
-									item?: {
-										key: string;
-										quantity: number;
-									};
-									equipment?: {
-										key: string;
-									};
-								}[];
-							};
-						} | null;
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/progression': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: {
-					limit?: number;
-					cursor?: string;
-				};
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							items: {
-								id: string;
-								partyId: string;
-								nodeId: string;
-								nodeName: string;
-								resolutionId: string;
-								rewardIndex: number;
-								reward: {
-									experience?: number;
-									unlockKey?: string;
-									milestoneKey?: string;
-									currency?: {
-										key: string;
-										amount: number;
-									};
-									item?: {
-										key: string;
-										quantity: number;
-									};
-									equipment?: {
-										key: string;
-									};
-								};
-								/** Format: date-time */
-								createdAt: string;
-							}[];
-							nextCursor: string | null;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/branch-votes/{nodeId}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-					nodeId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							accepted: boolean;
-							partyId: string;
-							nodeId: string;
-							/** Format: date-time */
-							deadlineAt: string;
-							resolvedEdgeId: string | null;
-							votes: {
-								userId: string;
-								edgeId: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-					nodeId: string;
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						edgeId: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							accepted: boolean;
-							partyId: string;
-							nodeId: string;
-							/** Format: date-time */
-							deadlineAt: string;
-							resolvedEdgeId: string | null;
-							votes: {
-								userId: string;
-								edgeId: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/party-memberships': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						inviteToken: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									challengeCost: number;
-									landmark?: {
-										key: string;
-									};
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							challengeProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				201: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									challengeCost: number;
-									landmark?: {
-										key: string;
-									};
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							challengeProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/invites': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				201: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							partyId: string;
-							token: string;
-							/** Format: date-time */
-							expiresAt: string;
-							maxUses: number;
-							useCount: number;
-							revokedAt: string | null;
-							/** Format: date-time */
-							createdAt: string;
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/invites/{inviteId}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-					inviteId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': unknown;
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/members/me': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': unknown;
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/members/{memberUserId}': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post?: never;
-		delete: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-					memberUserId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									challengeCost: number;
-									landmark?: {
-										key: string;
-									};
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							challengeProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/leader': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						targetUserId: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							id: string;
-							name: string;
-							status: 'active' | 'abandoned';
-							memberCapacity: number;
-							currentNode: {
-								id: string;
-								chapterNo: number;
-								regionNo: number;
-								name: string;
-								nodeType: 'travel' | 'dungeon' | 'challenge' | 'rest' | 'combat' | 'treasure' | 'narrative' | 'village';
-								templateKey: string;
-								config: {
-									movementCost: number;
-									challengeCost: number;
-									landmark?: {
-										key: string;
-									};
-									event?:
-										| {
-												/** @enum {string} */
-												eventType: 'combat';
-										  }
-										| {
-												eventType: 'treasure' | 'narrative' | 'rest';
-												prompt: string;
-												choices: {
-													key: string;
-													displayName: string;
-													description: string;
-													requirements: {
-														movementUnits: number;
-														recoveryPoints: number;
-													};
-												}[];
-										  }
-										| {
-												/** @enum {string} */
-												eventType: 'village';
-												settlementKey: string;
-										  };
-								};
-							};
-							challengeProgress: number;
-							decisionStartedAt: string | null;
-							members: {
-								userId: string;
-								role: 'leader' | 'member';
-								displayName: string | null;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/village': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							settlement: {
-								key: string;
-								displayName: string;
-								description: string;
-							};
-							merchant: {
-								key: string;
-								displayName: string;
-								role: string;
-							};
-							currency: {
-								key: string;
-								displayName: string;
-								balance: number;
-							};
-							offers: {
-								key: string;
-								kind: 'item' | 'equipment';
-								displayName: string;
-								details: {
-									description: string;
-									equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-									effect:
-										| {
-												/** @enum {string} */
-												kind: 'heal';
-												amount: number;
-										  }
-										| {
-												/** @enum {string} */
-												kind: 'stat-modifiers';
-												modifiers: {
-													strength?: number;
-													agility?: number;
-													vitality?: number;
-													insight?: number;
-												};
-										  }
-										| null;
-								};
-								currencyKey: string;
-								unitPrice: number;
-								ownedQuantity: number;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/village/purchases': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						catalogKey: string;
-						quantity: number;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							itemKey: string;
-							displayName: string;
-							details: {
-								description: string;
-								equipmentSlot: ('weapon' | 'armor' | 'accessory') | null;
-								effect:
-									| {
-											/** @enum {string} */
-											kind: 'heal';
-											amount: number;
-									  }
-									| {
-											/** @enum {string} */
-											kind: 'stat-modifiers';
-											modifiers: {
-												strength?: number;
-												agility?: number;
-												vitality?: number;
-												insight?: number;
-											};
-									  }
-									| null;
-							};
-							quantity: number;
-							unitPrice: number;
-							totalPrice: number;
-							currency: {
-								key: string;
-								displayName: string;
-								remainingBalance: number;
-							};
-							inventoryQuantity: number;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/village/departures': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							accepted: boolean;
-							partyId: string;
-							nodeId: string;
-							/** Format: date-time */
-							deadlineAt: string;
-							resolvedEdgeId: string | null;
-							votes: {
-								userId: string;
-								edgeId: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/encounter': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							/** Format: date */
-							worldDate: string;
-							status: 'active' | 'completed';
-							enemies: {
-								id: string;
-								archetypeKey: string;
-								displayName: string;
-								maxHealth: number;
-								currentHealth: number;
-							}[];
-							members: {
-								userId: string;
-								currentHealth: number;
-								maxHealth: number;
-								classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
-								signatureAction: {
-									key: 'shield-wall' | 'ambush' | 'volley' | 'mend' | 'arcane-burst' | 'rally';
-									displayName: string;
-									description: string;
-									targetMode: 'enemy' | 'ally' | 'none';
-								};
-								selectedActionKey: ('shield-wall' | 'ambush' | 'volley' | 'mend' | 'arcane-burst' | 'rally') | null;
-								actionMode: 'ability' | 'basic';
-								targetEnemyId: string | null;
-								targetUserId: string | null;
-								targetMode: 'manual' | 'auto' | 'none';
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/encounter/actions/me': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						actionKey: ('shield-wall' | 'ambush' | 'volley' | 'mend' | 'arcane-burst' | 'rally') | null;
-						targetEnemyId: string | null;
-						targetUserId: string | null;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							/** Format: date */
-							worldDate: string;
-							status: 'active' | 'completed';
-							enemies: {
-								id: string;
-								archetypeKey: string;
-								displayName: string;
-								maxHealth: number;
-								currentHealth: number;
-							}[];
-							members: {
-								userId: string;
-								currentHealth: number;
-								maxHealth: number;
-								classKey: 'warrior' | 'rogue' | 'ranger' | 'cleric' | 'mage' | 'bard';
-								signatureAction: {
-									key: 'shield-wall' | 'ambush' | 'volley' | 'mend' | 'arcane-burst' | 'rally';
-									displayName: string;
-									description: string;
-									targetMode: 'enemy' | 'ally' | 'none';
-								};
-								selectedActionKey: ('shield-wall' | 'ambush' | 'volley' | 'mend' | 'arcane-burst' | 'rally') | null;
-								actionMode: 'ability' | 'basic';
-								targetEnemyId: string | null;
-								targetUserId: string | null;
-								targetMode: 'manual' | 'auto' | 'none';
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/item-uses': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						itemKey: string;
-						targetUserId: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							itemKey: string;
-							targetUserId: string;
-							healedAmount: number;
-							currentHealth: number;
-							maxHealth: number;
-							remainingQuantity: number;
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/event': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							/** Format: date */
-							worldDate: string;
-							eventType: 'narrative' | 'treasure' | 'rest';
-							prompt: string;
-							choices: {
-								key: string;
-								displayName: string;
-								description: string;
-								requirements: {
-									movementUnits: number;
-									recoveryPoints: number;
-								};
-							}[];
-							selectedChoiceKey: string | null;
-							votes: {
-								userId: string;
-								choiceKey: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/parties/{partyId}/event/choices/me': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path: {
-					partyId: string;
-				};
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json': {
-						choiceKey: string;
-					};
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': {
-							partyId: string;
-							nodeId: string;
-							/** Format: date */
-							worldDate: string;
-							eventType: 'narrative' | 'treasure' | 'rest';
-							prompt: string;
-							choices: {
-								key: string;
-								displayName: string;
-								description: string;
-								requirements: {
-									movementUnits: number;
-									recoveryPoints: number;
-								};
-							}[];
-							selectedChoiceKey: string | null;
-							votes: {
-								userId: string;
-								choiceKey: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				403: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				404: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				409: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
-	'/api/v1/integrations/google-health/webhook': {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get?: never;
-		put?: never;
-		post: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody: {
-				content: {
-					'application/json':
-						| {
-								data: {
-									/** @enum {string} */
-									version: '1';
-									clientProvidedSubscriptionName: string;
-									healthUserId: string;
-									operation: 'UPSERT' | 'DELETE';
-									dataType: 'steps' | 'sleep';
-									intervals: {
-										physicalTimeInterval: {
-											startTime: string;
-											endTime: string;
-										};
-										civilIso8601TimeInterval: {
-											startTime: string;
-											endTime: string;
-										};
-										civilDateTimeInterval?: {
-											startDateTime: {
-												date: {
-													year: number;
-													month: number;
-													day: number;
-												};
-												time?: {
-													hours?: number;
-													minutes?: number;
-													seconds?: number;
-													nanos?: number;
-												};
-											};
-											endDateTime: {
-												date: {
-													year: number;
-													month: number;
-													day: number;
-												};
-												time?: {
-													hours?: number;
-													minutes?: number;
-													seconds?: number;
-													nanos?: number;
-												};
-											};
-										};
-									}[];
-									recordId?: string;
-								};
-						  }
-						| {
-								/** @enum {string} */
-								type: 'verification';
-						  };
-				};
-			};
-			responses: {
-				/** @description Default Response */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': unknown;
-					};
-				};
-				/** @description Default Response */
-				204: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/json': unknown;
-					};
-				};
-				/** @description Default Response */
-				400: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-				/** @description Default Response */
-				401: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						'application/problem+json': {
-							type: string;
-							title: string;
-							status: number;
-							detail: string;
-							instance?: string;
-							invalidParams?: {
-								name: string;
-								reason: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
+    "/healthz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            status: "ok";
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/readyz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            status: "ready";
+                        };
+                    };
+                };
+                /** @description Default Response */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/google/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query: {
+                    code?: unknown;
+                    state: string;
+                    scope?: string;
+                    authuser?: string;
+                    prompt?: string;
+                    error: string;
+                    error_description?: string;
+                    error_uri?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            accessToken: string;
+                            user: {
+                                id: string;
+                                googleSubject: string;
+                                email: string;
+                                displayName: string | null;
+                                timezone: string;
+                            };
+                            healthSync: {
+                                queued: boolean;
+                                /** Format: date */
+                                from: string;
+                                /** Format: date */
+                                to: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            googleSubject: string;
+                            email: string;
+                            displayName: string | null;
+                            timezone: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        timezone: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            googleSubject: string;
+                            email: string;
+                            displayName: string | null;
+                            timezone: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/api/v1/me/character": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            userId: string;
+                            name: string;
+                            classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
+                            className: string;
+                            backgroundKey: "exile" | "caretaker" | "scholar" | "wanderer" | "artisan" | "oathkeeper";
+                            backgroundName: string;
+                            backgroundTags: ("exile" | "caretaker" | "scholar" | "wanderer" | "artisan" | "oathkeeper")[];
+                            stats: {
+                                strength: number;
+                                agility: number;
+                                vitality: number;
+                                insight: number;
+                            };
+                            flavorTitle: string;
+                            flavorSummary: string;
+                            backstory: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                        } | null;
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            userId: string;
+                            name: string;
+                            classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
+                            className: string;
+                            backgroundKey: "exile" | "caretaker" | "scholar" | "wanderer" | "artisan" | "oathkeeper";
+                            backgroundName: string;
+                            backgroundTags: ("exile" | "caretaker" | "scholar" | "wanderer" | "artisan" | "oathkeeper")[];
+                            stats: {
+                                strength: number;
+                                agility: number;
+                                vitality: number;
+                                insight: number;
+                            };
+                            flavorTitle: string;
+                            flavorSummary: string;
+                            backstory: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/character-creation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            status: "in_progress";
+                            answeredCount: number;
+                            /** @enum {number} */
+                            totalQuestions: 8;
+                            question: {
+                                id: string;
+                                prompt: string;
+                                options: {
+                                    id: string;
+                                    label: string;
+                                }[];
+                            };
+                            preview: null;
+                        } | {
+                            /** @enum {string} */
+                            status: "ready";
+                            /** @enum {number} */
+                            answeredCount: 8;
+                            /** @enum {number} */
+                            totalQuestions: 8;
+                            question: null;
+                            preview: {
+                                classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
+                                className: string;
+                                backgroundKey: "exile" | "caretaker" | "scholar" | "wanderer" | "artisan" | "oathkeeper";
+                                backgroundName: string;
+                                backgroundTags: ("exile" | "caretaker" | "scholar" | "wanderer" | "artisan" | "oathkeeper")[];
+                                stats: {
+                                    strength: number;
+                                    agility: number;
+                                    vitality: number;
+                                    insight: number;
+                                };
+                                flavorTitle: string;
+                                flavorSummary: string;
+                                backstory: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/character-creation/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        questionId: string;
+                        answerId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            status: "in_progress";
+                            answeredCount: number;
+                            /** @enum {number} */
+                            totalQuestions: 8;
+                            question: {
+                                id: string;
+                                prompt: string;
+                                options: {
+                                    id: string;
+                                    label: string;
+                                }[];
+                            };
+                            preview: null;
+                        } | {
+                            /** @enum {string} */
+                            status: "ready";
+                            /** @enum {number} */
+                            answeredCount: 8;
+                            /** @enum {number} */
+                            totalQuestions: 8;
+                            question: null;
+                            preview: {
+                                classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
+                                className: string;
+                                backgroundKey: "exile" | "caretaker" | "scholar" | "wanderer" | "artisan" | "oathkeeper";
+                                backgroundName: string;
+                                backgroundTags: ("exile" | "caretaker" | "scholar" | "wanderer" | "artisan" | "oathkeeper")[];
+                                stats: {
+                                    strength: number;
+                                    agility: number;
+                                    vitality: number;
+                                    insight: number;
+                                };
+                                flavorTitle: string;
+                                flavorSummary: string;
+                                backstory: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/progression": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            userId: string;
+                            experience: number;
+                            level: number;
+                            nextLevelExperience: number;
+                            unlocks: {
+                                unlockType: "unlock" | "milestone";
+                                key: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/inventory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            currencies: {
+                                key: string;
+                                kind: "currency" | "item" | "equipment";
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            }[];
+                            items: {
+                                key: string;
+                                kind: "currency" | "item" | "equipment";
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            }[];
+                            equipment: {
+                                key: string;
+                                kind: "currency" | "item" | "equipment";
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/loadout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            weapon: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            body: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            head: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            arm: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            boots: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            ring: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            shirt: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/loadout/{slot}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        catalogKey: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            weapon: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            body: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            head: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            arm: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            boots: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            ring: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                            shirt: {
+                                slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                                key: string;
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                quantity: number;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slot: "weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            status: ("active" | "revoked") | null;
+                            lastSyncAt: string | null;
+                            healthUserId: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/health/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        from?: string;
+                        /** Format: date */
+                        to?: string;
+                        dataTypes?: ("steps" | "sleep")[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            queued: boolean;
+                            /** Format: date */
+                            from: string;
+                            /** Format: date */
+                            to: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/progress/{localDate}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    localDate: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            userId: string;
+                            /** Format: date */
+                            localDate: string;
+                            rulesetId: string;
+                            steps: number | null;
+                            sleepMinutes: number | null;
+                            movementUnits: number;
+                            recoveryPoints: number;
+                            status: "provisional" | "complete";
+                        } | null;
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            status: "active" | "abandoned";
+                            memberCapacity: number;
+                            currentNode: {
+                                id: string;
+                                chapterNo: number;
+                                regionNo: number;
+                                name: string;
+                                nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                templateKey: string;
+                                config: {
+                                    movementCost: number;
+                                    challengeCost: number;
+                                    landmark?: {
+                                        key: string;
+                                    };
+                                    event?: {
+                                        /** @enum {string} */
+                                        eventType: "combat";
+                                    } | {
+                                        eventType: "treasure" | "narrative" | "rest";
+                                        prompt: string;
+                                        choices: {
+                                            key: string;
+                                            displayName: string;
+                                            description: string;
+                                            requirements: {
+                                                movementUnits: number;
+                                                recoveryPoints: number;
+                                            };
+                                        }[];
+                                    } | {
+                                        /** @enum {string} */
+                                        eventType: "village";
+                                        settlementKey: string;
+                                    };
+                                };
+                            };
+                            challengeProgress: number;
+                            tileBalance: number;
+                            decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
+                            members: {
+                                userId: string;
+                                role: "leader" | "member";
+                                displayName: string | null;
+                            }[];
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            status: "active" | "abandoned";
+                            memberCapacity: number;
+                            currentNode: {
+                                id: string;
+                                chapterNo: number;
+                                regionNo: number;
+                                name: string;
+                                nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                templateKey: string;
+                                config: {
+                                    movementCost: number;
+                                    challengeCost: number;
+                                    landmark?: {
+                                        key: string;
+                                    };
+                                    event?: {
+                                        /** @enum {string} */
+                                        eventType: "combat";
+                                    } | {
+                                        eventType: "treasure" | "narrative" | "rest";
+                                        prompt: string;
+                                        choices: {
+                                            key: string;
+                                            displayName: string;
+                                            description: string;
+                                            requirements: {
+                                                movementUnits: number;
+                                                recoveryPoints: number;
+                                            };
+                                        }[];
+                                    } | {
+                                        /** @enum {string} */
+                                        eventType: "village";
+                                        settlementKey: string;
+                                    };
+                                };
+                            };
+                            challengeProgress: number;
+                            tileBalance: number;
+                            decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
+                            members: {
+                                userId: string;
+                                role: "leader" | "member";
+                                displayName: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            status: "active" | "abandoned";
+                            memberCapacity: number;
+                            currentNode: {
+                                id: string;
+                                chapterNo: number;
+                                regionNo: number;
+                                name: string;
+                                nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                templateKey: string;
+                                config: {
+                                    movementCost: number;
+                                    challengeCost: number;
+                                    landmark?: {
+                                        key: string;
+                                    };
+                                    event?: {
+                                        /** @enum {string} */
+                                        eventType: "combat";
+                                    } | {
+                                        eventType: "treasure" | "narrative" | "rest";
+                                        prompt: string;
+                                        choices: {
+                                            key: string;
+                                            displayName: string;
+                                            description: string;
+                                            requirements: {
+                                                movementUnits: number;
+                                                recoveryPoints: number;
+                                            };
+                                        }[];
+                                    } | {
+                                        /** @enum {string} */
+                                        eventType: "village";
+                                        settlementKey: string;
+                                    };
+                                };
+                            };
+                            challengeProgress: number;
+                            tileBalance: number;
+                            decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
+                            members: {
+                                userId: string;
+                                role: "leader" | "member";
+                                displayName: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/map": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            currentChapter: number;
+                            currentNodeId: string;
+                            currentMap: {
+                                id: string;
+                                mapType: "overworld" | "village" | "dungeon";
+                                name: string;
+                                templateKey: string;
+                                parentNodeId: string | null;
+                                entryNodeId: string;
+                            };
+                            enterableLocation: {
+                                id: string;
+                                mapType: "overworld" | "village" | "dungeon";
+                                name: string;
+                                templateKey: string;
+                                parentNodeId: string | null;
+                                entryNodeId: string;
+                            } | null;
+                            nodes: {
+                                id: string;
+                                chapterNo: number;
+                                regionNo: number;
+                                name: string;
+                                nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                templateKey: string;
+                                config: {
+                                    movementCost: number;
+                                    challengeCost: number;
+                                    landmark?: {
+                                        key: string;
+                                    };
+                                    event?: {
+                                        /** @enum {string} */
+                                        eventType: "combat";
+                                    } | {
+                                        eventType: "treasure" | "narrative" | "rest";
+                                        prompt: string;
+                                        choices: {
+                                            key: string;
+                                            displayName: string;
+                                            description: string;
+                                            requirements: {
+                                                movementUnits: number;
+                                                recoveryPoints: number;
+                                            };
+                                        }[];
+                                    } | {
+                                        /** @enum {string} */
+                                        eventType: "village";
+                                        settlementKey: string;
+                                    };
+                                } | null;
+                                mapMetadata: {
+                                    mapId: string;
+                                    nodeId: string;
+                                    floorNo: number;
+                                    role: "overworld" | "entrance" | "hub" | "room" | "puzzle" | "combat" | "treasure" | "rest" | "shop" | "story" | "shortcut" | "goal" | "exit" | "boss";
+                                    sortOrder: number;
+                                    isEntry: boolean;
+                                    isExit: boolean;
+                                    tileX: number | null;
+                                    tileY: number | null;
+                                    spawnArchetype: string | null;
+                                };
+                                discovered: boolean;
+                                encounterCleared: boolean;
+                            }[];
+                            edges: {
+                                id: string;
+                                fromNodeId: string;
+                                toNodeId: string;
+                                optionKey: string;
+                                sortOrder: number;
+                            }[];
+                            objectives: {
+                                id: string;
+                                mapId: string;
+                                key: string;
+                                type: "reach-node" | "resolve-event" | "collect-reward" | "defeat-boss" | "explore";
+                                targetNodeId: string | null;
+                                required: boolean;
+                                displayName: string;
+                                description: string;
+                            }[];
+                            completedObjectiveIds: string[];
+                            tileBalance: number;
+                            monsters: {
+                                id: string;
+                                nodeId: string;
+                                floorNo: number;
+                                archetypeKey: string;
+                                displayName: string;
+                                mode: "wandering" | "chasing";
+                            }[];
+                            navigation: {
+                                navigatorUserId: string | null;
+                                navigatorDisplayName: string | null;
+                                claimedAt: string | null;
+                                lastActiveAt: string | null;
+                                leaseExpiresAt: string | null;
+                                routeIntent: {
+                                    policy: "mission" | "explore" | "treasure" | "rest";
+                                    setByUserId: string | null;
+                                    setAt: string | null;
+                                } | null;
+                                routeVotes: {
+                                    userId: string;
+                                    policy: "mission" | "explore" | "treasure" | "rest";
+                                    /** Format: date-time */
+                                    votedAt: string;
+                                }[];
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/locations/{locationId}/enter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                    locationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            status: "active" | "abandoned";
+                            memberCapacity: number;
+                            currentNode: {
+                                id: string;
+                                chapterNo: number;
+                                regionNo: number;
+                                name: string;
+                                nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                templateKey: string;
+                                config: {
+                                    movementCost: number;
+                                    challengeCost: number;
+                                    landmark?: {
+                                        key: string;
+                                    };
+                                    event?: {
+                                        /** @enum {string} */
+                                        eventType: "combat";
+                                    } | {
+                                        eventType: "treasure" | "narrative" | "rest";
+                                        prompt: string;
+                                        choices: {
+                                            key: string;
+                                            displayName: string;
+                                            description: string;
+                                            requirements: {
+                                                movementUnits: number;
+                                                recoveryPoints: number;
+                                            };
+                                        }[];
+                                    } | {
+                                        /** @enum {string} */
+                                        eventType: "village";
+                                        settlementKey: string;
+                                    };
+                                };
+                            };
+                            challengeProgress: number;
+                            tileBalance: number;
+                            decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
+                            members: {
+                                userId: string;
+                                role: "leader" | "member";
+                                displayName: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/dungeon/walk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        mode: "auto";
+                    } | {
+                        /** @enum {string} */
+                        mode: "manual";
+                        steps: [
+                            "up" | "down" | "left" | "right"
+                        ];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            nodeId: string;
+                            tileBalance: number;
+                            stepsTaken: number;
+                            pathNodeIds: string[];
+                            revealedCount: number;
+                            floorChanged: boolean;
+                            encounterTriggeredNodeId: string | null;
+                            haltedReason: ("pinned-encounter" | "insufficient-balance" | "wall" | "step-cap" | "event" | "encounter" | "boss" | "retreat" | "checkpoint" | "safe-boundary") | null;
+                            monsterMoves: {
+                                monsterId: string;
+                                fromNodeId: string | null;
+                                toNodeId: string | null;
+                                mode: "wandering" | "chasing";
+                            }[];
+                            navigation: {
+                                navigatorUserId: string | null;
+                                navigatorDisplayName: string | null;
+                                claimedAt: string | null;
+                                lastActiveAt: string | null;
+                                leaseExpiresAt: string | null;
+                                routeIntent: {
+                                    policy: "mission" | "explore" | "treasure" | "rest";
+                                    setByUserId: string | null;
+                                    setAt: string | null;
+                                } | null;
+                                routeVotes: {
+                                    userId: string;
+                                    policy: "mission" | "explore" | "treasure" | "rest";
+                                    /** Format: date-time */
+                                    votedAt: string;
+                                }[];
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/dungeon/navigator/claim": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            navigatorUserId: string | null;
+                            navigatorDisplayName: string | null;
+                            claimedAt: string | null;
+                            lastActiveAt: string | null;
+                            leaseExpiresAt: string | null;
+                            routeIntent: {
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                setByUserId: string | null;
+                                setAt: string | null;
+                            } | null;
+                            routeVotes: {
+                                userId: string;
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                /** Format: date-time */
+                                votedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/dungeon/navigator/release": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            navigatorUserId: string | null;
+                            navigatorDisplayName: string | null;
+                            claimedAt: string | null;
+                            lastActiveAt: string | null;
+                            leaseExpiresAt: string | null;
+                            routeIntent: {
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                setByUserId: string | null;
+                                setAt: string | null;
+                            } | null;
+                            routeVotes: {
+                                userId: string;
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                /** Format: date-time */
+                                votedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/dungeon/navigator": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        targetUserId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            navigatorUserId: string | null;
+                            navigatorDisplayName: string | null;
+                            claimedAt: string | null;
+                            lastActiveAt: string | null;
+                            leaseExpiresAt: string | null;
+                            routeIntent: {
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                setByUserId: string | null;
+                                setAt: string | null;
+                            } | null;
+                            routeVotes: {
+                                userId: string;
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                /** Format: date-time */
+                                votedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/dungeon/route-votes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        policy: "mission" | "explore" | "treasure" | "rest";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            navigatorUserId: string | null;
+                            navigatorDisplayName: string | null;
+                            claimedAt: string | null;
+                            lastActiveAt: string | null;
+                            leaseExpiresAt: string | null;
+                            routeIntent: {
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                setByUserId: string | null;
+                                setAt: string | null;
+                            } | null;
+                            routeVotes: {
+                                userId: string;
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                /** Format: date-time */
+                                votedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/dungeon/route-intent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        policy: "mission" | "explore" | "treasure" | "rest";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            navigatorUserId: string | null;
+                            navigatorDisplayName: string | null;
+                            claimedAt: string | null;
+                            lastActiveAt: string | null;
+                            leaseExpiresAt: string | null;
+                            routeIntent: {
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                setByUserId: string | null;
+                                setAt: string | null;
+                            } | null;
+                            routeVotes: {
+                                userId: string;
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                /** Format: date-time */
+                                votedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            navigatorUserId: string | null;
+                            navigatorDisplayName: string | null;
+                            claimedAt: string | null;
+                            lastActiveAt: string | null;
+                            leaseExpiresAt: string | null;
+                            routeIntent: {
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                setByUserId: string | null;
+                                setAt: string | null;
+                            } | null;
+                            routeVotes: {
+                                userId: string;
+                                policy: "mission" | "explore" | "treasure" | "rest";
+                                /** Format: date-time */
+                                votedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/roster": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            members: {
+                                userId: string;
+                                role: "leader" | "member";
+                                displayName: string | null;
+                                character: {
+                                    name: string;
+                                    classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
+                                    className: string;
+                                    backgroundKey: "exile" | "caretaker" | "scholar" | "wanderer" | "artisan" | "oathkeeper";
+                                    backgroundName: string;
+                                    stats: {
+                                        strength: number;
+                                        agility: number;
+                                        vitality: number;
+                                        insight: number;
+                                    };
+                                    combatStats: {
+                                        strength: number;
+                                        agility: number;
+                                        vitality: number;
+                                        insight: number;
+                                        defense: number;
+                                    };
+                                } | null;
+                                progression: {
+                                    experience: number;
+                                    level: number;
+                                    nextLevelExperience: number;
+                                };
+                                health: {
+                                    currentHealth: number;
+                                    maxHealth: number;
+                                } | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/adventure": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            currentNodeId: string;
+                            land: {
+                                key: string;
+                                chapterNo: number;
+                                displayName: string;
+                                description: string;
+                            };
+                            currentObjective: {
+                                key: string;
+                                displayName: string;
+                                description: string;
+                                landmarkKey: string;
+                            } | null;
+                            history: {
+                                landKey: string;
+                                objectiveKey: string;
+                                displayName: string;
+                                description: string;
+                                landmarkKey: string;
+                                nodeId: string;
+                                /** Format: date-time */
+                                completedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            nodeId: string;
+                            /** Format: date */
+                            worldDate: string;
+                            movementUnits: number;
+                            movementCost: number;
+                            movementSatisfied: boolean;
+                            recoveryPoints: number;
+                            challengeContribution: number;
+                            challengeProgress: number;
+                            challengeCost: number;
+                            challengeCleared: boolean;
+                            status: "provisional" | "complete";
+                            members: {
+                                userId: string;
+                                movementUnits: number;
+                                recoveryPoints: number;
+                                status: "provisional" | "complete";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/recap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            /** Format: date */
+                            worldDate: string;
+                            /** Format: date-time */
+                            resolvedAt: string;
+                            resolution: {
+                                sourceNode: {
+                                    id: string;
+                                    name: string;
+                                    nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                };
+                                destinationNode: {
+                                    id: string;
+                                    name: string;
+                                    nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                };
+                                outcome: "advanced" | "held" | "route-selected" | "returned";
+                                movement: {
+                                    units: number;
+                                    cost: number;
+                                    satisfied: boolean;
+                                };
+                                recoveryPoints: number;
+                                challenge: {
+                                    progressBefore: number;
+                                    contribution: number;
+                                    progressAfter: number;
+                                    cost: number;
+                                    cleared: boolean;
+                                };
+                                route: {
+                                    edgeId: string;
+                                    optionKey: string;
+                                    reason: "majority" | "deadline";
+                                } | null;
+                                event: {
+                                    eventType: "combat" | "treasure" | "narrative" | "rest" | "village";
+                                    outcome: "succeeded" | "failed" | "ongoing";
+                                    selectedChoiceKey: string | null;
+                                    selectionReason: "majority" | "deadline" | null;
+                                } | null;
+                                combats: {
+                                    completed: boolean;
+                                    members: {
+                                        userId: string;
+                                        displayName: string;
+                                        classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
+                                        cards: {
+                                            key: string;
+                                            displayName: string;
+                                        }[];
+                                        healthBefore: number;
+                                        recovery: number;
+                                        cardHealing: number;
+                                        damageTaken: number;
+                                        healthAfter: number;
+                                        maxHealth: number;
+                                    }[];
+                                    enemies: {
+                                        id: string;
+                                        archetypeKey: string;
+                                        displayName: string;
+                                        healthBefore: number;
+                                        damageTaken: number;
+                                        healthAfter: number;
+                                        maxHealth: number;
+                                        defeated: boolean;
+                                    }[];
+                                }[];
+                                rewards: {
+                                    experience?: number;
+                                    unlockKey?: string;
+                                    milestoneKey?: string;
+                                    currency?: {
+                                        key: string;
+                                        amount: number;
+                                    };
+                                    item?: {
+                                        key: string;
+                                        quantity: number;
+                                    };
+                                    equipment?: {
+                                        key: string;
+                                    };
+                                }[];
+                                navigation: {
+                                    /** @enum {string} */
+                                    mode: "safe-autopilot";
+                                    policy: "mission" | "explore" | "treasure" | "rest";
+                                    retreating: boolean;
+                                    steps: number;
+                                    haltedReason: "pinned-encounter" | "insufficient-balance" | "wall" | "step-cap" | "event" | "encounter" | "boss" | "retreat" | "checkpoint" | "safe-boundary";
+                                } | null;
+                            };
+                        } | null;
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/progression": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    cursor?: string;
+                };
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                id: string;
+                                partyId: string;
+                                nodeId: string;
+                                nodeName: string;
+                                resolutionId: string;
+                                rewardIndex: number;
+                                reward: {
+                                    experience?: number;
+                                    unlockKey?: string;
+                                    milestoneKey?: string;
+                                    currency?: {
+                                        key: string;
+                                        amount: number;
+                                    };
+                                    item?: {
+                                        key: string;
+                                        quantity: number;
+                                    };
+                                    equipment?: {
+                                        key: string;
+                                    };
+                                };
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                            nextCursor: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/branch-votes/{nodeId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                    nodeId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            accepted: boolean;
+                            partyId: string;
+                            nodeId: string;
+                            /** Format: date-time */
+                            deadlineAt: string;
+                            resolvedEdgeId: string | null;
+                            votes: {
+                                userId: string;
+                                edgeId: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                    nodeId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        edgeId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            accepted: boolean;
+                            partyId: string;
+                            nodeId: string;
+                            /** Format: date-time */
+                            deadlineAt: string;
+                            resolvedEdgeId: string | null;
+                            votes: {
+                                userId: string;
+                                edgeId: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/party-memberships": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        inviteToken: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            status: "active" | "abandoned";
+                            memberCapacity: number;
+                            currentNode: {
+                                id: string;
+                                chapterNo: number;
+                                regionNo: number;
+                                name: string;
+                                nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                templateKey: string;
+                                config: {
+                                    movementCost: number;
+                                    challengeCost: number;
+                                    landmark?: {
+                                        key: string;
+                                    };
+                                    event?: {
+                                        /** @enum {string} */
+                                        eventType: "combat";
+                                    } | {
+                                        eventType: "treasure" | "narrative" | "rest";
+                                        prompt: string;
+                                        choices: {
+                                            key: string;
+                                            displayName: string;
+                                            description: string;
+                                            requirements: {
+                                                movementUnits: number;
+                                                recoveryPoints: number;
+                                            };
+                                        }[];
+                                    } | {
+                                        /** @enum {string} */
+                                        eventType: "village";
+                                        settlementKey: string;
+                                    };
+                                };
+                            };
+                            challengeProgress: number;
+                            tileBalance: number;
+                            decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
+                            members: {
+                                userId: string;
+                                role: "leader" | "member";
+                                displayName: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            status: "active" | "abandoned";
+                            memberCapacity: number;
+                            currentNode: {
+                                id: string;
+                                chapterNo: number;
+                                regionNo: number;
+                                name: string;
+                                nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                templateKey: string;
+                                config: {
+                                    movementCost: number;
+                                    challengeCost: number;
+                                    landmark?: {
+                                        key: string;
+                                    };
+                                    event?: {
+                                        /** @enum {string} */
+                                        eventType: "combat";
+                                    } | {
+                                        eventType: "treasure" | "narrative" | "rest";
+                                        prompt: string;
+                                        choices: {
+                                            key: string;
+                                            displayName: string;
+                                            description: string;
+                                            requirements: {
+                                                movementUnits: number;
+                                                recoveryPoints: number;
+                                            };
+                                        }[];
+                                    } | {
+                                        /** @enum {string} */
+                                        eventType: "village";
+                                        settlementKey: string;
+                                    };
+                                };
+                            };
+                            challengeProgress: number;
+                            tileBalance: number;
+                            decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
+                            members: {
+                                userId: string;
+                                role: "leader" | "member";
+                                displayName: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            partyId: string;
+                            token: string;
+                            /** Format: date-time */
+                            expiresAt: string;
+                            maxUses: number;
+                            useCount: number;
+                            revokedAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/invites/{inviteId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                    inviteId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/members/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/members/{memberUserId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                    memberUserId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            status: "active" | "abandoned";
+                            memberCapacity: number;
+                            currentNode: {
+                                id: string;
+                                chapterNo: number;
+                                regionNo: number;
+                                name: string;
+                                nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                templateKey: string;
+                                config: {
+                                    movementCost: number;
+                                    challengeCost: number;
+                                    landmark?: {
+                                        key: string;
+                                    };
+                                    event?: {
+                                        /** @enum {string} */
+                                        eventType: "combat";
+                                    } | {
+                                        eventType: "treasure" | "narrative" | "rest";
+                                        prompt: string;
+                                        choices: {
+                                            key: string;
+                                            displayName: string;
+                                            description: string;
+                                            requirements: {
+                                                movementUnits: number;
+                                                recoveryPoints: number;
+                                            };
+                                        }[];
+                                    } | {
+                                        /** @enum {string} */
+                                        eventType: "village";
+                                        settlementKey: string;
+                                    };
+                                };
+                            };
+                            challengeProgress: number;
+                            tileBalance: number;
+                            decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
+                            members: {
+                                userId: string;
+                                role: "leader" | "member";
+                                displayName: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/leader": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        targetUserId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id: string;
+                            name: string;
+                            status: "active" | "abandoned";
+                            memberCapacity: number;
+                            currentNode: {
+                                id: string;
+                                chapterNo: number;
+                                regionNo: number;
+                                name: string;
+                                nodeType: "travel" | "dungeon" | "challenge" | "rest" | "combat" | "treasure" | "narrative" | "village";
+                                templateKey: string;
+                                config: {
+                                    movementCost: number;
+                                    challengeCost: number;
+                                    landmark?: {
+                                        key: string;
+                                    };
+                                    event?: {
+                                        /** @enum {string} */
+                                        eventType: "combat";
+                                    } | {
+                                        eventType: "treasure" | "narrative" | "rest";
+                                        prompt: string;
+                                        choices: {
+                                            key: string;
+                                            displayName: string;
+                                            description: string;
+                                            requirements: {
+                                                movementUnits: number;
+                                                recoveryPoints: number;
+                                            };
+                                        }[];
+                                    } | {
+                                        /** @enum {string} */
+                                        eventType: "village";
+                                        settlementKey: string;
+                                    };
+                                };
+                            };
+                            challengeProgress: number;
+                            tileBalance: number;
+                            decisionStartedAt: string | null;
+                            activeEncounterNodeId: string | null;
+                            members: {
+                                userId: string;
+                                role: "leader" | "member";
+                                displayName: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/village": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            nodeId: string;
+                            settlement: {
+                                key: string;
+                                displayName: string;
+                                description: string;
+                            };
+                            merchant: {
+                                key: string;
+                                displayName: string;
+                                role: string;
+                            };
+                            currency: {
+                                key: string;
+                                displayName: string;
+                                balance: number;
+                            };
+                            offers: {
+                                key: string;
+                                kind: "item" | "equipment";
+                                displayName: string;
+                                details: {
+                                    description: string;
+                                    equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                    effect: {
+                                        /** @enum {string} */
+                                        kind: "heal";
+                                        amount: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        kind: "stat-modifiers";
+                                        modifiers: {
+                                            strength?: number;
+                                            agility?: number;
+                                            vitality?: number;
+                                            insight?: number;
+                                            defense?: number;
+                                        };
+                                    } | null;
+                                };
+                                currencyKey: string;
+                                unitPrice: number;
+                                ownedQuantity: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/village/purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        catalogKey: string;
+                        quantity: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            nodeId: string;
+                            itemKey: string;
+                            displayName: string;
+                            details: {
+                                description: string;
+                                equipmentSlot: ("weapon" | "body" | "head" | "arm" | "boots" | "ring" | "shirt") | null;
+                                effect: {
+                                    /** @enum {string} */
+                                    kind: "heal";
+                                    amount: number;
+                                } | {
+                                    /** @enum {string} */
+                                    kind: "stat-modifiers";
+                                    modifiers: {
+                                        strength?: number;
+                                        agility?: number;
+                                        vitality?: number;
+                                        insight?: number;
+                                        defense?: number;
+                                    };
+                                } | null;
+                            };
+                            quantity: number;
+                            unitPrice: number;
+                            totalPrice: number;
+                            currency: {
+                                key: string;
+                                displayName: string;
+                                remainingBalance: number;
+                            };
+                            inventoryQuantity: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/village/departures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            accepted: boolean;
+                            partyId: string;
+                            nodeId: string;
+                            /** Format: date-time */
+                            deadlineAt: string;
+                            resolvedEdgeId: string | null;
+                            votes: {
+                                userId: string;
+                                edgeId: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/encounter": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            nodeId: string;
+                            /** Format: date */
+                            worldDate: string;
+                            status: "active" | "completed";
+                            enemies: {
+                                id: string;
+                                archetypeKey: string;
+                                displayName: string;
+                                maxHealth: number;
+                                currentHealth: number;
+                            }[];
+                            members: {
+                                userId: string;
+                                currentHealth: number;
+                                maxHealth: number;
+                                classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
+                                movementUnits: number;
+                                playSlots: number;
+                                cards: {
+                                    key: string;
+                                    sourceKind: "class" | "weapon" | "gear" | "item";
+                                    sourceKey: string;
+                                    classKey: ("warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard") | null;
+                                    unlockLevel: number;
+                                    displayName: string;
+                                    description: string;
+                                    targetMode: "enemy" | "ally" | "none";
+                                    repeatable: boolean;
+                                    locked: boolean;
+                                    selectedCount: number;
+                                    preview: {
+                                        effects: {
+                                            kind: "damage" | "heal" | "guard" | "rally";
+                                            baseAmount: number;
+                                            manualTargetBonus: number | null;
+                                            rallyBonus: number | null;
+                                            targetCount: number | null;
+                                            distribution: "single" | "split" | null;
+                                        }[];
+                                    } | null;
+                                }[];
+                                plan: {
+                                    itemLoadoutKeys: string[];
+                                    plays: {
+                                        cardKey: string;
+                                        targetEnemyId: string | null;
+                                        targetUserId: string | null;
+                                    }[];
+                                };
+                                reservedItems: {
+                                    itemKey: string;
+                                    quantity: number;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/encounter/plan/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        itemLoadoutKeys: string[];
+                        plays: {
+                            cardKey: string;
+                            targetEnemyId: string | null;
+                            targetUserId: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            nodeId: string;
+                            /** Format: date */
+                            worldDate: string;
+                            status: "active" | "completed";
+                            enemies: {
+                                id: string;
+                                archetypeKey: string;
+                                displayName: string;
+                                maxHealth: number;
+                                currentHealth: number;
+                            }[];
+                            members: {
+                                userId: string;
+                                currentHealth: number;
+                                maxHealth: number;
+                                classKey: "warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard";
+                                movementUnits: number;
+                                playSlots: number;
+                                cards: {
+                                    key: string;
+                                    sourceKind: "class" | "weapon" | "gear" | "item";
+                                    sourceKey: string;
+                                    classKey: ("warrior" | "rogue" | "ranger" | "cleric" | "mage" | "bard") | null;
+                                    unlockLevel: number;
+                                    displayName: string;
+                                    description: string;
+                                    targetMode: "enemy" | "ally" | "none";
+                                    repeatable: boolean;
+                                    locked: boolean;
+                                    selectedCount: number;
+                                    preview: {
+                                        effects: {
+                                            kind: "damage" | "heal" | "guard" | "rally";
+                                            baseAmount: number;
+                                            manualTargetBonus: number | null;
+                                            rallyBonus: number | null;
+                                            targetCount: number | null;
+                                            distribution: "single" | "split" | null;
+                                        }[];
+                                    } | null;
+                                }[];
+                                plan: {
+                                    itemLoadoutKeys: string[];
+                                    plays: {
+                                        cardKey: string;
+                                        targetEnemyId: string | null;
+                                        targetUserId: string | null;
+                                    }[];
+                                };
+                                reservedItems: {
+                                    itemKey: string;
+                                    quantity: number;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/item-uses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        itemKey: string;
+                        targetUserId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            itemKey: string;
+                            targetUserId: string;
+                            healedAmount: number;
+                            currentHealth: number;
+                            maxHealth: number;
+                            remainingQuantity: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/event": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            nodeId: string;
+                            /** Format: date */
+                            worldDate: string;
+                            eventType: "narrative" | "treasure" | "rest";
+                            prompt: string;
+                            choices: {
+                                key: string;
+                                displayName: string;
+                                description: string;
+                                requirements: {
+                                    movementUnits: number;
+                                    recoveryPoints: number;
+                                };
+                            }[];
+                            selectedChoiceKey: string | null;
+                            resolved: boolean;
+                            votes: {
+                                userId: string;
+                                choiceKey: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parties/{partyId}/event/choices/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    partyId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        choiceKey: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            partyId: string;
+                            nodeId: string;
+                            /** Format: date */
+                            worldDate: string;
+                            eventType: "narrative" | "treasure" | "rest";
+                            prompt: string;
+                            choices: {
+                                key: string;
+                                displayName: string;
+                                description: string;
+                                requirements: {
+                                    movementUnits: number;
+                                    recoveryPoints: number;
+                                };
+                            }[];
+                            selectedChoiceKey: string | null;
+                            resolved: boolean;
+                            votes: {
+                                userId: string;
+                                choiceKey: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/integrations/google-health/webhook": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        data: {
+                            /** @enum {string} */
+                            version: "1";
+                            clientProvidedSubscriptionName: string;
+                            healthUserId: string;
+                            operation: "UPSERT" | "DELETE";
+                            dataType: "steps" | "sleep";
+                            intervals: {
+                                physicalTimeInterval: {
+                                    startTime: string;
+                                    endTime: string;
+                                };
+                                civilIso8601TimeInterval: {
+                                    startTime: string;
+                                    endTime: string;
+                                };
+                                civilDateTimeInterval?: {
+                                    startDateTime: {
+                                        date: {
+                                            year: number;
+                                            month: number;
+                                            day: number;
+                                        };
+                                        time?: {
+                                            hours?: number;
+                                            minutes?: number;
+                                            seconds?: number;
+                                            nanos?: number;
+                                        };
+                                    };
+                                    endDateTime: {
+                                        date: {
+                                            year: number;
+                                            month: number;
+                                            day: number;
+                                        };
+                                        time?: {
+                                            hours?: number;
+                                            minutes?: number;
+                                            seconds?: number;
+                                            nanos?: number;
+                                        };
+                                    };
+                                };
+                            }[];
+                            recordId?: string;
+                        };
+                    } | {
+                        /** @enum {string} */
+                        type: "verification";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/problem+json": {
+                            type: string;
+                            title: string;
+                            status: number;
+                            detail: string;
+                            instance?: string;
+                            invalidParams?: {
+                                name: string;
+                                reason: string;
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-	schemas: never;
-	responses: never;
-	parameters: never;
-	requestBodies: never;
-	headers: never;
-	pathItems: never;
+    schemas: never;
+    responses: never;
+    parameters: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export type operations = Record<string, never>;

@@ -14,20 +14,34 @@ const state = {
 	scenario: 'branch',
 	decisionStartedAt: '2026-08-20T00:00:00.000Z',
 	selectedEdgeId: null,
-	selectedAction: null,
+	selectedEventChoice: null,
+	eventResolved: false,
+	selectedPlan: null,
 	lastMutation: { path: null, body: null },
 	healthLastSyncAt: initialHealthSync,
 	healthSyncReadyAt: null,
+	dungeonWalkDelayMs: 0,
+	dungeonRejectNext: false,
+	walkedTo: null,
+	walkCount: 0,
+	dungeonDiscovered: new Set(['tile-entry']),
 };
 
 function resetState() {
 	state.scenario = 'branch';
 	state.decisionStartedAt = '2026-08-20T00:00:00.000Z';
 	state.selectedEdgeId = null;
-	state.selectedAction = null;
+	state.selectedEventChoice = null;
+	state.eventResolved = false;
+	state.selectedPlan = null;
 	state.lastMutation = { path: null, body: null };
 	state.healthLastSyncAt = initialHealthSync;
 	state.healthSyncReadyAt = null;
+	state.dungeonWalkDelayMs = 0;
+	state.dungeonRejectNext = false;
+	state.walkedTo = null;
+	state.walkCount = 0;
+	state.dungeonDiscovered = new Set(['tile-entry']);
 }
 
 function json(response, status = 200) {
@@ -46,9 +60,26 @@ async function body(request) {
 
 function currentNodeType() {
 	if (state.scenario === 'village' || state.scenario === 'village-interior') return 'village';
-	if (state.scenario === 'combat') return 'combat';
+	if (state.scenario === 'dungeon-grid') return 'travel';
+	if (state.scenario === 'combat' || state.scenario === 'combat-stale') return 'combat';
 	if (state.scenario === 'event') return 'narrative';
 	return 'travel';
+}
+
+function isCombatScenario() {
+	return state.scenario === 'combat' || state.scenario === 'combat-stale';
+}
+
+function dungeonNavigation() {
+	return {
+		navigatorUserId: 'user-1',
+		navigatorDisplayName: 'Hero',
+		claimedAt: '2030-01-01T00:00:00.000Z',
+		lastActiveAt: '2030-01-01T00:00:00.000Z',
+		leaseExpiresAt: '2030-01-01T00:05:00.000Z',
+		routeIntent: null,
+		routeVotes: [],
+	};
 }
 
 function party() {
@@ -68,17 +99,35 @@ function party() {
 			config: {
 				movementCost: 10,
 				challengeCost: 0,
-				event:
-					state.scenario === 'combat'
-						? { eventType: 'combat' }
-						: state.scenario === 'village' || state.scenario === 'village-interior'
-							? { eventType: 'village', settlementKey: 'mossway' }
-							: state.scenario === 'event'
-								? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
-								: undefined,
+				event: isCombatScenario()
+					? { eventType: 'combat' }
+					: state.scenario === 'village' || state.scenario === 'village-interior'
+						? { eventType: 'village', settlementKey: 'mossway' }
+						: state.scenario === 'event'
+							? {
+									eventType: 'narrative',
+									prompt: 'Which light do you follow?',
+									choices: [
+										{
+											key: 'lantern',
+											displayName: 'Follow the lanterns',
+											description: 'Take the warm road.',
+											requirements: { movementUnits: 0, recoveryPoints: 0 },
+										},
+										{
+											key: 'stars',
+											displayName: 'Read the stars',
+											description: 'Trust the high path.',
+											requirements: { movementUnits: 1, recoveryPoints: 0 },
+										},
+									],
+								}
+							: undefined,
 			},
 		},
 		challengeProgress: 0,
+		tileBalance: 9,
+		activeEncounterNodeId: isCombatScenario() ? 'node-1' : null,
 		decisionStartedAt: state.decisionStartedAt,
 		members: [
 			{ userId: 'user-1', role: 'leader', displayName: 'Hero' },
@@ -102,6 +151,7 @@ function partyRoster() {
 					backgroundKey: 'wanderer',
 					backgroundName: 'Wanderer',
 					stats: { strength: 4, agility: 3, vitality: 4, insight: 2 },
+					combatStats: { strength: 5, agility: 3, vitality: 5, insight: 2, defense: 2 },
 				},
 				progression: { experience: 120, level: 2, nextLevelExperience: 400 },
 				health: { currentHealth: 20, maxHealth: 20 },
@@ -117,6 +167,7 @@ function partyRoster() {
 					backgroundKey: 'caretaker',
 					backgroundName: 'Caretaker',
 					stats: { strength: 3, agility: 4, vitality: 5, insight: 8 },
+					combatStats: { strength: 3, agility: 4, vitality: 5, insight: 8, defense: 1 },
 				},
 				progression: { experience: 400, level: 3, nextLevelExperience: 900 },
 				health: { currentHealth: 38, maxHealth: 50 },
@@ -126,6 +177,86 @@ function partyRoster() {
 }
 
 function map() {
+	if (state.scenario === 'dungeon-grid') {
+		const tile = (nodeId, kind, x, y, role, nodeType = 'travel', archetype = null, discovered = true) => {
+			const isDiscovered = state.dungeonDiscovered?.has(nodeId) ?? discovered;
+			return {
+				id: nodeId,
+				chapterNo: 1,
+				regionNo: 0,
+				name: `F1 ${kind.replaceAll('-', ' ')} ${String(x)}:${String(y)}`,
+				nodeType,
+				templateKey: `dungeon-tile-${kind}-v1`,
+				config: { movementCost: 0, challengeCost: 0 },
+				adjacent: true,
+				mapMetadata: {
+					mapId: 'map-dungeon',
+					nodeId,
+					floorNo: 0,
+					role,
+					sortOrder: x * 10 + y,
+					isEntry: kind === 'entry',
+					isExit: false,
+					tileX: x,
+					tileY: y,
+					spawnArchetype: archetype,
+				},
+				discovered: isDiscovered,
+				encounterCleared: false,
+			};
+		};
+		return {
+			currentChapter: 1,
+			currentNodeId: state.walkedTo ?? 'tile-entry',
+			currentMap: {
+				id: 'map-dungeon',
+				mapType: 'dungeon',
+				name: 'First Ruins',
+				templateKey: 'dungeon-v1',
+				parentNodeId: 'node-9',
+				entryNodeId: 'tile-entry',
+			},
+			enterableLocation: null,
+			objectives: [
+				{
+					id: 'obj-goal',
+					mapId: 'map-dungeon',
+					key: 'reach-dungeon-goal',
+					type: 'reach-node',
+					targetNodeId: 'tile-goal',
+					required: true,
+					displayName: 'Reach the Memory Well',
+					description: 'Delve to the heart of the ruins.',
+				},
+			],
+			completedObjectiveIds: [],
+			tileBalance: 9,
+			monsters: [],
+			navigation: dungeonNavigation(),
+			nodes: [
+				tile('tile-entry', 'entry', 2, 2, 'entrance'),
+				tile('tile-a', 'floor', 3, 2, 'room'),
+				tile('tile-north-a', 'floor', 3, 1, 'room'),
+				tile('tile-b', 'floor', 4, 2, 'room'),
+				tile('tile-north-b', 'floor', 4, 1, 'room'),
+				tile('tile-c', 'floor', 5, 2, 'room'),
+				tile('tile-north-c', 'floor', 5, 1, 'room'),
+				tile('tile-d', 'floor', 6, 2, 'room'),
+				tile('tile-north-d', 'floor', 6, 1, 'room'),
+				tile('tile-spawn', 'spawn', 7, 2, 'combat', 'combat', 'slime'),
+				tile('tile-north-spawn', 'floor', 7, 1, 'room'),
+				tile('tile-south-entry', 'floor', 2, 3, 'room'),
+				tile('tile-south-a', 'floor', 3, 3, 'room'),
+				tile('tile-south-b', 'floor', 4, 3, 'room'),
+				tile('tile-south-c', 'floor', 5, 3, 'room'),
+				tile('tile-south-d', 'floor', 6, 3, 'room'),
+				tile('tile-south-spawn', 'floor', 7, 3, 'room'),
+				tile('tile-treasure', 'treasure', 2, 1, 'treasure'),
+				tile('tile-goal', 'goal', 8, 2, 'goal'),
+			],
+			edges: [],
+		};
+	}
 	if (state.scenario === 'village-interior') {
 		const villageMetadata = (nodeId, sortOrder, role, isEntry = false, isExit = false) => ({
 			mapId: 'map-village',
@@ -150,6 +281,8 @@ function map() {
 			enterableLocation: null,
 			objectives: [],
 			completedObjectiveIds: [],
+			monsters: [],
+			navigation: null,
 			nodes: [
 				{
 					id: 'village-entry',
@@ -228,6 +361,8 @@ function map() {
 				: null,
 		objectives: [],
 		completedObjectiveIds: [],
+		monsters: [],
+		navigation: null,
 		nodes: [
 			{
 				id: 'node-1',
@@ -239,14 +374,13 @@ function map() {
 				config: {
 					movementCost: 10,
 					challengeCost: 0,
-					event:
-						state.scenario === 'combat'
-							? { eventType: 'combat' }
-							: state.scenario === 'village'
-								? { eventType: 'village', settlementKey: 'mossway' }
-								: state.scenario === 'event'
-									? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
-									: undefined,
+					event: isCombatScenario()
+						? { eventType: 'combat' }
+						: state.scenario === 'village'
+							? { eventType: 'village', settlementKey: 'mossway' }
+							: state.scenario === 'event'
+								? { eventType: 'narrative', prompt: 'Which light do you follow?', choices: [] }
+								: undefined,
 				},
 				discovered: true,
 				adjacent: true,
@@ -321,6 +455,33 @@ function voteState() {
 	};
 }
 
+function partyEvent() {
+	return {
+		partyId: 'party-1',
+		nodeId: 'node-1',
+		worldDate: '2026-08-20',
+		eventType: 'narrative',
+		prompt: 'Which light do you follow?',
+		choices: [
+			{
+				key: 'lantern',
+				displayName: 'Follow the lanterns',
+				description: 'Take the warm road.',
+				requirements: { movementUnits: 0, recoveryPoints: 0 },
+			},
+			{
+				key: 'stars',
+				displayName: 'Read the stars',
+				description: 'Trust the high path.',
+				requirements: { movementUnits: 1, recoveryPoints: 0 },
+			},
+		],
+		selectedChoiceKey: state.selectedEventChoice,
+		resolved: state.eventResolved,
+		votes: state.selectedEventChoice ? [{ userId: 'user-1', choiceKey: state.selectedEventChoice }] : [],
+	};
+}
+
 function dailyProgress() {
 	return {
 		partyId: 'party-1',
@@ -355,21 +516,19 @@ function dailyRecap() {
 			recoveryPoints: 4,
 			challenge: { progressBefore: 0, contribution: 0, progressAfter: 0, cost: 0, cleared: true },
 			route: null,
-			event:
-				state.scenario === 'combat' ? { eventType: 'combat', outcome: 'ongoing', selectedChoiceKey: null, selectionReason: null } : null,
-			combat:
-				state.scenario === 'combat'
-					? {
+			event: isCombatScenario() ? { eventType: 'combat', outcome: 'ongoing', selectedChoiceKey: null, selectionReason: null } : null,
+			combats: isCombatScenario()
+				? [
+						{
 							completed: false,
 							members: [
 								{
 									userId: 'user-1',
 									displayName: 'Hero',
-									actionKey: null,
-									actionName: 'Basic attack',
+									cards: [{ key: 'class:basic-attack', displayName: 'Basic Attack' }],
 									healthBefore: 20,
 									recovery: 4,
-									actionHealing: 0,
+									cardHealing: 0,
 									damageTaken: 2,
 									healthAfter: 22,
 									maxHealth: 30,
@@ -386,9 +545,11 @@ function dailyRecap() {
 									defeated: false,
 								},
 							],
-						}
-					: null,
+						},
+					]
+				: [],
 			rewards: [],
+			navigation: null,
 		},
 	};
 }
@@ -446,8 +607,8 @@ function village() {
 				displayName: 'Leather Armor',
 				details: {
 					description: 'Supple hide that turns a glancing blow into a survivable one.',
-					equipmentSlot: 'armor',
-					effect: { kind: 'stat-modifiers', modifiers: { vitality: 1 } },
+					equipmentSlot: 'body',
+					effect: { kind: 'stat-modifiers', modifiers: { defense: 1, vitality: 1 } },
 				},
 				currencyKey: 'gold',
 				unitPrice: 80,
@@ -459,11 +620,37 @@ function village() {
 				displayName: 'Leather Armlet',
 				details: {
 					description: 'A fitted wrist guard that keeps a traveler quick on their feet.',
-					equipmentSlot: 'accessory',
-					effect: { kind: 'stat-modifiers', modifiers: { agility: 1 } },
+					equipmentSlot: 'arm',
+					effect: { kind: 'stat-modifiers', modifiers: { defense: 1, agility: 1 } },
 				},
 				currencyKey: 'gold',
 				unitPrice: 60,
+				ownedQuantity: 0,
+			},
+			{
+				key: 'padded-vest',
+				kind: 'equipment',
+				displayName: 'Padded Vest',
+				details: {
+					description: 'Quilted layers that soften the first bite of a wild creature’s attack.',
+					equipmentSlot: 'body',
+					effect: { kind: 'stat-modifiers', modifiers: { defense: 1, vitality: 1 } },
+				},
+				currencyKey: 'gold',
+				unitPrice: 90,
+				ownedQuantity: 0,
+			},
+			{
+				key: 'copper-band',
+				kind: 'equipment',
+				displayName: 'Copper Band',
+				details: {
+					description: 'A warm copper ring worn by travelers who prefer a little extra force behind a blow.',
+					equipmentSlot: 'ring',
+					effect: { kind: 'stat-modifiers', modifiers: { strength: 1 } },
+				},
+				currencyKey: 'gold',
+				unitPrice: 75,
 				ownedQuantity: 0,
 			},
 		],
@@ -510,15 +697,118 @@ function inventory() {
 				},
 				quantity: 1,
 			},
+			{
+				key: 'leather-armor',
+				kind: 'equipment',
+				displayName: 'Leather Armor',
+				details: {
+					description: 'Supple hide that turns a glancing blow into a survivable one.',
+					equipmentSlot: 'body',
+					effect: { kind: 'stat-modifiers', modifiers: { defense: 1, vitality: 1 } },
+				},
+				quantity: 1,
+			},
 		],
 	};
 }
 
 function loadout() {
-	return { weapon: null, armor: null, accessory: null };
+	return { weapon: null, body: null, head: null, arm: null, boots: null, ring: null, shirt: null };
+}
+
+function effectPreview(kind, baseAmount, overrides = {}) {
+	return {
+		effects: [
+			{
+				kind,
+				baseAmount,
+				manualTargetBonus: null,
+				rallyBonus: null,
+				targetCount: null,
+				distribution: null,
+				...overrides,
+			},
+		],
+	};
 }
 
 function encounter() {
+	const plan = state.selectedPlan ?? { itemLoadoutKeys: [], plays: [] };
+	const selectedCount = (cardKey) => plan.plays.filter((play) => play.cardKey === cardKey).length;
+	const warriorCards = [
+		{
+			key: 'class:basic-attack',
+			sourceKind: 'class',
+			sourceKey: 'basic-attack',
+			classKey: 'warrior',
+			unlockLevel: 1,
+			displayName: 'Basic Attack',
+			description: 'A reliable strike against one standing enemy.',
+			targetMode: 'enemy',
+			repeatable: true,
+			locked: false,
+			selectedCount: selectedCount('class:basic-attack'),
+			preview: effectPreview('damage', 5, { targetCount: 1, distribution: 'single' }),
+		},
+		{
+			key: 'class:shield-wall',
+			sourceKind: 'class',
+			sourceKey: 'shield-wall',
+			classKey: 'warrior',
+			unlockLevel: 2,
+			displayName: 'Shield Wall',
+			description: 'Brace against the next assault, reducing incoming pressure while the party regains its footing.',
+			targetMode: 'none',
+			repeatable: false,
+			locked: false,
+			selectedCount: selectedCount('class:shield-wall'),
+			preview: effectPreview('guard', 4),
+		},
+		{
+			key: 'item:herb',
+			sourceKind: 'item',
+			sourceKey: 'herb',
+			classKey: null,
+			unlockLevel: 1,
+			displayName: 'Herb',
+			description: 'Restore a small measure of health.',
+			targetMode: 'ally',
+			repeatable: true,
+			locked: false,
+			selectedCount: selectedCount('item:herb'),
+			preview: effectPreview('heal', 10),
+		},
+	];
+	const clericCards = [
+		{
+			key: 'class:basic-attack',
+			sourceKind: 'class',
+			sourceKey: 'basic-attack',
+			classKey: 'cleric',
+			unlockLevel: 1,
+			displayName: 'Basic Attack',
+			description: 'A reliable strike against one standing enemy.',
+			targetMode: 'enemy',
+			repeatable: true,
+			locked: false,
+			selectedCount: 0,
+			preview: effectPreview('damage', 4, { targetCount: 1, distribution: 'single' }),
+		},
+		{
+			key: 'class:mend',
+			sourceKind: 'class',
+			sourceKey: 'mend',
+			classKey: 'cleric',
+			unlockLevel: 2,
+			displayName: 'Mend',
+			description: 'Restore an ally’s health.',
+			targetMode: 'ally',
+			repeatable: false,
+			locked: true,
+			selectedCount: 0,
+			preview: effectPreview('heal', 4),
+		},
+	];
 	return {
 		partyId: 'party-1',
 		nodeId: 'node-1',
@@ -531,29 +821,22 @@ function encounter() {
 				currentHealth: 20,
 				maxHealth: 20,
 				classKey: 'warrior',
-				signatureAction: {
-					key: 'shield-wall',
-					displayName: 'Shield Wall',
-					description: 'Guard the party from incoming attacks.',
-					targetMode: 'enemy',
-				},
-				selectedActionKey: state.selectedAction?.actionKey ?? null,
-				actionMode: state.selectedAction?.actionKey ? 'ability' : 'basic',
-				targetEnemyId: state.selectedAction?.targetEnemyId ?? null,
-				targetUserId: state.selectedAction?.targetUserId ?? null,
-				targetMode: 'manual',
+				movementUnits: 8,
+				playSlots: 3,
+				cards: warriorCards,
+				plan,
+				reservedItems: [],
 			},
 			{
 				userId: 'user-2',
 				currentHealth: 18,
 				maxHealth: 20,
 				classKey: 'cleric',
-				signatureAction: { key: 'mend', displayName: 'Mend', description: 'Restore health to an ally.', targetMode: 'ally' },
-				selectedActionKey: null,
-				actionMode: 'basic',
-				targetEnemyId: null,
-				targetUserId: null,
-				targetMode: 'none',
+				movementUnits: 6,
+				playSlots: 3,
+				cards: clericCards,
+				plan: { itemLoadoutKeys: [], plays: [] },
+				reservedItems: [],
 			},
 		],
 	};
@@ -579,10 +862,23 @@ async function handler(request) {
 	if (path === '/__scenario' && request.method === 'POST') {
 		const payload = await body(request);
 		state.scenario = payload.scenario ?? 'branch';
-		state.decisionStartedAt = state.scenario === 'village' || state.scenario === 'village-interior' ? null : '2026-08-20T00:00:00.000Z';
+		state.selectedPlan =
+			state.scenario === 'combat-stale'
+				? { itemLoadoutKeys: [], plays: [{ cardKey: 'class:retired-skill', targetEnemyId: 'enemy-1', targetUserId: null }] }
+				: null;
+		state.walkedTo = null;
+		state.walkCount = 0;
+		state.dungeonDiscovered = new Set(['tile-entry']);
+		state.dungeonWalkDelayMs = Math.max(0, Number(payload.dungeonWalkDelayMs ?? 0));
+		state.dungeonRejectNext = Boolean(payload.dungeonRejectNext);
+		state.decisionStartedAt =
+			state.scenario === 'village' || state.scenario === 'village-interior' || state.scenario === 'dungeon-grid'
+				? null
+				: '2026-08-20T00:00:00.000Z';
 		return json({ ok: true, scenario: state.scenario });
 	}
 	if (path === '/__last-mutation') return json(state.lastMutation);
+	if (path === '/__walk-count') return json({ count: state.walkCount ?? 0 });
 
 	if (path === '/api/v1/me' && request.method === 'GET') return json(user);
 	if (path === '/api/v1/parties' && request.method === 'GET') return json([party()]);
@@ -635,7 +931,91 @@ async function handler(request) {
 		state.lastMutation = { path, body: null };
 		return json(party());
 	}
+	if (path === '/api/v1/parties/party-1/dungeon/walk' && request.method === 'POST') {
+		const payload = await body(request);
+		state.lastMutation = { path, body: payload };
+		if (state.dungeonWalkDelayMs > 0) await new Promise((resolve) => setTimeout(resolve, state.dungeonWalkDelayMs));
+		if (state.dungeonRejectNext && payload.mode === 'manual') {
+			state.dungeonRejectNext = false;
+			return json({ detail: 'The dungeon rejects this step.' }, 409);
+		}
+		state.walkCount = (state.walkCount ?? 0) + 1;
+		if (payload.mode === 'manual') {
+			const dungeon = map();
+			const nodesById = new Map(dungeon.nodes.map((node) => [node.id, node]));
+			const deltas = {
+				up: [0, -1],
+				down: [0, 1],
+				left: [-1, 0],
+				right: [1, 0],
+			};
+			let currentNodeId = state.walkedTo ?? 'tile-entry';
+			const pathNodeIds = [];
+			let haltedReason = null;
+			for (const step of payload.steps ?? []) {
+				const current = nodesById.get(currentNodeId);
+				const delta = deltas[step];
+				if (!current || !delta || current.mapMetadata.tileX === null || current.mapMetadata.tileY === null) {
+					haltedReason = 'wall';
+					break;
+				}
+				const next = dungeon.nodes.find(
+					(node) =>
+						node.mapMetadata.floorNo === current.mapMetadata.floorNo &&
+						node.mapMetadata.tileX === current.mapMetadata.tileX + delta[0] &&
+						node.mapMetadata.tileY === current.mapMetadata.tileY + delta[1],
+				);
+				if (!next) {
+					haltedReason = 'wall';
+					break;
+				}
+				currentNodeId = next.id;
+				pathNodeIds.push(next.id);
+				state.dungeonDiscovered.add(next.id);
+			}
+			state.walkedTo = currentNodeId;
+			return json({
+				partyId: 'party-1',
+				nodeId: currentNodeId,
+				tileBalance: 8,
+				stepsTaken: pathNodeIds.length,
+				pathNodeIds,
+				revealedCount: pathNodeIds.length,
+				floorChanged: false,
+				encounterTriggeredNodeId: null,
+				haltedReason,
+				monsterMoves: [],
+				navigation: dungeonNavigation(),
+			});
+		}
+		// Auto-explore follows the fixture corridor: entry → a → b → c → d → spawn.
+		const corridor = ['tile-entry', 'tile-a', 'tile-b', 'tile-c', 'tile-d', 'tile-spawn'];
+		const currentIndex = corridor.indexOf(state.walkedTo ?? 'tile-entry');
+		const next = corridor[Math.min(corridor.length - 1, currentIndex + 1)] ?? 'tile-b';
+		state.walkedTo = next;
+		state.dungeonDiscovered.add(next);
+		return json({
+			partyId: 'party-1',
+			nodeId: next,
+			tileBalance: 8,
+			stepsTaken: 1,
+			pathNodeIds: [next],
+			revealedCount: 2,
+			floorChanged: false,
+			encounterTriggeredNodeId: null,
+			haltedReason: null,
+			monsterMoves: [],
+			navigation: dungeonNavigation(),
+		});
+	}
 	if (path === '/api/v1/parties/party-1/map' && request.method === 'GET') return json(map());
+	if (path === '/api/v1/parties/party-1/event' && request.method === 'GET') return json(partyEvent());
+	if (path === '/api/v1/parties/party-1/event/choices/me' && request.method === 'PUT') {
+		const payload = await body(request);
+		state.selectedEventChoice = payload.choiceKey ?? null;
+		state.lastMutation = { path, body: payload };
+		return json(partyEvent());
+	}
 	if (path === '/api/v1/parties/party-1/adventure') return json(adventure());
 	if (path === '/api/v1/parties/party-1/progress') return json(dailyProgress());
 	if (path === '/api/v1/parties/party-1/recap') return json(dailyRecap());
@@ -656,9 +1036,9 @@ async function handler(request) {
 		state.selectedEdgeId = payload.edgeId;
 		return json(voteState());
 	}
-	if (path === '/api/v1/parties/party-1/encounter/actions/me' && request.method === 'PUT') {
-		state.selectedAction = await body(request);
-		state.lastMutation = { path, body: state.selectedAction };
+	if (path === '/api/v1/parties/party-1/encounter/plan/me' && request.method === 'PUT') {
+		state.selectedPlan = await body(request);
+		state.lastMutation = { path, body: state.selectedPlan };
 		return json(encounter());
 	}
 	if (path === '/api/v1/parties/party-1/item-uses' && request.method === 'POST') {
